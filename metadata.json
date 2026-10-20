@@ -1,0 +1,6 @@
+{
+  "name": "No-Suit Retirement Companion",
+  "description": "Plain-English 60–65+ retirement math calculator for 2027 Social Security COLA, Medicare Part B traps, 3-Bucket nest egg plans, Roth Sweet Spots, and Scam Protection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
