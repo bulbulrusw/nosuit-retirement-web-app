@@ -9,6 +9,8 @@ interface BrandHeaderProps {
   onToggleGuide: () => void;
   onOpenGlossary: () => void;
   onOpenPrivacy: () => void;
+  onOpenChannelStudio: () => void;
+  isOwnerUnlocked?: boolean;
   onReadAloud: () => void;
   isReadingAloud: boolean;
   activePreset: PresetKey;
@@ -21,6 +23,8 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
   onToggleGuide,
   onOpenGlossary,
   onOpenPrivacy,
+  onOpenChannelStudio,
+  isOwnerUnlocked = false,
   onReadAloud,
   isReadingAloud,
   activePreset,
@@ -109,6 +113,16 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             >
               Privacy &amp; Policy
             </button>
+            {isOwnerUnlocked && (
+              <button
+                id="openChannelStudioBtn"
+                type="button"
+                onClick={onOpenChannelStudio}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-400/40 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                🔒 Owner Ad Manager
+              </button>
+            )}
             <button
               id="readAloudBtn"
               type="button"
