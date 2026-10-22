@@ -1,20 +1,26 @@
-import { AdConfig, extractGscCode } from '../components/AdSlots';
+import {
+  AdConfig,
+  DEFAULT_AD_CONFIG,
+  extractGscCode,
+  mergeWithDefaultAdConfig,
+} from '../components/AdSlots';
 import { BRAND_LOGO_BASE64 } from '../data/logoData';
 
-export function buildFullStandaloneHtml(config: AdConfig): string {
+export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFIG): string {
+  const config = mergeWithDefaultAdConfig(inputConfig);
   const cleanGsc = extractGscCode(config.gscVerificationCode);
   const bothSidebarOff = !config.sidebarRectEnabled && !config.sidebarSkyscraperEnabled;
   const serializedConfig = JSON.stringify(
     {
       gscVerificationCode: cleanGsc,
       topLeaderboardEnabled: Boolean(config.topLeaderboardEnabled),
-      topLeaderboardCode: config.topLeaderboardCode || '',
+      topLeaderboardCode: config.topLeaderboardCode,
       sidebarRectEnabled: Boolean(config.sidebarRectEnabled),
-      sidebarRectCode: config.sidebarRectCode || '',
+      sidebarRectCode: config.sidebarRectCode,
       sidebarSkyscraperEnabled: Boolean(config.sidebarSkyscraperEnabled),
       sidebarSkyscraperCode: config.sidebarSkyscraperCode || '',
       inContentBannerEnabled: Boolean(config.inContentBannerEnabled),
-      inContentBannerCode: config.inContentBannerCode || '',
+      inContentBannerCode: config.inContentBannerCode,
     },
     null,
     2
@@ -371,7 +377,7 @@ export function buildFullStandaloneHtml(config: AdConfig): string {
 
   <!-- MAIN 12-COLUMN DESKTOP GRID: 8-Col 5-Tab Calculator + 4-Col Sticky Right Sidebar -->
   <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div id="calculatorSectionAnchor" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- LEFT 8 COLUMNS (Auto-expands to lg:col-span-12 when both Sidebar Ads #2 & #3 are OFF) -->
       <div id="calculatorMainColumn" class="${bothSidebarOff ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-6">
         <!-- 5 Navigation Tabs -->
@@ -838,31 +844,33 @@ export function buildFullStandaloneHtml(config: AdConfig): string {
       </div>
     </div>
 
-    <!-- AD SLOT #4 (#adSlotInContent): In-Content Horizontal Banner between Calculator and YouTube Video Section -->
-    <aside id="adSlotInContent" aria-label="Advertisement: In-Content Horizontal Banner" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] flex flex-col items-center justify-center w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
+    <!-- AD SLOT #4 (#adSlotInContent): In-Content Horizontal Banner (728x90) Between Calculator Section and YouTube Video Showcase -->
+    <aside id="adSlotInContent" aria-label="Advertisement: In-Content Horizontal Banner" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] min-h-[90px] flex flex-col justify-center items-center overflow-x-auto w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
       <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
         <span>Advertisement · Sponsored</span>
       </div>
-      <div id="adSlotInContentBody" class="w-full min-h-[110px] flex items-center justify-center"></div>
+      <div id="adSlotInContentBody" class="w-full min-h-[90px] flex justify-center items-center overflow-x-auto"></div>
     </aside>
 
-    <!-- YOUTUBE VIDEO SECTION (#youtubeVideoSection) -->
-    <section id="youtubeVideoSection" class="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5">
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-amber-400/30 pb-4">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Official YouTube Education Hub · @NoSuitRetirement</div>
-          <h2 class="text-xl md:text-2xl font-extrabold text-white mt-1">Watch Plain-English Chalkboard Retirement Breakdowns</h2>
+    <!-- YOUTUBE VIDEO SECTION (#youtubeChannelHub / #youtubeVideoSection) -->
+    <div id="youtubeChannelHub" class="no-print">
+      <section id="youtubeVideoSection" class="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-amber-400/30 pb-4">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Official YouTube Education Hub · @NoSuitRetirement</div>
+            <h2 class="text-xl md:text-2xl font-extrabold text-white mt-1">Watch Plain-English Chalkboard Retirement Breakdowns</h2>
+          </div>
+          <a
+            href="https://www.youtube.com/@NoSuitRetirement"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-sm shadow-lg"
+          >
+            <span>▶ Subscribe on YouTube - NoSuitRetirement</span>
+          </a>
         </div>
-        <a
-          href="https://www.youtube.com/@NoSuitRetirement"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-sm shadow-lg"
-        >
-          <span>▶ Subscribe on YouTube - NoSuitRetirement</span>
-        </a>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <!-- Plain-English Glossary Modal -->
@@ -969,21 +977,21 @@ export function buildFullStandaloneHtml(config: AdConfig): string {
               <span id="labelEnableAd3">Enable Ad #3 (ON)</span>
             </label>
           </div>
-          <textarea id="adCodeSidebarSkyscraper" rows="3" placeholder="<!-- Paste 300x600 Half-Page Skyscraper or Adsterra Native Banner code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
+          <textarea id="adCodeSidebarSkyscraper" rows="3" placeholder="<!-- Paste 160x600 / 300x600 Skyscraper or Adsterra Native Banner code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
         </div>
 
         <div class="p-4 rounded-xl border bg-[#faf8f2] border-[#c5b9a5] space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div>
-              <label for="adCodeInContent" class="block font-extrabold text-slate-800 uppercase">Ad Slot #4: In-Content Horizontal Banner</label>
-              <p class="text-[11px] text-slate-500">Between Calculator &amp; YouTube (#adSlotInContent).</p>
+              <label for="adCodeInContentBanner" class="block font-extrabold text-slate-800 uppercase">Ad Slot #4: In-Content Horizontal Banner (728×90)</label>
+              <p class="text-[11px] text-slate-500">Between Calculator and YouTube Video Showcase (#adSlotInContent).</p>
             </div>
             <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold cursor-pointer bg-emerald-700 text-white border-emerald-800">
               <input id="toggleInContentBanner" type="checkbox" checked class="w-3.5 h-3.5 accent-amber-400 cursor-pointer" />
               <span id="labelEnableAd4">Enable Ad #4 (ON)</span>
             </label>
           </div>
-          <textarea id="adCodeInContent" rows="3" placeholder="<!-- Paste In-Article AdSense or Adsterra Horizontal Banner code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
+          <textarea id="adCodeInContentBanner" rows="3" placeholder="<!-- Paste 728x90 In-Content Adsterra or AdSense Banner HTML/JS code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
         </div>
       </div>
 
@@ -1028,36 +1036,110 @@ export function buildFullStandaloneHtml(config: AdConfig): string {
 
   <!-- Baked Owner Ad & SEO Configuration -->
   <script id="bakedOwnerConfigScript">
-    window.__BAKED_AD_CONFIG__ = ${serializedConfig};
+    window.DEFAULT_AD_CONFIG = ${serializedConfig};
+    window.DEFAULT_CHANNEL_CONFIG = window.DEFAULT_AD_CONFIG;
+    window.__BAKED_AD_CONFIG__ = window.DEFAULT_AD_CONFIG;
   </script>
 
   <script>
     (function () {
-      const STORAGE_KEY = 'nosuit_ad_config_v1';
+      const STORAGE_KEY = 'nosuit_ad_config_v5';
       const OWNER_PIN = '2027';
       let isOwnerUnlocked = new URLSearchParams(window.location.search).get('admin') === 'nosuit';
 
-      let adConfig = Object.assign({}, window.__BAKED_AD_CONFIG__);
+      const DEFAULT_AD_CONFIG = Object.assign({}, window.DEFAULT_AD_CONFIG || window.__BAKED_AD_CONFIG__);
+      const DEFAULT_CHANNEL_CONFIG = DEFAULT_AD_CONFIG;
+
+      let adConfig = Object.assign({}, DEFAULT_CHANNEL_CONFIG);
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) adConfig = Object.assign({}, adConfig, JSON.parse(saved));
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          adConfig = Object.assign({}, DEFAULT_CHANNEL_CONFIG, parsed, {
+            topLeaderboardCode: (parsed.topLeaderboardCode && parsed.topLeaderboardCode.trim()) ? parsed.topLeaderboardCode : DEFAULT_CHANNEL_CONFIG.topLeaderboardCode,
+            sidebarRectCode: (parsed.sidebarRectCode && parsed.sidebarRectCode.trim()) ? parsed.sidebarRectCode : DEFAULT_CHANNEL_CONFIG.sidebarRectCode,
+            sidebarSkyscraperCode: (parsed.sidebarSkyscraperCode && parsed.sidebarSkyscraperCode.trim()) ? parsed.sidebarSkyscraperCode : DEFAULT_CHANNEL_CONFIG.sidebarSkyscraperCode,
+            inContentBannerCode: (parsed.inContentBannerCode && parsed.inContentBannerCode.trim()) ? parsed.inContentBannerCode : DEFAULT_CHANNEL_CONFIG.inContentBannerCode
+          });
+        }
       } catch (e) {}
 
       const slots = [
         { num: 1, wrapId: 'adSlotTopBanner', bodyId: 'adSlotTopBannerBody', enabledKey: 'topLeaderboardEnabled', codeKey: 'topLeaderboardCode', toggleId: 'toggleTopLeaderboard', labelId: 'labelEnableAd1', inputId: 'adCodeTopLeaderboard', dims: '728 × 90 Leaderboard (Responsive)', title: 'Ad Slot #1: Top Leaderboard Banner' },
         { num: 2, wrapId: 'adSlotSidebarRect', bodyId: 'adSlotSidebarRectBody', enabledKey: 'sidebarRectEnabled', codeKey: 'sidebarRectCode', toggleId: 'toggleSidebarRect', labelId: 'labelEnableAd2', inputId: 'adCodeSidebarRect', dims: '300 × 250 Medium Rectangle', title: 'Ad Slot #2: Right Sidebar Sticky Slot #1' },
-        { num: 3, wrapId: 'adSlotSidebarSky', bodyId: 'adSlotSidebarSkyBody', enabledKey: 'sidebarSkyscraperEnabled', codeKey: 'sidebarSkyscraperCode', toggleId: 'toggleSidebarSkyscraper', labelId: 'labelEnableAd3', inputId: 'adCodeSidebarSkyscraper', dims: '300 × 600 Skyscraper / Native Banner', title: 'Ad Slot #3: Right Sidebar Sticky Slot #2' },
-        { num: 4, wrapId: 'adSlotInContent', bodyId: 'adSlotInContentBody', enabledKey: 'inContentBannerEnabled', codeKey: 'inContentBannerCode', toggleId: 'toggleInContentBanner', labelId: 'labelEnableAd4', inputId: 'adCodeInContent', dims: 'Responsive Horizontal Banner', title: 'Ad Slot #4: In-Content Horizontal Banner' }
+        { num: 3, wrapId: 'adSlotSidebarSky', bodyId: 'adSlotSidebarSkyBody', enabledKey: 'sidebarSkyscraperEnabled', codeKey: 'sidebarSkyscraperCode', toggleId: 'toggleSidebarSkyscraper', labelId: 'labelEnableAd3', inputId: 'adCodeSidebarSkyscraper', dims: '160 × 600 / 300 × 600 Skyscraper', title: 'Ad Slot #3: Right Sidebar Sticky Slot #2' },
+        { num: 4, wrapId: 'adSlotInContent', bodyId: 'adSlotInContentBody', enabledKey: 'inContentBannerEnabled', codeKey: 'inContentBannerCode', toggleId: 'toggleInContentBanner', labelId: 'labelEnableAd4', inputId: 'adCodeInContentBanner', dims: '728 × 90 In-Content Banner (Responsive)', title: 'Ad Slot #4: In-Content Horizontal Banner' }
       ];
 
-      function injectHtmlAndScripts(container, rawHtml) {
-        container.innerHTML = rawHtml;
-        container.querySelectorAll('script').forEach((oldScript) => {
-          const s = document.createElement('script');
-          Array.from(oldScript.attributes).forEach((attr) => s.setAttribute(attr.name, attr.value));
-          s.textContent = oldScript.textContent;
-          oldScript.parentNode.replaceChild(s, oldScript);
+      let adScriptQueue = Promise.resolve();
+
+      // Dedicated AdSlotRenderer helper: renders an isolated sandboxed srcdoc iframe for atOptions banner scripts
+      // or creates real DOM <script> elements via document.createElement('script') for container scripts
+      function AdSlotRenderer(container, rawHtml, slotNum) {
+        container.innerHTML = '';
+        const trimmed = (rawHtml || '').trim();
+        if (!trimmed) return;
+
+        if (/atOptions\\s*=/.test(trimmed)) {
+          const wMatch = trimmed.match(/['"]?width['"]?\\s*:\\s*(\\d+)/i);
+          const hMatch = trimmed.match(/['"]?height['"]?\\s*:\\s*(\\d+)/i);
+          const w = wMatch ? parseInt(wMatch[1], 10) : 728;
+          const h = hMatch ? parseInt(hMatch[1], 10) : 90;
+          const iframe = document.createElement('iframe');
+          iframe.title = 'Sponsored Advertisement Slot #' + slotNum;
+          iframe.width = String(w);
+          iframe.height = String(h);
+          iframe.scrolling = 'no';
+          iframe.frameBorder = '0';
+          iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation-by-user-activation');
+          iframe.className = 'border-0 overflow-hidden mx-auto shrink-0';
+          iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;overflow:hidden;}</style></head><body>' + trimmed + '</body></html>';
+          container.appendChild(iframe);
+          return;
+        }
+
+        const scriptHost = document.createElement('div');
+        scriptHost.className = 'w-full flex items-center justify-center';
+        container.appendChild(scriptHost);
+
+        const temp = document.createElement('div');
+        temp.innerHTML = trimmed;
+        const scriptDescriptors = [];
+
+        Array.from(temp.childNodes).forEach((node) => {
+          if (node.nodeName.toLowerCase() === 'script') {
+            const attrs = Array.from(node.attributes).map((a) => ({ name: a.name, value: a.value }));
+            scriptDescriptors.push({
+              attrs: attrs,
+              text: node.textContent || '',
+              hasSrc: node.hasAttribute('src')
+            });
+          } else {
+            scriptHost.appendChild(node.cloneNode(true));
+          }
         });
+
+        adScriptQueue = adScriptQueue.then(async () => {
+          for (const desc of scriptDescriptors) {
+            await new Promise((resolve) => {
+              const s = document.createElement('script');
+              s.type = 'text/javascript';
+              desc.attrs.forEach((attr) => s.setAttribute(attr.name, attr.value));
+              if (desc.hasSrc) {
+                let done = false;
+                const finish = () => { if (!done) { done = true; resolve(); } };
+                s.onload = finish;
+                s.onerror = finish;
+                setTimeout(finish, 1200);
+                scriptHost.appendChild(s);
+              } else {
+                s.textContent = desc.text;
+                scriptHost.appendChild(s);
+                resolve();
+              }
+            });
+          }
+        }).catch(() => {});
       }
 
       function applyAdLayout() {
@@ -1074,7 +1156,7 @@ export function buildFullStandaloneHtml(config: AdConfig): string {
           } else {
             wrap.classList.remove('hidden');
             if (code) {
-              injectHtmlAndScripts(body, code);
+              AdSlotRenderer(body, code, slot.num);
             } else {
               body.innerHTML = '<div class="w-full rounded-xl border-2 border-dashed border-[#c5b9a5] bg-[#f4efe2]/70 p-4 text-center"><div class="text-xs font-extrabold uppercase text-[#1b4332]">' + slot.dims + '</div><div class="text-sm font-bold text-slate-800 mt-0.5">' + slot.title + '</div></div>';
             }

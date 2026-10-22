@@ -58,7 +58,7 @@ export const YouTubeButton: React.FC<YouTubeButtonProps> = ({ variant = 'hero', 
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Subscribe on YouTube - NoSuitRetirement"
-      className={`group relative inline-flex items-center justify-center gap-3 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-[#FF0000] via-[#e60000] to-[#cc0000] text-white font-extrabold text-xs sm:text-sm tracking-tight border border-white/25 shadow-[0_6px_20px_-3px_rgba(255,0,0,0.45)] hover:shadow-[0_8px_28px_rgba(255,0,0,0.65)] hover:scale-[1.03] active:scale-[0.99] transition-all duration-200 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${className}`}
+      className={`group relative inline-flex items-center justify-center gap-2.5 sm:gap-3 px-3.5 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-[#FF0000] via-[#e60000] to-[#cc0000] text-white font-extrabold text-xs sm:text-sm tracking-tight border border-white/25 shadow-[0_6px_20px_-3px_rgba(255,0,0,0.45)] hover:shadow-[0_8px_28px_rgba(255,0,0,0.65)] hover:scale-[1.03] active:scale-[0.99] transition-all duration-200 max-w-full sm:whitespace-nowrap sm:shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${className}`}
     >
       <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white text-[#FF0000] shadow-xs transition-transform duration-200 group-hover:scale-110 shrink-0">
         <svg

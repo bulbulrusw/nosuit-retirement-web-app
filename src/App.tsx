@@ -12,7 +12,14 @@ import { UserGuideSection, TabId } from './components/UserGuideSection';
 import { PaycheckCashFlowChart, BreakevenLineChart } from './components/Charts';
 import { GlossaryModal, PrivacyModal } from './components/Modals';
 import { YouTubeButton, YOUTUBE_CHANNEL_URL } from './components/YouTubeButton';
-import { AdConfig, AdSlot, DEFAULT_AD_CONFIG, extractGscCode } from './components/AdSlots';
+import {
+  AdConfig,
+  AdSlot,
+  DEFAULT_AD_CONFIG,
+  DEFAULT_CHANNEL_CONFIG,
+  extractGscCode,
+  mergeWithDefaultAdConfig,
+} from './components/AdSlots';
 import { ChannelStudioModal, OwnerPinModal } from './components/ChannelStudioModal';
 
 const SCAM_ITEMS = [
@@ -66,7 +73,7 @@ const AUDIT_ITEMS = [
   },
 ];
 
-const AD_STORAGE_KEY = 'nosuit_ad_config_v1';
+const AD_STORAGE_KEY = 'nosuit_ad_config_v5';
 
 export default function App() {
   const [inputs, setInputs] = useState<RetirementInputs>(DEFAULT_INPUTS);
@@ -102,12 +109,12 @@ export default function App() {
     try {
       const saved = localStorage.getItem(AD_STORAGE_KEY);
       if (saved) {
-        return { ...DEFAULT_AD_CONFIG, ...JSON.parse(saved) };
+        return mergeWithDefaultAdConfig(JSON.parse(saved));
       }
     } catch {
       // ignore storage errors
     }
-    return DEFAULT_AD_CONFIG;
+    return DEFAULT_CHANNEL_CONFIG;
   });
 
   // Scam & Audit checklists
@@ -347,7 +354,7 @@ export default function App() {
 
       {/* Main 12-Column Desktop Grid: 8-Col 5-Tab Calculator + 4-Col Sticky Right Sidebar (or 12-Col Full Width when Sidebar Ads #2 & #3 are OFF) */}
       <main className="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div id="calculatorSectionAnchor" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT 8 COLUMNS (or 12 COLUMNS when both sidebar ads are OFF): 5-Tab Calculator */}
           <div
             id="calculatorMainColumn"
@@ -1511,26 +1518,33 @@ export default function App() {
           </div>
         </div>
 
-        {/* AD SLOT 4 (#adSlotInContent): In-Content Horizontal Banner between Calculator and YouTube Video Section */}
-        <AdSlot
-          id="adSlotInContent"
-          slotNumber={4}
-          enabledKey="inContentBannerEnabled"
-          slotKey="inContentBannerCode"
-          title="In-Content Horizontal Banner"
-          dimensionsLabel="Responsive Horizontal Banner (728×90 / Native In-Article)"
-          networkHint="Placed between the 5-Tab Calculator and the YouTube Video section for natural scroll engagement."
-          minHeightClass="min-h-[110px]"
-          adConfig={adConfig}
-          isOwnerUnlocked={isOwnerUnlocked}
-          onOpenStudio={() => setIsChannelStudioOpen(true)}
-        />
-
-        {/* YOUTUBE VIDEO SECTION (#youtubeVideoSection) */}
-        <section
-          id="youtubeVideoSection"
-          className="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5"
+        {/* AD SLOT 4 (#adSlotInContent): In-Content Horizontal Banner (728x90) between the Calculator Section and the YouTube Video Showcase */}
+        <div
+          className={`w-full min-h-[90px] flex justify-center items-center overflow-x-auto no-print ${
+            adConfig.inContentBannerEnabled ? '' : 'hidden'
+          }`}
         >
+          <AdSlot
+            id="adSlotInContent"
+            slotNumber={4}
+            enabledKey="inContentBannerEnabled"
+            slotKey="inContentBannerCode"
+            title="In-Content Horizontal Banner"
+            dimensionsLabel="728 × 90 In-Content Banner (Responsive)"
+            networkHint="Positioned between the Interactive Calculator Section and the YouTube Video Showcase for high engagement."
+            minHeightClass="min-h-[90px]"
+            adConfig={adConfig}
+            isOwnerUnlocked={isOwnerUnlocked}
+            onOpenStudio={() => setIsChannelStudioOpen(true)}
+          />
+        </div>
+
+        {/* YOUTUBE VIDEO SECTION (#youtubeChannelHub / #youtubeVideoSection) */}
+        <div id="youtubeChannelHub" className="no-print">
+          <section
+            id="youtubeVideoSection"
+            className="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5"
+          >
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-amber-400/30 pb-4">
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
@@ -1613,7 +1627,8 @@ export default function App() {
               </span>
             </a>
           </div>
-        </section>
+          </section>
+        </div>
       </main>
 
       <GlossaryModal isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />

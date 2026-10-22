@@ -6,6 +6,11 @@ import {
   calculateRetirementMetrics,
   formatUSD,
 } from './retirementMath.ts';
+import {
+  DEFAULT_AD_CONFIG,
+  DEFAULT_CHANNEL_CONFIG,
+  mergeWithDefaultAdConfig,
+} from '../components/AdSlots';
 
 test('default couple400k profile computes accurate Net SS, 3-Bucket allocations, and paycheck', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
@@ -63,3 +68,26 @@ test('claiming age break-even and IRMAA SSA-44 appeal logic', () => {
   assert.equal(res.mo70, 2728);
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 });
+
+test('all 4 Adsterra ad slots (#1, #2, #3, #4) are enabled and hardcoded by default', () => {
+  assert.equal(DEFAULT_AD_CONFIG.topLeaderboardEnabled, true);
+  assert.equal(DEFAULT_AD_CONFIG.sidebarRectEnabled, true);
+  assert.equal(DEFAULT_AD_CONFIG.sidebarSkyscraperEnabled, true);
+  assert.equal(DEFAULT_AD_CONFIG.inContentBannerEnabled, true);
+
+  assert.ok(DEFAULT_AD_CONFIG.topLeaderboardCode.includes('689ae6c1012387fe1c48d819d275f89a'));
+  assert.ok(DEFAULT_AD_CONFIG.sidebarRectCode.includes('a90397b0636ccb40a94c951a9b410e8f'));
+  assert.ok(DEFAULT_AD_CONFIG.sidebarSkyscraperCode.includes('4caea752f3b7fb129968dc3c9995eb52'));
+  assert.ok(DEFAULT_AD_CONFIG.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
+  assert.ok(DEFAULT_AD_CONFIG.inContentBannerCode.includes('https://bauval.org/22/0870404dd626af0ee07a6ff29938d63e'));
+
+  assert.deepEqual(DEFAULT_CHANNEL_CONFIG, DEFAULT_AD_CONFIG);
+
+  // Empty strings in partial storage must fall back to hardcoded Adsterra codes
+  const merged = mergeWithDefaultAdConfig({
+    inContentBannerCode: '   ',
+  });
+  assert.equal(merged.inContentBannerEnabled, true);
+  assert.ok(merged.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
+});
+

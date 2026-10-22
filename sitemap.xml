@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://nosuitretirement.com/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <video:video>
+      <video:thumbnail_loc>https://nosuitretirement.com/og-cola-medicare.jpg</video:thumbnail_loc>
+      <video:title>Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B</video:title>
+      <video:description>Plain-English chalkboard breakdown of how the Two-Envelope test reveals your true net Social Security deposit after Medicare Part B and Part D deductions.</video:description>
+      <video:player_loc>https://www.youtube.com/@NoSuitRetirement</video:player_loc>
+    </video:video>
+  </url>
+</urlset>
