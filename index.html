@@ -14,14 +14,14 @@
     <meta id="gscVerificationMeta" name="google-site-verification" content="YOUR_GSC_CODE" />
 
     <!-- Dynamic Google Analytics 4 (GA4) gtag.js Loader (Reads channelConfig.gaMeasurementId) -->
-    <script id="ga4GtagScript" async data-ga-measurement-id="G-XXXXXXXXXX"></script>
+    <script id="ga4GtagScript" async data-ga-measurement-id="G-66NLH28JBQ"></script>
     <script id="ga4LoaderScript">
       (function () {
         window.dataLayer = window.dataLayer || [];
         function gtag() { window.dataLayer.push(arguments); }
         window.gtag = gtag;
 
-        var defaultConfig = { gaMeasurementId: 'G-XXXXXXXXXX' };
+        var defaultConfig = { gaMeasurementId: 'G-66NLH28JBQ' };
         var savedConfig = null;
         try {
           var raw = localStorage.getItem('nosuit_ad_config_v5');
@@ -29,11 +29,11 @@
         } catch (e) {}
 
         window.channelConfig = Object.assign({}, defaultConfig, window.DEFAULT_CHANNEL_CONFIG || {}, savedConfig || {});
-        var gaId = (window.channelConfig.gaMeasurementId || 'G-XXXXXXXXXX').trim();
+        var gaId = (window.channelConfig.gaMeasurementId || 'G-66NLH28JBQ').trim();
         var scriptEl = document.getElementById('ga4GtagScript');
         if (scriptEl) {
           scriptEl.setAttribute('data-ga-measurement-id', gaId);
-          if (gaId && gaId !== 'G-XXXXXXXXXX') {
+          if (gaId && gaId !== 'G-66NLH28JBQ') {
             scriptEl.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
           }
         }
