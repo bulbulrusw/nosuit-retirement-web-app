@@ -44,34 +44,15 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
   <!-- Google Search Console Verification Tag -->
   <meta id="gscVerificationMeta" name="google-site-verification" content="${cleanGsc}" />
 
-  <!-- Dynamic Google Analytics 4 (GA4) gtag.js Loader (Reads channelConfig.gaMeasurementId) -->
-  <script id="ga4GtagScript" async data-ga-measurement-id="${cleanGaId}"${cleanGaId !== 'G-XXXXXXXXXX' ? ` src="https://www.googletagmanager.com/gtag/js?id=${cleanGaId}"` : ''}></script>
+  <!-- Google Analytics 4 (GA4) Official gtag.js (Measurement ID: ${cleanGaId}) -->
+  <script id="ga4GtagScript" async src="https://www.googletagmanager.com/gtag/js?id=${cleanGaId}" data-ga-measurement-id="${cleanGaId}"></script>
   <script id="ga4LoaderScript">
-    (function () {
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { window.dataLayer.push(arguments); }
-      window.gtag = gtag;
-
-      var defaultConfig = { gaMeasurementId: '${cleanGaId}' };
-      var savedConfig = null;
-      try {
-        var raw = localStorage.getItem('nosuit_ad_config_v5');
-        if (raw) savedConfig = JSON.parse(raw);
-      } catch (e) {}
-
-      window.channelConfig = Object.assign({}, defaultConfig, window.DEFAULT_CHANNEL_CONFIG || {}, savedConfig || {});
-      var gaId = (window.channelConfig.gaMeasurementId || '${cleanGaId}').trim();
-      var scriptEl = document.getElementById('ga4GtagScript');
-      if (scriptEl) {
-        scriptEl.setAttribute('data-ga-measurement-id', gaId);
-        if (gaId && gaId !== 'G-XXXXXXXXXX') {
-          scriptEl.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
-        }
-      }
-      window.__GA4_CONFIGURED_ID__ = gaId;
-      gtag('js', new Date());
-      gtag('config', gaId, { send_page_view: true });
-    })();
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', '${cleanGaId}');
+    window.__GA4_CONFIGURED_ID__ = '${cleanGaId}';
   </script>
 
   <!-- OpenGraph Social Cards -->
@@ -398,13 +379,12 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
     </div>
   </section>
 
-  <!-- AD SLOT #1 (#adSlotTopBanner): Top Leaderboard Banner (728x90) Above the Calculator -->
+  <!-- AD SLOT #1 (#adSlotTopBanner): Top Native Banner Above the Calculator -->
   <div class="max-w-7xl w-full mx-auto px-4 mt-4 no-print">
-    <aside id="adSlotTopBanner" aria-label="Advertisement: Top Leaderboard Banner" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] flex flex-col items-center justify-center w-full ${config.topLeaderboardEnabled ? '' : 'hidden'}">
-      <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
-        <span>Advertisement · Sponsored</span>
+    <aside id="adSlotTopBanner" aria-label="Top Native Banner" class="no-print flex flex-col items-center justify-center w-full min-h-[90px] ${config.topLeaderboardEnabled ? '' : 'hidden'}">
+      <div id="adSlotTopBannerBody" class="w-full min-h-[90px] flex items-center justify-center">
+        <div id="container-689ae6c1012387fe1c48d819d275f89a" class="w-full"></div>
       </div>
-      <div id="adSlotTopBannerBody" class="w-full min-h-[90px] flex items-center justify-center"></div>
     </aside>
   </div>
 
@@ -863,19 +843,13 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       <!-- RIGHT 4 COLUMNS: Sticky Right Sidebar for Ad Slots #2 & #3 -->
       <div id="rightAdSidebar" class="${bothSidebarOff ? 'hidden' : 'lg:col-span-4'} lg:sticky lg:top-4 space-y-6 no-print">
         <!-- AD SLOT #2 (#adSlotSidebarRect): Right Sidebar Sticky Slot #1 (300x250 Medium Rectangle) -->
-        <aside id="adSlotSidebarRect" aria-label="Advertisement: Right Sidebar Sticky Slot #1" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] flex flex-col items-center justify-center w-full ${config.sidebarRectEnabled ? '' : 'hidden'}">
-          <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
-            <span>Advertisement · Sponsored</span>
-          </div>
+        <aside id="adSlotSidebarRect" aria-label="Right Sidebar Sticky Slot #1" class="no-print flex flex-col items-center justify-center w-full min-h-[250px] ${config.sidebarRectEnabled ? '' : 'hidden'}">
           <div id="adSlotSidebarRectBody" class="w-full min-h-[250px] flex items-center justify-center"></div>
         </aside>
 
-        <!-- AD SLOT #3 (#adSlotSidebarSky): Right Sidebar Sticky Slot #2 (300x600 Skyscraper / Adsterra Native Banner) -->
-        <aside id="adSlotSidebarSky" aria-label="Advertisement: Right Sidebar Sticky Slot #2" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] flex flex-col items-center justify-center w-full ${config.sidebarSkyscraperEnabled ? '' : 'hidden'}">
-          <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
-            <span>Advertisement · Sponsored</span>
-          </div>
-          <div id="adSlotSidebarSkyBody" class="w-full min-h-[420px] lg:min-h-[540px] flex items-center justify-center"></div>
+        <!-- AD SLOT #3 (#adSlotSidebarSky): Right Sidebar Sticky Slot #2 (160x600 Skyscraper) -->
+        <aside id="adSlotSidebarSky" aria-label="Right Sidebar Sticky Slot #2" class="no-print flex flex-col items-center justify-center w-full min-h-[600px] ${config.sidebarSkyscraperEnabled ? '' : 'hidden'}">
+          <div id="adSlotSidebarSkyBody" class="w-full min-h-[600px] flex items-center justify-center"></div>
         </aside>
       </div>
     </div>
@@ -903,10 +877,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
     </section>
 
     <!-- AD SLOT #4 (#adSlotInContent): In-Content Horizontal Banner (728x90) Between Calculator Section and YouTube Video Showcase -->
-    <aside id="adSlotInContent" aria-label="Advertisement: In-Content Horizontal Banner" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] min-h-[90px] flex flex-col justify-center items-center overflow-x-auto w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
-      <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
-        <span>Advertisement · Sponsored</span>
-      </div>
+    <aside id="adSlotInContent" aria-label="In-Content Horizontal Banner" class="no-print min-h-[90px] flex justify-center items-center overflow-x-auto w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
       <div id="adSlotInContentBody" class="w-full min-h-[90px] flex justify-center items-center overflow-x-auto"></div>
     </aside>
 
@@ -1213,7 +1184,9 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
+          const rawGa = (parsed.gaMeasurementId || '').trim().toUpperCase();
           adConfig = Object.assign({}, DEFAULT_CHANNEL_CONFIG, parsed, {
+            gaMeasurementId: (!rawGa || rawGa === 'G-XXXXXXXXXX') ? 'G-66NLH28JBQ' : rawGa,
             topLeaderboardCode: (parsed.topLeaderboardCode && parsed.topLeaderboardCode.trim()) ? parsed.topLeaderboardCode : DEFAULT_CHANNEL_CONFIG.topLeaderboardCode,
             sidebarRectCode: (parsed.sidebarRectCode && parsed.sidebarRectCode.trim()) ? parsed.sidebarRectCode : DEFAULT_CHANNEL_CONFIG.sidebarRectCode,
             sidebarSkyscraperCode: (parsed.sidebarSkyscraperCode && parsed.sidebarSkyscraperCode.trim()) ? parsed.sidebarSkyscraperCode : DEFAULT_CHANNEL_CONFIG.sidebarSkyscraperCode,
@@ -1223,81 +1196,65 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       } catch (e) {}
 
       const slots = [
-        { num: 1, wrapId: 'adSlotTopBanner', bodyId: 'adSlotTopBannerBody', enabledKey: 'topLeaderboardEnabled', codeKey: 'topLeaderboardCode', toggleId: 'toggleTopLeaderboard', labelId: 'labelEnableAd1', inputId: 'adCodeTopLeaderboard', dims: '728 × 90 Leaderboard (Responsive)', title: 'Ad Slot #1: Top Leaderboard Banner' },
-        { num: 2, wrapId: 'adSlotSidebarRect', bodyId: 'adSlotSidebarRectBody', enabledKey: 'sidebarRectEnabled', codeKey: 'sidebarRectCode', toggleId: 'toggleSidebarRect', labelId: 'labelEnableAd2', inputId: 'adCodeSidebarRect', dims: '300 × 250 Medium Rectangle', title: 'Ad Slot #2: Right Sidebar Sticky Slot #1' },
-        { num: 3, wrapId: 'adSlotSidebarSky', bodyId: 'adSlotSidebarSkyBody', enabledKey: 'sidebarSkyscraperEnabled', codeKey: 'sidebarSkyscraperCode', toggleId: 'toggleSidebarSkyscraper', labelId: 'labelEnableAd3', inputId: 'adCodeSidebarSkyscraper', dims: '160 × 600 / 300 × 600 Skyscraper', title: 'Ad Slot #3: Right Sidebar Sticky Slot #2' },
-        { num: 4, wrapId: 'adSlotInContent', bodyId: 'adSlotInContentBody', enabledKey: 'inContentBannerEnabled', codeKey: 'inContentBannerCode', toggleId: 'toggleInContentBanner', labelId: 'labelEnableAd4', inputId: 'adCodeInContentBanner', dims: '728 × 90 In-Content Banner (Responsive)', title: 'Ad Slot #4: In-Content Horizontal Banner' }
+        { num: 1, wrapId: 'adSlotTopBanner', bodyId: 'adSlotTopBannerBody', enabledKey: 'topLeaderboardEnabled', codeKey: 'topLeaderboardCode', toggleId: 'toggleTopLeaderboard', labelId: 'labelEnableAd1', inputId: 'adCodeTopLeaderboard' },
+        { num: 2, wrapId: 'adSlotSidebarRect', bodyId: 'adSlotSidebarRectBody', enabledKey: 'sidebarRectEnabled', codeKey: 'sidebarRectCode', toggleId: 'toggleSidebarRect', labelId: 'labelEnableAd2', inputId: 'adCodeSidebarRect' },
+        { num: 3, wrapId: 'adSlotSidebarSky', bodyId: 'adSlotSidebarSkyBody', enabledKey: 'sidebarSkyscraperEnabled', codeKey: 'sidebarSkyscraperCode', toggleId: 'toggleSidebarSkyscraper', labelId: 'labelEnableAd3', inputId: 'adCodeSidebarSkyscraper' },
+        { num: 4, wrapId: 'adSlotInContent', bodyId: 'adSlotInContentBody', enabledKey: 'inContentBannerEnabled', codeKey: 'inContentBannerCode', toggleId: 'toggleInContentBanner', labelId: 'labelEnableAd4', inputId: 'adCodeInContentBanner' }
       ];
 
-      let adScriptQueue = Promise.resolve();
-
-      // Dedicated AdSlotRenderer helper: renders an isolated sandboxed srcdoc iframe for atOptions banner scripts
-      // or creates real DOM <script> elements via document.createElement('script') for container scripts
+      // Dedicated AdSlotRenderer:
+      // - For Ad Slots #2 (300x250), #3 (160x600), and #4 (728x90) (atOptions scripts), renders an isolated borderless srcdoc iframe
+      // - For Ad Slot #1 (Native Banner container-689ae6c1012387fe1c48d819d275f89a), mounts the container div and appends <script> via document.createElement('script')
       function AdSlotRenderer(container, rawHtml, slotNum) {
         container.innerHTML = '';
         const trimmed = (rawHtml || '').trim();
         if (!trimmed) return;
 
-        if (/atOptions\\s*=/.test(trimmed)) {
-          const wMatch = trimmed.match(/['"]?width['"]?\\s*:\\s*(\\d+)/i);
-          const hMatch = trimmed.match(/['"]?height['"]?\\s*:\\s*(\\d+)/i);
-          const w = wMatch ? parseInt(wMatch[1], 10) : 728;
-          const h = hMatch ? parseInt(hMatch[1], 10) : 90;
+        if (/atOptions\s*=/.test(trimmed)) {
+          const wMatch = trimmed.match(/['"]?width['"]?\s*:\s*(\d+)/i);
+          const hMatch = trimmed.match(/['"]?height['"]?\s*:\s*(\d+)/i);
+          const defaultW = slotNum === 2 ? 300 : slotNum === 3 ? 160 : 728;
+          const defaultH = slotNum === 2 ? 250 : slotNum === 3 ? 600 : 90;
+          const w = wMatch ? parseInt(wMatch[1], 10) : defaultW;
+          const h = hMatch ? parseInt(hMatch[1], 10) : defaultH;
           const iframe = document.createElement('iframe');
-          iframe.title = 'Sponsored Advertisement Slot #' + slotNum;
+          iframe.title = 'Ad Slot #' + slotNum;
           iframe.width = String(w);
           iframe.height = String(h);
           iframe.scrolling = 'no';
           iframe.frameBorder = '0';
-          iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation-by-user-activation');
           iframe.className = 'border-0 overflow-hidden mx-auto shrink-0';
-          iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;overflow:hidden;}</style></head><body>' + trimmed + '</body></html>';
+          iframe.srcdoc = '<!DOCTYPE html><html><body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:transparent;">' + trimmed + '</body></html>';
           container.appendChild(iframe);
           return;
         }
 
-        const scriptHost = document.createElement('div');
-        scriptHost.className = 'w-full flex items-center justify-center';
-        container.appendChild(scriptHost);
+        if (trimmed.indexOf('689ae6c1012387fe1c48d819d275f89a') !== -1) {
+          const targetDiv = document.createElement('div');
+          targetDiv.id = 'container-689ae6c1012387fe1c48d819d275f89a';
+          targetDiv.className = 'w-full';
+          container.appendChild(targetDiv);
+          const script = document.createElement('script');
+          script.async = true;
+          script.dataset.cfasync = 'false';
+          script.src = 'https://bauval.org/21/689ae6c1012387fe1c48d819d275f89a';
+          container.appendChild(script);
+          return;
+        }
 
         const temp = document.createElement('div');
         temp.innerHTML = trimmed;
-        const scriptDescriptors = [];
-
         Array.from(temp.childNodes).forEach((node) => {
           if (node.nodeName.toLowerCase() === 'script') {
-            const attrs = Array.from(node.attributes).map((a) => ({ name: a.name, value: a.value }));
-            scriptDescriptors.push({
-              attrs: attrs,
-              text: node.textContent || '',
-              hasSrc: node.hasAttribute('src')
-            });
+            const s = document.createElement('script');
+            s.async = true;
+            Array.from(node.attributes).forEach((attr) => s.setAttribute(attr.name, attr.value));
+            if (node.textContent) s.textContent = node.textContent;
+            container.appendChild(s);
           } else {
-            scriptHost.appendChild(node.cloneNode(true));
+            container.appendChild(node.cloneNode(true));
           }
         });
-
-        adScriptQueue = adScriptQueue.then(async () => {
-          for (const desc of scriptDescriptors) {
-            await new Promise((resolve) => {
-              const s = document.createElement('script');
-              s.type = 'text/javascript';
-              desc.attrs.forEach((attr) => s.setAttribute(attr.name, attr.value));
-              if (desc.hasSrc) {
-                let done = false;
-                const finish = () => { if (!done) { done = true; resolve(); } };
-                s.onload = finish;
-                s.onerror = finish;
-                setTimeout(finish, 1200);
-                scriptHost.appendChild(s);
-              } else {
-                s.textContent = desc.text;
-                scriptHost.appendChild(s);
-                resolve();
-              }
-            });
-          }
-        }).catch(() => {});
       }
 
       function applyAdLayout() {
@@ -1306,18 +1263,14 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           const body = document.getElementById(slot.bodyId);
           if (!wrap || !body) return;
           const enabled = Boolean(adConfig[slot.enabledKey]);
-          const code = (adConfig[slot.codeKey] || '').trim();
+          const code = (adConfig[slot.codeKey] || DEFAULT_CHANNEL_CONFIG[slot.codeKey] || '').trim();
 
           if (!enabled) {
             wrap.classList.add('hidden');
             body.innerHTML = '';
           } else {
             wrap.classList.remove('hidden');
-            if (code) {
-              AdSlotRenderer(body, code, slot.num);
-            } else {
-              body.innerHTML = '<div class="w-full rounded-xl border-2 border-dashed border-[#c5b9a5] bg-[#f4efe2]/70 p-4 text-center"><div class="text-xs font-extrabold uppercase text-[#1b4332]">' + slot.dims + '</div><div class="text-sm font-bold text-slate-800 mt-0.5">' + slot.title + '</div></div>';
-            }
+            AdSlotRenderer(body, code, slot.num);
           }
         });
 
@@ -1350,7 +1303,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         const gscInput = document.getElementById('gscVerificationInput');
         if (gscInput) gscInput.value = adConfig.gscVerificationCode || 'YOUR_GSC_CODE';
         const gaInput = document.getElementById('gaMeasurementIdInput');
-        if (gaInput) gaInput.value = adConfig.gaMeasurementId || 'G-XXXXXXXXXX';
+        if (gaInput) gaInput.value = adConfig.gaMeasurementId || 'G-66NLH28JBQ';
         document.getElementById('channelStudioModal')?.classList.remove('hidden');
       }
 
@@ -1406,15 +1359,14 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       });
 
       function syncGa4Config(gaId) {
-        const cleanGa = (gaId || 'G-XXXXXXXXXX').trim().toUpperCase();
+        const raw = (gaId || 'G-66NLH28JBQ').trim().toUpperCase();
+        const cleanGa = (!raw || raw === 'G-XXXXXXXXXX') ? 'G-66NLH28JBQ' : raw;
         adConfig.gaMeasurementId = cleanGa;
         window.channelConfig = Object.assign({}, window.channelConfig || {}, adConfig, { gaMeasurementId: cleanGa });
         const gaScript = document.getElementById('ga4GtagScript');
         if (gaScript) {
           gaScript.setAttribute('data-ga-measurement-id', cleanGa);
-          if (cleanGa && cleanGa !== 'G-XXXXXXXXXX') {
-            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(cleanGa);
-          }
+          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(cleanGa);
         }
         if (typeof window.gtag === 'function') {
           window.gtag('config', cleanGa, { send_page_view: true });
@@ -1427,7 +1379,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         if (typeof window.gtag !== 'function') {
           window.gtag = function () { window.dataLayer.push(arguments); };
         }
-        const gaId = (window.channelConfig && window.channelConfig.gaMeasurementId) || adConfig.gaMeasurementId || 'G-XXXXXXXXXX';
+        const gaId = (window.channelConfig && window.channelConfig.gaMeasurementId) || adConfig.gaMeasurementId || 'G-66NLH28JBQ';
         window.gtag('event', eventName, Object.assign({ send_to: gaId }, params || {}));
       }
 

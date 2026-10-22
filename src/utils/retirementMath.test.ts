@@ -10,6 +10,7 @@ import {
   DEFAULT_AD_CONFIG,
   DEFAULT_CHANNEL_CONFIG,
   DEFAULT_GA_MEASUREMENT_ID,
+  buildAtOptionsSrcDoc,
   extractGaMeasurementId,
   mergeWithDefaultAdConfig,
 } from '../components/AdSlots';
@@ -77,10 +78,12 @@ test('claiming age break-even and IRMAA SSA-44 appeal logic', () => {
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 });
 
-test('all 4 Adsterra ad slots (#1, #2, #3, #4) and GA4 Measurement ID are configured by default', () => {
-  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, 'G-XXXXXXXXXX');
+test('all 4 Adsterra ad slots (#1, #2, #3, #4) and GA4 Measurement ID G-66NLH28JBQ are hardcoded by default', () => {
+  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
   assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
-  assert.equal(extractGaMeasurementId('  g-abc1234567 '), 'G-ABC1234567');
+  assert.equal(extractGaMeasurementId(''), 'G-66NLH28JBQ');
+  assert.equal(extractGaMeasurementId('G-XXXXXXXXXX'), 'G-66NLH28JBQ');
+  assert.equal(extractGaMeasurementId('  g-66nlh28jbq '), 'G-66NLH28JBQ');
   assert.equal(
     extractGaMeasurementId('<script async src="https://www.googletagmanager.com/gtag/js?id=G-9988776655"></script>'),
     'G-9988776655'
@@ -99,17 +102,31 @@ test('all 4 Adsterra ad slots (#1, #2, #3, #4) and GA4 Measurement ID are config
 
   assert.deepEqual(DEFAULT_CHANNEL_CONFIG, DEFAULT_AD_CONFIG);
 
-  // Empty strings in partial storage must fall back to hardcoded Adsterra codes
+  // Empty strings or placeholder G-XXXXXXXXXX in localStorage must fall back to hardcoded defaults
   const merged = mergeWithDefaultAdConfig({
+    topLeaderboardCode: '   ',
+    sidebarRectCode: '',
+    sidebarSkyscraperCode: '',
     inContentBannerCode: '   ',
-    gaMeasurementId: 'g-test999999',
+    gaMeasurementId: 'G-XXXXXXXXXX',
   });
   assert.equal(merged.inContentBannerEnabled, true);
-  assert.equal(merged.gaMeasurementId, 'G-TEST999999');
+  assert.equal(merged.gaMeasurementId, 'G-66NLH28JBQ');
+  assert.ok(merged.topLeaderboardCode.includes('689ae6c1012387fe1c48d819d275f89a'));
+  assert.ok(merged.sidebarRectCode.includes('a90397b0636ccb40a94c951a9b410e8f'));
+  assert.ok(merged.sidebarSkyscraperCode.includes('4caea752f3b7fb129968dc3c9995eb52'));
   assert.ok(merged.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
+
+  const srcDoc = buildAtOptionsSrcDoc(DEFAULT_AD_CONFIG.sidebarRectCode);
+  assert.ok(
+    srcDoc.startsWith(
+      '<!DOCTYPE html><html><body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:transparent;">'
+    )
+  );
+  assert.ok(srcDoc.includes('a90397b0636ccb40a94c951a9b410e8f'));
 });
 
-test('Cookie Consent, Spouse Share Bar, and Mobile Bottom Nav Bar are properly built and exported in standalone HTML', () => {
+test('Cookie Consent, Spouse Share Bar, Mobile Bottom Nav Bar, and G-66NLH28JBQ are properly built in standalone HTML without demo placeholders', () => {
   assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'nosuit_cookie_consent_v1');
   assert.equal(SITE_CANONICAL_URL, 'https://nosuitretirement.com/');
 
@@ -126,6 +143,10 @@ test('Cookie Consent, Spouse Share Bar, and Mobile Bottom Nav Bar are properly b
   assert.equal(links.copyUrl, 'https://nosuitretirement.com/');
 
   const html = buildFullStandaloneHtml(DEFAULT_AD_CONFIG);
+  assert.ok(html.includes('https://www.googletagmanager.com/gtag/js?id=G-66NLH28JBQ'));
+  assert.ok(html.includes("gtag('config', 'G-66NLH28JBQ');"));
+  assert.ok(html.includes('id="container-689ae6c1012387fe1c48d819d275f89a"'));
+  assert.equal(html.includes('Advertisement · Sponsored'), false);
   assert.ok(html.includes('id="cookieConsentBanner"'));
   assert.ok(html.includes('id="acceptCookiesBtn"'));
   assert.ok(html.includes('id="cookiePrivacyPolicyBtn"'));

@@ -13,34 +13,15 @@
     <!-- Google Search Console Verification Tag (Editable in Channel Studio & SEO Modal) -->
     <meta id="gscVerificationMeta" name="google-site-verification" content="YOUR_GSC_CODE" />
 
-    <!-- Dynamic Google Analytics 4 (GA4) gtag.js Loader (Reads channelConfig.gaMeasurementId) -->
-    <script id="ga4GtagScript" async data-ga-measurement-id="G-66NLH28JBQ"></script>
+    <!-- Google Analytics 4 (GA4) Official gtag.js (Measurement ID: G-66NLH28JBQ) -->
+    <script id="ga4GtagScript" async src="https://www.googletagmanager.com/gtag/js?id=G-66NLH28JBQ" data-ga-measurement-id="G-66NLH28JBQ"></script>
     <script id="ga4LoaderScript">
-      (function () {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { window.dataLayer.push(arguments); }
-        window.gtag = gtag;
-
-        var defaultConfig = { gaMeasurementId: 'G-66NLH28JBQ' };
-        var savedConfig = null;
-        try {
-          var raw = localStorage.getItem('nosuit_ad_config_v5');
-          if (raw) savedConfig = JSON.parse(raw);
-        } catch (e) {}
-
-        window.channelConfig = Object.assign({}, defaultConfig, window.DEFAULT_CHANNEL_CONFIG || {}, savedConfig || {});
-        var gaId = (window.channelConfig.gaMeasurementId || 'G-66NLH28JBQ').trim();
-        var scriptEl = document.getElementById('ga4GtagScript');
-        if (scriptEl) {
-          scriptEl.setAttribute('data-ga-measurement-id', gaId);
-          if (gaId && gaId !== 'G-66NLH28JBQ') {
-            scriptEl.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
-          }
-        }
-        window.__GA4_CONFIGURED_ID__ = gaId;
-        gtag('js', new Date());
-        gtag('config', gaId, { send_page_view: true });
-      })();
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-66NLH28JBQ');
+      window.__GA4_CONFIGURED_ID__ = 'G-66NLH28JBQ';
     </script>
 
     <!-- OpenGraph Social Cards -->

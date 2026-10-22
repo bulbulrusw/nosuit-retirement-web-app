@@ -36,7 +36,7 @@ export type AdSlotEnabledKey =
   | 'sidebarSkyscraperEnabled'
   | 'inContentBannerEnabled';
 
-export const DEFAULT_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+export const DEFAULT_GA_MEASUREMENT_ID = 'G-66NLH28JBQ';
 
 export const DEFAULT_ADSTERRA_SLOT_1_CODE = `<script async="async" data-cfasync="false" src="https://bauval.org/21/689ae6c1012387fe1c48d819d275f89a"></script>
 <div id="container-689ae6c1012387fe1c48d819d275f89a"></div>`;
@@ -94,8 +94,11 @@ export function extractGaMeasurementId(rawInput?: string): string {
   const trimmed = (rawInput || '').trim();
   if (!trimmed) return DEFAULT_GA_MEASUREMENT_ID;
   const match = trimmed.match(/\b(G-[A-Z0-9]{4,})\b/i);
-  if (match && match[1]) return match[1].toUpperCase();
-  return trimmed.toUpperCase();
+  const candidate = match && match[1] ? match[1].toUpperCase() : trimmed.toUpperCase();
+  if (!candidate || candidate === 'G-XXXXXXXXXX' || /^G-X+$/i.test(candidate)) {
+    return DEFAULT_GA_MEASUREMENT_ID;
+  }
+  return candidate;
 }
 
 export function mergeWithDefaultAdConfig(partial?: Partial<AdConfig> | null): AdConfig {
@@ -107,10 +110,7 @@ export function mergeWithDefaultAdConfig(partial?: Partial<AdConfig> | null): Ad
       partial.gscVerificationCode && partial.gscVerificationCode.trim()
         ? partial.gscVerificationCode
         : DEFAULT_AD_CONFIG.gscVerificationCode,
-    gaMeasurementId:
-      partial.gaMeasurementId && partial.gaMeasurementId.trim()
-        ? extractGaMeasurementId(partial.gaMeasurementId)
-        : DEFAULT_AD_CONFIG.gaMeasurementId,
+    gaMeasurementId: extractGaMeasurementId(partial.gaMeasurementId),
     topLeaderboardEnabled:
       typeof partial.topLeaderboardEnabled === 'boolean'
         ? partial.topLeaderboardEnabled
@@ -154,8 +154,8 @@ export function extractGscCode(rawInput: string): string {
 }
 
 /**
- * Synchronizes the dynamic Google Analytics 4 (gtag.js) loader in <head>
- * with channelConfig.gaMeasurementId and ensures window.gtag is always available.
+ * Synchronizes the Google Analytics 4 (gtag.js) loader in <head>
+ * with channelConfig.gaMeasurementId (defaulting to G-66NLH28JBQ) and ensures window.gtag is always available.
  */
 export function syncGa4HeadScript(config: AdConfig): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -179,13 +179,11 @@ export function syncGa4HeadScript(config: AdConfig): void {
     loaderScript.id = 'ga4GtagScript';
     loaderScript.async = true;
     loaderScript.setAttribute('data-ga-measurement-id', cleanGaId);
-    if (cleanGaId && cleanGaId !== DEFAULT_GA_MEASUREMENT_ID) {
-      loaderScript.src = targetSrc;
-    }
+    loaderScript.src = targetSrc;
     document.head.appendChild(loaderScript);
   } else {
     loaderScript.setAttribute('data-ga-measurement-id', cleanGaId);
-    if (cleanGaId && cleanGaId !== DEFAULT_GA_MEASUREMENT_ID && loaderScript.src !== targetSrc) {
+    if (loaderScript.src !== targetSrc) {
       loaderScript.src = targetSrc;
     }
   }
@@ -208,109 +206,35 @@ export function trackGa4Event(eventName: string, params: Record<string, unknown>
       window.dataLayer!.push(args);
     };
   }
-  const gaId = window.channelConfig?.gaMeasurementId || DEFAULT_GA_MEASUREMENT_ID;
+  const gaId = extractGaMeasurementId(window.channelConfig?.gaMeasurementId);
   window.gtag('event', eventName, {
     send_to: gaId,
     ...params,
   });
 }
 
-// Sequential execution queue so multiple Adsterra atOptions scripts never clobber window.atOptions
-let adScriptQueue: Promise<void> = Promise.resolve();
-
-/**
- * Dynamically parses raw ad HTML and appends real DOM <script> elements
- * using document.createElement('script') so browser script engines execute them.
- */
-export function executeAdScriptsInContainer(container: HTMLElement, rawHtml: string): void {
-  container.innerHTML = '';
-  const trimmed = (rawHtml || '').trim();
-  if (!trimmed) return;
-
-  const temp = document.createElement('div');
-  temp.innerHTML = trimmed;
-
-  const scriptDescriptorList: Array<{
-    attrs: Array<{ name: string; value: string }>;
-    text: string;
-    hasSrc: boolean;
-  }> = [];
-
-  // First append all non-script elements (e.g., <div id="container-..."></div>)
-  Array.from(temp.childNodes).forEach((node) => {
-    if (node.nodeName.toLowerCase() === 'script') {
-      const el = node as HTMLScriptElement;
-      const attrs = Array.from(el.attributes).map((a) => ({ name: a.name, value: a.value }));
-      scriptDescriptorList.push({
-        attrs,
-        text: el.textContent || '',
-        hasSrc: el.hasAttribute('src'),
-      });
-    } else {
-      container.appendChild(node.cloneNode(true));
-    }
-  });
-
-  // Also check nested script tags if any were inside wrapper divs
-  const nestedScripts = Array.from(container.querySelectorAll('script'));
-  nestedScripts.forEach((oldScript) => {
-    const newScript = document.createElement('script');
-    newScript.type = oldScript.type || 'text/javascript';
-    Array.from(oldScript.attributes).forEach((attr) => {
-      newScript.setAttribute(attr.name, attr.value);
-    });
-    if (oldScript.textContent) {
-      newScript.textContent = oldScript.textContent;
-    }
-    oldScript.parentNode?.replaceChild(newScript, oldScript);
-  });
-
-  // Queue top-level scripts sequentially so global atOptions definitions pair with their external script
-  adScriptQueue = adScriptQueue
-    .then(async () => {
-      for (const desc of scriptDescriptorList) {
-        if (!container.isConnected) break;
-        await new Promise<void>((resolve) => {
-          const scriptEl = document.createElement('script');
-          scriptEl.type = 'text/javascript';
-          desc.attrs.forEach((attr) => {
-            scriptEl.setAttribute(attr.name, attr.value);
-          });
-
-          if (desc.hasSrc) {
-            let settled = false;
-            const finish = () => {
-              if (!settled) {
-                settled = true;
-                resolve();
-              }
-            };
-            scriptEl.onload = finish;
-            scriptEl.onerror = finish;
-            window.setTimeout(finish, 1200);
-            container.appendChild(scriptEl);
-          } else {
-            scriptEl.textContent = desc.text;
-            container.appendChild(scriptEl);
-            resolve();
-          }
-        });
-      }
-    })
-    .catch(() => {
-      // Ignore ad network load errors so calculator remains unaffected
-    });
-}
-
-function parseAtOptionsDimensions(rawHtml: string): { isAtOptions: boolean; width: number; height: number } {
+function parseAtOptionsDimensions(
+  rawHtml: string,
+  slotNumber: 1 | 2 | 3 | 4
+): { isAtOptions: boolean; width: number; height: number } {
   const isAtOptions = /atOptions\s*=/.test(rawHtml);
   const widthMatch = rawHtml.match(/['"]?width['"]?\s*:\s*(\d+)/i);
   const heightMatch = rawHtml.match(/['"]?height['"]?\s*:\s*(\d+)/i);
+  const defaultDims: Record<1 | 2 | 3 | 4, { width: number; height: number }> = {
+    1: { width: 728, height: 90 },
+    2: { width: 300, height: 250 },
+    3: { width: 160, height: 600 },
+    4: { width: 728, height: 90 },
+  };
   return {
     isAtOptions,
-    width: widthMatch ? parseInt(widthMatch[1], 10) : 728,
-    height: heightMatch ? parseInt(heightMatch[1], 10) : 90,
+    width: widthMatch ? parseInt(widthMatch[1], 10) : defaultDims[slotNumber].width,
+    height: heightMatch ? parseInt(heightMatch[1], 10) : defaultDims[slotNumber].height,
   };
+}
+
+export function buildAtOptionsSrcDoc(rawCode: string): string {
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:transparent;">${rawCode}</body></html>`;
 }
 
 export interface AdSlotRendererProps {
@@ -321,11 +245,14 @@ export interface AdSlotRendererProps {
 }
 
 /**
- * Dedicated AdSlotRenderer component that:
- * 1. Dynamically creates and appends real DOM <script> elements via document.createElement('script')
- *    inside the ad container so container-based scripts (like Ad Slot #1) execute natively.
- * 2. Renders an isolated sandboxed srcdoc <iframe> for atOptions banner scripts (like Ad Slots #2 & #4)
- *    so document.write and window.atOptions execute without colliding across multiple slots.
+ * Dedicated AdSlotRenderer component:
+ * - For Ad Slot #1 (Native Banner `container-689ae6c1012387fe1c48d819d275f89a`), mounts the
+ *   `<div id="container-689ae6c1012387fe1c48d819d275f89a"></div>` in the DOM and uses a `useEffect`
+ *   hook with `document.createElement('script')` (`script.async = true; script.dataset.cfasync = "false";`)
+ *   appended directly to the container so the native ad loads cleanly.
+ * - For Ad Slots #2 (300x250), #3 (160x600), and #4 (728x90) (and any custom `atOptions` code),
+ *   renders each slot inside its own isolated borderless `<iframe scrolling="no" frameborder="0" srcdoc="...">`
+ *   sized to match the banner so `window.atOptions` never collides across slots.
  */
 export const AdSlotRenderer: React.FC<AdSlotRendererProps> = ({
   slotId,
@@ -333,74 +260,91 @@ export const AdSlotRenderer: React.FC<AdSlotRendererProps> = ({
   rawCode,
   minHeightClass,
 }) => {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const { isAtOptions, width, height } = useMemo(() => parseAtOptionsDimensions(rawCode), [rawCode]);
+  const nativeContainerRef = useRef<HTMLDivElement>(null);
+  const { isAtOptions, width, height } = useMemo(
+    () => parseAtOptionsDimensions(rawCode, slotNumber),
+    [rawCode, slotNumber]
+  );
+
+  const isDefaultNativeSlot1 = useMemo(
+    () =>
+      !isAtOptions &&
+      (slotNumber === 1 || rawCode.includes('container-689ae6c1012387fe1c48d819d275f89a')),
+    [isAtOptions, slotNumber, rawCode]
+  );
 
   useEffect(() => {
-    const el = hostRef.current;
-    if (!el) return;
-    // For atOptions scripts (Slots #2, #3, #4), execution happens inside the isolated srcdoc iframe
-    // so document.write and window.atOptions never collide across slots on the parent window.
-    if (isAtOptions) {
-      el.innerHTML = '';
+    if (isAtOptions) return;
+    const hostEl = nativeContainerRef.current;
+    if (!hostEl) return;
+
+    // Remove any previously injected scripts on re-render while keeping the target container div
+    Array.from(hostEl.querySelectorAll('script')).forEach((s) => s.remove());
+
+    if (rawCode.includes('689ae6c1012387fe1c48d819d275f89a')) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.dataset.cfasync = 'false';
+      script.src = 'https://bauval.org/21/689ae6c1012387fe1c48d819d275f89a';
+      hostEl.appendChild(script);
       return;
     }
-    executeAdScriptsInContainer(el, rawCode);
+
+    // Fallback for any custom non-atOptions script pasted by the owner in Studio
+    const temp = document.createElement('div');
+    temp.innerHTML = rawCode.trim();
+    Array.from(temp.childNodes).forEach((node) => {
+      if (node.nodeName.toLowerCase() === 'script') {
+        const oldScript = node as HTMLScriptElement;
+        const script = document.createElement('script');
+        script.async = true;
+        Array.from(oldScript.attributes).forEach((attr) => {
+          script.setAttribute(attr.name, attr.value);
+        });
+        if (oldScript.textContent) {
+          script.textContent = oldScript.textContent;
+        }
+        hostEl.appendChild(script);
+      } else {
+        hostEl.appendChild(node.cloneNode(true));
+      }
+    });
   }, [rawCode, isAtOptions]);
 
   const iframeSrcDoc = useMemo(() => {
     if (!isAtOptions) return '';
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      overflow: hidden;
-    }
-  </style>
-</head>
-<body>
-  ${rawCode}
-</body>
-</html>`;
+    return buildAtOptionsSrcDoc(rawCode);
   }, [isAtOptions, rawCode]);
 
   return (
     <div
       id={`${slotId}Renderer`}
       data-ad-slot-renderer={slotNumber}
-      className={`w-full flex justify-center items-center overflow-x-auto rounded-xl bg-white ${minHeightClass}`}
+      className={`w-full flex justify-center items-center overflow-x-auto ${minHeightClass}`}
     >
-      {/* Real DOM script execution host via document.createElement('script') for container-based scripts (Slot #1) */}
+      {/* Ad Slot #1 Native Banner: mounts #container-689ae6c1012387fe1c48d819d275f89a and appends real <script> via useEffect */}
       {!isAtOptions && (
         <div
-          ref={hostRef}
+          ref={nativeContainerRef}
           data-ad-script-host={slotNumber}
-          className="w-full flex items-center justify-center"
-        />
+          className="w-full flex flex-col items-center justify-center"
+        >
+          {isDefaultNativeSlot1 && (
+            <div id="container-689ae6c1012387fe1c48d819d275f89a" className="w-full" />
+          )}
+        </div>
       )}
 
-      {/* Clean, borderless isolated srcdoc iframe for atOptions / document.write banner units (Slots #2, #3, #4) */}
+      {/* Isolated borderless srcdoc iframe for Ad Slots #2 (300x250), #3 (160x600), and #4 (728x90) */}
       {isAtOptions && (
         <iframe
-          title={`Sponsored Advertisement Slot #${slotNumber}`}
+          title={`Ad Slot #${slotNumber}`}
           srcDoc={iframeSrcDoc}
           width={width}
           height={height}
           scrolling="no"
           frameBorder={0}
-          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation-by-user-activation"
-          className="border-0 overflow-hidden shrink-0"
+          className="border-0 overflow-hidden shrink-0 mx-auto"
         />
       )}
     </div>
@@ -428,8 +372,6 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   slotKey,
   enabledKey,
   title,
-  dimensionsLabel,
-  networkHint,
   minHeightClass,
   maxWidthClass = 'w-full',
   adConfig,
@@ -437,7 +379,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   onOpenStudio,
 }) => {
   const isSlotEnabled = Boolean(adConfig[enabledKey]);
-  const rawCode = adConfig[slotKey]?.trim() || '';
+  const rawCode = adConfig[slotKey]?.trim() || DEFAULT_AD_CONFIG[slotKey];
 
   if (!isSlotEnabled) {
     return <aside id={id} aria-hidden="true" className="hidden no-print" />;
@@ -446,51 +388,27 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   return (
     <aside
       id={id}
-      aria-label={`Advertisement: ${title}`}
-      className={`no-print surface-card rounded-2xl p-3 bg-[#faf8f2] border border-[#d5cbb8] min-h-[90px] flex flex-col justify-center items-center overflow-x-auto ${maxWidthClass}`}
+      aria-label={title}
+      className={`no-print relative flex flex-col justify-center items-center overflow-x-auto ${minHeightClass} ${maxWidthClass}`}
     >
-      <div className="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
-        <span>Advertisement · Sponsored</span>
-        {isOwnerUnlocked && (
+      {isOwnerUnlocked && (
+        <div className="w-full flex justify-end mb-1">
           <button
             type="button"
             onClick={onOpenStudio}
-            className="text-emerald-800 hover:text-emerald-950 underline font-bold cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-800/90 hover:bg-slate-900 text-amber-300 text-[11px] font-bold cursor-pointer"
           >
             ⚙️ Edit Ad #{slotNumber}
           </button>
-        )}
-      </div>
-
-      {rawCode ? (
-        <AdSlotRenderer
-          slotId={id}
-          slotNumber={slotNumber}
-          rawCode={rawCode}
-          minHeightClass={minHeightClass}
-        />
-      ) : (
-        <div
-          className={`w-full rounded-xl border-2 border-dashed border-[#c5b9a5] bg-[#f4efe2]/70 px-4 py-4 flex flex-col items-center justify-center text-center gap-1.5 ${minHeightClass}`}
-        >
-          <span className="text-xs font-extrabold uppercase tracking-wider text-[#1b4332] font-num">
-            {dimensionsLabel}
-          </span>
-          <div className="text-sm font-bold text-slate-800">
-            Ad Slot #{slotNumber}: {title}
-          </div>
-          <p className="text-xs text-slate-600 max-w-md">{networkHint}</p>
-          {isOwnerUnlocked && (
-            <button
-              type="button"
-              onClick={onOpenStudio}
-              className="mt-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-amber-50 text-[#1b4332] border border-[#b07d4b]/50 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-            >
-              + Paste AdSense / Adsterra Code
-            </button>
-          )}
         </div>
       )}
+
+      <AdSlotRenderer
+        slotId={id}
+        slotNumber={slotNumber}
+        rawCode={rawCode}
+        minHeightClass={minHeightClass}
+      />
     </aside>
   );
 };

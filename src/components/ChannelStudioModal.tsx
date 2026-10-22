@@ -147,43 +147,43 @@ const SLOT_DEFINITIONS: Array<{
     num: 1,
     slotDomId: '#adSlotTopBanner',
     enableLabel: 'Enable Ad #1',
-    title: 'Top Leaderboard Banner (728×90)',
+    title: 'Top Native Banner above Calculator',
     subtitle: 'Appears above the 12-column calculator workspace (#adSlotTopBanner).',
     enabledKey: 'topLeaderboardEnabled',
     codeKey: 'topLeaderboardCode',
     toggleId: 'toggleTopLeaderboard',
     textareaId: 'adCodeTopLeaderboard',
-    placeholder: '<!-- Paste Google AdSense 728x90 or Adsterra Leaderboard HTML/JS code here -->',
+    placeholder: '<!-- Paste Adsterra Native Banner or Google AdSense Top Banner code here -->',
   },
   {
     num: 2,
     slotDomId: '#adSlotSidebarRect',
     enableLabel: 'Enable Ad #2',
-    title: 'Right Sidebar Sticky Slot #1 (300×250 Medium Rectangle)',
+    title: 'Right Sidebar Sticky 300×250 Rectangle',
     subtitle: 'Sticky right column beside calculator inputs (#adSlotSidebarRect).',
     enabledKey: 'sidebarRectEnabled',
     codeKey: 'sidebarRectCode',
     toggleId: 'toggleSidebarRect',
     textareaId: 'adCodeSidebarRect',
-    placeholder: '<!-- Paste AdSense 300x250 or Adsterra Medium Rectangle HTML/JS code here -->',
+    placeholder: '<!-- Paste Adsterra 300x250 or AdSense Medium Rectangle HTML/JS code here -->',
   },
   {
     num: 3,
     slotDomId: '#adSlotSidebarSky',
     enableLabel: 'Enable Ad #3',
-    title: 'Right Sidebar Sticky Slot #2 (300×600 Skyscraper / Native)',
+    title: 'Right Sidebar Sticky 160×600 Skyscraper',
     subtitle: 'Sticky right column beside calculator results (#adSlotSidebarSky).',
     enabledKey: 'sidebarSkyscraperEnabled',
     codeKey: 'sidebarSkyscraperCode',
     toggleId: 'toggleSidebarSkyscraper',
     textareaId: 'adCodeSidebarSkyscraper',
-    placeholder: '<!-- Paste 160x600 / 300x600 Skyscraper or Adsterra Native Banner code here -->',
+    placeholder: '<!-- Paste Adsterra 160x600 Skyscraper or AdSense Banner code here -->',
   },
   {
     num: 4,
     slotDomId: '#adSlotInContent',
     enableLabel: 'Enable Ad #4',
-    title: 'In-Content Horizontal Banner (728×90)',
+    title: 'In-Content 728×90 Horizontal Banner',
     subtitle: 'Between Calculator Section and YouTube Video Showcase (#adSlotInContent).',
     enabledKey: 'inContentBannerEnabled',
     codeKey: 'inContentBannerCode',
@@ -523,12 +523,12 @@ export const ChannelStudioModal: React.FC<ChannelStudioModalProps> = ({
                   htmlFor="gaMeasurementIdInput"
                   className="block text-xs font-bold text-slate-800"
                 >
-                  Google Analytics 4 Measurement ID (G-XXXXXXXXXX)
+                  Google Analytics 4 Measurement ID (G-66NLH28JBQ)
                 </label>
                 <input
                   id="gaMeasurementIdInput"
                   type="text"
-                  placeholder="G-XXXXXXXXXX"
+                  placeholder="G-66NLH28JBQ"
                   value={draft.gaMeasurementId}
                   onChange={(e) =>
                     setDraft((prev) => ({
