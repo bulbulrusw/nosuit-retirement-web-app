@@ -71,7 +71,7 @@ export const YouTubeButton: React.FC<YouTubeButtonProps> = ({ variant = 'hero', 
       </span>
       <span className="flex flex-col text-left leading-tight">
         <span className="text-[10px] uppercase tracking-wider font-semibold text-red-100">
-          Watch Plain-English Videos
+          WATCH RETIREMENT MATH IN PLAIN ENGLISH
         </span>
         <span className="text-xs sm:text-sm font-extrabold text-white">
           Subscribe on YouTube - NoSuitRetirement

@@ -1,6 +1,7 @@
 import {
   AdConfig,
   DEFAULT_AD_CONFIG,
+  extractGaMeasurementId,
   extractGscCode,
   mergeWithDefaultAdConfig,
 } from '../components/AdSlots';
@@ -9,10 +10,12 @@ import { BRAND_LOGO_BASE64 } from '../data/logoData';
 export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFIG): string {
   const config = mergeWithDefaultAdConfig(inputConfig);
   const cleanGsc = extractGscCode(config.gscVerificationCode);
+  const cleanGaId = extractGaMeasurementId(config.gaMeasurementId);
   const bothSidebarOff = !config.sidebarRectEnabled && !config.sidebarSkyscraperEnabled;
   const serializedConfig = JSON.stringify(
     {
       gscVerificationCode: cleanGsc,
+      gaMeasurementId: cleanGaId,
       topLeaderboardEnabled: Boolean(config.topLeaderboardEnabled),
       topLeaderboardCode: config.topLeaderboardCode,
       sidebarRectEnabled: Boolean(config.sidebarRectEnabled),
@@ -40,6 +43,36 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
 
   <!-- Google Search Console Verification Tag -->
   <meta id="gscVerificationMeta" name="google-site-verification" content="${cleanGsc}" />
+
+  <!-- Dynamic Google Analytics 4 (GA4) gtag.js Loader (Reads channelConfig.gaMeasurementId) -->
+  <script id="ga4GtagScript" async data-ga-measurement-id="${cleanGaId}"${cleanGaId !== 'G-XXXXXXXXXX' ? ` src="https://www.googletagmanager.com/gtag/js?id=${cleanGaId}"` : ''}></script>
+  <script id="ga4LoaderScript">
+    (function () {
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
+
+      var defaultConfig = { gaMeasurementId: '${cleanGaId}' };
+      var savedConfig = null;
+      try {
+        var raw = localStorage.getItem('nosuit_ad_config_v5');
+        if (raw) savedConfig = JSON.parse(raw);
+      } catch (e) {}
+
+      window.channelConfig = Object.assign({}, defaultConfig, window.DEFAULT_CHANNEL_CONFIG || {}, savedConfig || {});
+      var gaId = (window.channelConfig.gaMeasurementId || '${cleanGaId}').trim();
+      var scriptEl = document.getElementById('ga4GtagScript');
+      if (scriptEl) {
+        scriptEl.setAttribute('data-ga-measurement-id', gaId);
+        if (gaId && gaId !== 'G-XXXXXXXXXX') {
+          scriptEl.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+        }
+      }
+      window.__GA4_CONFIGURED_ID__ = gaId;
+      gtag('js', new Date());
+      gtag('config', gaId, { send_page_view: true });
+    })();
+  </script>
 
   <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website" />
@@ -183,7 +216,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col pb-20 md:pb-0">
 
   <!-- Top Privacy & Senior Accessibility Bar (Public Studio Buttons Hidden From Regular Visitors) -->
   <div class="bg-[#143325] text-amber-100 border-b-2 border-[#b07d4b] px-4 py-2 text-sm no-print">
@@ -287,7 +320,10 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
           </span>
-          <span>Subscribe on YouTube - NoSuitRetirement</span>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-[10px] uppercase tracking-wider font-semibold text-red-100">WATCH RETIREMENT MATH IN PLAIN ENGLISH</span>
+            <span class="text-xs sm:text-sm font-extrabold text-white">Subscribe on YouTube - NoSuitRetirement</span>
+          </span>
         </a>
 
         <div class="bg-[#143325]/90 border border-amber-400/40 rounded-xl p-2.5 w-full sm:w-auto flex flex-col gap-1.5">
@@ -373,7 +409,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
   </div>
 
   <!-- Toast Notification -->
-  <div id="appToast" class="hidden fixed bottom-5 right-5 z-50 bg-[#1b4332] text-amber-200 border-2 border-amber-400 px-4 py-3 rounded-xl shadow-2xl font-semibold text-sm max-w-sm"></div>
+  <div id="appToast" class="hidden fixed bottom-20 md:bottom-5 right-5 z-50 bg-[#1b4332] text-amber-200 border-2 border-amber-400 px-4 py-3 rounded-xl shadow-2xl font-semibold text-sm max-w-sm"></div>
 
   <!-- MAIN 12-COLUMN DESKTOP GRID: 8-Col 5-Tab Calculator + 4-Col Sticky Right Sidebar -->
   <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-8">
@@ -844,6 +880,28 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       </div>
     </div>
 
+    <!-- SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator -->
+    <section id="spouseShareBar" aria-label="Share With Your Spouse or Retirement Friend" class="no-print bg-white rounded-2xl p-4 md:p-5 border-2 border-[#b07d4b] shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-900 bg-emerald-100/80 px-2.5 py-0.5 rounded-md border border-emerald-300">
+          <span>🤝 Kitchen-Table Family Planning</span>
+        </div>
+        <h2 class="text-base md:text-lg font-extrabold text-slate-900">Share With Your Spouse or Retirement Friend</h2>
+        <p class="text-xs text-slate-600 max-w-2xl leading-relaxed">Send your personalized 2027 Social Security &amp; 3-Bucket snapshot to your spouse by email, or share this free private calculator with a friend retiring soon.</p>
+      </div>
+      <div class="w-full lg:w-auto flex flex-wrap items-center gap-2.5 shrink-0">
+        <a id="shareFacebookBtn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fnosuitretirement.com%2F" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-extrabold text-xs shadow-sm transition-colors whitespace-nowrap">
+          <span>📘 Facebook Share</span>
+        </a>
+        <a id="shareEmailSpouseBtn" href="mailto:?subject=Our%202027%20No-Suit%20Retirement%20Numbers%20%26%203-Bucket%20Plan&amp;body=Hi%20%E2%80%94%20I%20ran%20our%20retirement%20numbers%20on%20the%20No-Suit%20Retirement%20Calculator%3A%20https%3A%2F%2Fnosuitretirement.com%2F" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs border border-amber-400/50 shadow-sm transition-colors whitespace-nowrap">
+          <span>✉️ Email to Spouse</span>
+        </a>
+        <button id="copyWebsiteLinkBtn" type="button" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm transition-colors cursor-pointer whitespace-nowrap">
+          <span id="copyWebsiteLinkLabel">🔗 Copy Website Link</span>
+        </button>
+      </div>
+    </section>
+
     <!-- AD SLOT #4 (#adSlotInContent): In-Content Horizontal Banner (728x90) Between Calculator Section and YouTube Video Showcase -->
     <aside id="adSlotInContent" aria-label="Advertisement: In-Content Horizontal Banner" class="no-print bg-[#faf8f2] rounded-2xl p-3 border border-[#d5cbb8] min-h-[90px] flex flex-col justify-center items-center overflow-x-auto w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
       <div class="w-full flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider pb-2 mb-2 border-b border-slate-200/80">
@@ -859,15 +917,70 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           <div>
             <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Official YouTube Education Hub · @NoSuitRetirement</div>
             <h2 class="text-xl md:text-2xl font-extrabold text-white mt-1">Watch Plain-English Chalkboard Retirement Breakdowns</h2>
+            <p class="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and 1984 Ghost Tax shields.</p>
           </div>
           <a
             href="https://www.youtube.com/@NoSuitRetirement"
             target="_blank"
             rel="noopener noreferrer"
+            data-ga-event="youtube_video_play"
+            data-video-title="Subscribe on YouTube - NoSuitRetirement"
             class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-sm shadow-lg"
           >
             <span>▶ Subscribe on YouTube - NoSuitRetirement</span>
           </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-1.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Episode Spotlight · COLA &amp; Medicare</div>
+              <div class="text-sm font-extrabold text-white">Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B</div>
+              <p class="text-xs text-emerald-100/90 leading-relaxed">How the Two-Envelope test reveals your true net deposit—and how to protect your buying power.</p>
+            </div>
+            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
+          </a>
+          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-1.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Episode Spotlight · $400K Nest Egg Math</div>
+              <div class="text-sm font-extrabold text-white">How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash</div>
+              <p class="text-xs text-emerald-100/90 leading-relaxed">Setting up your 3-Bucket Crash Shield with 8 full years of protected cash and T-Bill runway.</p>
+            </div>
+            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
+          </a>
+          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Beating the 1984 IRS Ghost Tax & Filing Form SSA-44 After Retirement" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-1.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Episode Spotlight · Tax &amp; IRMAA Shield</div>
+              <div class="text-sm font-extrabold text-white">Beating the 1984 IRS "Ghost Tax" &amp; Filing Form SSA-44 After Retirement</div>
+              <p class="text-xs text-emerald-100/90 leading-relaxed">How to use the Roth valve to drop out of the 85% tax zone and erase Medicare IRMAA surcharges.</p>
+            </div>
+            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
+          </a>
+        </div>
+        <div class="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-amber-200/90 font-semibold">Senior Tools &amp; Official Links:</span>
+            <a
+              href="https://www.treasurydirect.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="affiliate_click"
+              data-affiliate="TreasuryDirect Bucket 2 T-Bills"
+              class="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+            >
+              🏦 Bucket 2 T-Bill &amp; HYSA Rates →
+            </a>
+            <a
+              href="https://www.ssa.gov/forms/ssa-44.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="affiliate_click"
+              data-affiliate="Official IRS/SSA Form SSA-44 PDF"
+              class="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+            >
+              📄 Official Form SSA-44 (PDF) →
+            </a>
+          </div>
         </div>
       </section>
     </div>
@@ -892,10 +1005,19 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
   <div id="privacyModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 border-4 border-[#1b4332] shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
-        <h2 class="text-xl font-extrabold text-[#1b4332]">🔒 Privacy Policy, Data Safety &amp; Disclaimers</h2>
+        <h2 class="text-xl font-extrabold text-[#1b4332]">🔒 Privacy Policy, Cookie Consent &amp; Data Safety</h2>
         <button id="closePrivacyBtn" type="button" class="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 font-bold text-sm">✕ Close</button>
       </div>
-      <p class="text-xs text-slate-700 leading-relaxed">No-Suit Retirement Companion runs 100% locally in your browser. Zero personal data or financial inputs are ever transmitted or stored on external servers.</p>
+      <div class="space-y-3 text-xs md:text-sm text-slate-800 leading-relaxed">
+        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300">
+          <div class="font-extrabold text-emerald-950">1. 100% Local Retirement Math — Zero Financial Data Collection</div>
+          <p class="mt-1">No-Suit Retirement Companion runs all retirement calculations 100% locally in your browser. Zero personal financial numbers, Social Security estimates, tax inputs, or family binder notes are ever transmitted or stored on external servers.</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
+          <div class="font-extrabold text-amber-950">2. Google AdSense, Partner Ads &amp; Cookie Consent Disclosure</div>
+          <p class="mt-1">To keep this senior retirement calculator 100% free, this website displays clearly labeled sponsored advertisements (including Google AdSense and partner display networks) and uses anonymous Google Analytics 4 traffic measurement. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this or other websites. You may opt out of personalized advertising at <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" class="underline font-bold">Google Ads Settings</a>. Your cookie consent choice is stored locally in your browser's <code>localStorage</code>.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -995,10 +1117,18 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         </div>
       </div>
 
-      <!-- Google Search Console Verification Input -->
-      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 space-y-2 text-xs">
-        <label for="gscVerificationInput" class="block font-extrabold text-emerald-950 uppercase">Google Search Console Verification Code (https://nosuitretirement.com/)</label>
-        <input id="gscVerificationInput" type="text" value="${cleanGsc}" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-xs" />
+      <!-- Google Search Console & Google Analytics 4 (GA4) Inputs -->
+      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 space-y-3 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label for="gscVerificationInput" class="block font-extrabold text-emerald-950 uppercase">Google Search Console Verification Code (https://nosuitretirement.com/)</label>
+            <input id="gscVerificationInput" type="text" value="${cleanGsc}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-xs" />
+          </div>
+          <div>
+            <label for="gaMeasurementIdInput" class="block font-extrabold text-emerald-950 uppercase">Google Analytics 4 Measurement ID (G-XXXXXXXXXX)</label>
+            <input id="gaMeasurementIdInput" type="text" placeholder="G-XXXXXXXXXX" value="${cleanGaId}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-xs" />
+          </div>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
@@ -1033,6 +1163,34 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       </div>
     </div>
   </footer>
+
+  <!-- Google AdSense-Compliant Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) -->
+  <aside id="cookieConsentBanner" role="region" aria-label="Cookie and Privacy Consent" class="no-print fixed bottom-14 md:bottom-0 inset-x-0 z-50 bg-[#143325] text-amber-100 border-t-2 border-amber-400 shadow-2xl px-4 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div class="text-xs leading-relaxed max-w-4xl">
+        <strong class="text-amber-300 font-extrabold uppercase tracking-wide">🍪 Cookie &amp; AdSense Privacy Notice:</strong> We use cookies and standard web technologies to serve policy-compliant ads (Google AdSense &amp; partner networks) and measure anonymous site traffic. <strong class="text-white">100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.</strong>
+      </div>
+      <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+        <button id="cookiePrivacyPolicyBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs border border-amber-400/40 transition-colors cursor-pointer whitespace-nowrap">Privacy Policy</button>
+        <button id="acceptCookiesBtn" type="button" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-md transition-colors cursor-pointer whitespace-nowrap">Accept Cookies</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sticky Mobile Bottom Navigation Bar (#mobileBottomNavBar) -->
+  <nav id="mobileBottomNavBar" aria-label="Mobile Quick Navigation" class="no-print md:hidden fixed bottom-0 inset-x-0 z-40 h-14 bg-[#143325] border-t-2 border-amber-400 shadow-2xl px-2 flex items-center">
+    <div class="grid grid-cols-3 gap-1.5 max-w-md w-full mx-auto">
+      <button id="mobileNavCalculatorBtn" type="button" class="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-amber-200 font-extrabold text-xs border border-amber-400/30 cursor-pointer">
+        <span>🧮 Calculator</span>
+      </button>
+      <button id="mobileNavVideosBtn" type="button" class="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-white font-extrabold text-xs border border-amber-400/30 cursor-pointer">
+        <span>▶️ 3 Videos</span>
+      </button>
+      <button id="mobileNavBinderBtn" type="button" class="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm cursor-pointer">
+        <span>🖨️ Print Binder</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- Baked Owner Ad & SEO Configuration -->
   <script id="bakedOwnerConfigScript">
@@ -1189,6 +1347,10 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
             input.disabled = !isOn;
           }
         });
+        const gscInput = document.getElementById('gscVerificationInput');
+        if (gscInput) gscInput.value = adConfig.gscVerificationCode || 'YOUR_GSC_CODE';
+        const gaInput = document.getElementById('gaMeasurementIdInput');
+        if (gaInput) gaInput.value = adConfig.gaMeasurementId || 'G-XXXXXXXXXX';
         document.getElementById('channelStudioModal')?.classList.remove('hidden');
       }
 
@@ -1243,6 +1405,80 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         });
       });
 
+      function syncGa4Config(gaId) {
+        const cleanGa = (gaId || 'G-XXXXXXXXXX').trim().toUpperCase();
+        adConfig.gaMeasurementId = cleanGa;
+        window.channelConfig = Object.assign({}, window.channelConfig || {}, adConfig, { gaMeasurementId: cleanGa });
+        const gaScript = document.getElementById('ga4GtagScript');
+        if (gaScript) {
+          gaScript.setAttribute('data-ga-measurement-id', cleanGa);
+          if (cleanGa && cleanGa !== 'G-XXXXXXXXXX') {
+            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(cleanGa);
+          }
+        }
+        if (typeof window.gtag === 'function') {
+          window.gtag('config', cleanGa, { send_page_view: true });
+        }
+      }
+
+      // Automatic GA4 Custom Event Tracking helper
+      function trackGa4Event(eventName, params) {
+        window.dataLayer = window.dataLayer || [];
+        if (typeof window.gtag !== 'function') {
+          window.gtag = function () { window.dataLayer.push(arguments); };
+        }
+        const gaId = (window.channelConfig && window.channelConfig.gaMeasurementId) || adConfig.gaMeasurementId || 'G-XXXXXXXXXX';
+        window.gtag('event', eventName, Object.assign({ send_to: gaId }, params || {}));
+      }
+
+      // Delegated GA4 tracking for Calculator Tab switches, $5 Gumroad button, YouTube videos, and Affiliate links
+      document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!target || typeof target.closest !== 'function') return;
+
+        const tabBtn = target.closest('[data-tab], [data-goto-tab]');
+        if (tabBtn) {
+          const tabId = tabBtn.getAttribute('data-tab') || tabBtn.getAttribute('data-goto-tab') || '';
+          trackGa4Event('calculator_tab_switch', {
+            event_category: 'calculator_navigation',
+            tab_id: tabId,
+            tab_name: (tabBtn.textContent || '').trim()
+          });
+          return;
+        }
+
+        const gumroadEl = target.closest('[data-ga-event="gumroad_click"], #gumroadCtaBtn, a[href*="gumroad.com"]');
+        if (gumroadEl) {
+          trackGa4Event('gumroad_click', {
+            event_category: 'monetization',
+            item_name: gumroadEl.getAttribute('data-item-name') || '$5 Printable Retirement Workbook',
+            value: 5,
+            currency: 'USD',
+            link_url: gumroadEl.href || 'https://nosuitretirement.gumroad.com/'
+          });
+          return;
+        }
+
+        const affiliateEl = target.closest('[data-ga-event="affiliate_click"], [data-affiliate], .affiliate-link');
+        if (affiliateEl) {
+          trackGa4Event('affiliate_click', {
+            event_category: 'affiliate_monetization',
+            partner_name: affiliateEl.getAttribute('data-affiliate') || (affiliateEl.textContent || '').trim(),
+            link_url: affiliateEl.href || ''
+          });
+          return;
+        }
+
+        const ytEl = target.closest('[data-ga-event="youtube_video_play"], #youtubeVideoSection a, a[href*="youtube.com"], a[href*="youtu.be"]');
+        if (ytEl) {
+          trackGa4Event('youtube_video_play', {
+            event_category: 'video_engagement',
+            video_title: ytEl.getAttribute('data-video-title') || (ytEl.textContent || '').trim(),
+            link_url: ytEl.href || 'https://www.youtube.com/@NoSuitRetirement'
+          });
+        }
+      });
+
       function saveStudioValues() {
         slots.forEach((s) => {
           adConfig[s.enabledKey] = Boolean(document.getElementById(s.toggleId)?.checked);
@@ -1252,6 +1488,8 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         adConfig.gscVerificationCode = gscVal;
         const meta = document.getElementById('gscVerificationMeta');
         if (meta) meta.setAttribute('content', gscVal);
+        const gaVal = (document.getElementById('gaMeasurementIdInput')?.value || '').trim() || 'G-XXXXXXXXXX';
+        syncGa4Config(gaVal);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(adConfig));
         applyAdLayout();
       }
@@ -1267,7 +1505,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         const cloneDoc = document.documentElement.cloneNode(true);
         const bakedScript = cloneDoc.querySelector('#bakedOwnerConfigScript');
         if (bakedScript) {
-          bakedScript.textContent = '\\n    window.__BAKED_AD_CONFIG__ = ' + JSON.stringify(adConfig, null, 2) + ';\\n  ';
+          bakedScript.textContent = '\\n    window.DEFAULT_AD_CONFIG = ' + JSON.stringify(adConfig, null, 2) + ';\\n    window.DEFAULT_CHANNEL_CONFIG = window.DEFAULT_AD_CONFIG;\\n    window.__BAKED_AD_CONFIG__ = window.DEFAULT_AD_CONFIG;\\n  ';
         }
         const blob = new Blob(['<!DOCTYPE html>\\n' + cloneDoc.outerHTML], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -1498,9 +1736,127 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       });
       document.getElementById('openGlossaryBtn')?.addEventListener('click', () => document.getElementById('glossaryModal')?.classList.remove('hidden'));
       document.getElementById('closeGlossaryBtn')?.addEventListener('click', () => document.getElementById('glossaryModal')?.classList.add('hidden'));
+      document.getElementById('openPrivacyBtn')?.addEventListener('click', () => document.getElementById('privacyModal')?.classList.remove('hidden'));
       document.getElementById('openPrivacyFooterBtn')?.addEventListener('click', () => document.getElementById('privacyModal')?.classList.remove('hidden'));
+      document.getElementById('cookiePrivacyPolicyBtn')?.addEventListener('click', () => document.getElementById('privacyModal')?.classList.remove('hidden'));
       document.getElementById('closePrivacyBtn')?.addEventListener('click', () => document.getElementById('privacyModal')?.classList.add('hidden'));
       document.getElementById('printPlanBtn')?.addEventListener('click', () => window.print());
+
+      function showToast(msg) {
+        const t = document.getElementById('appToast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.remove('hidden');
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(() => t.classList.add('hidden'), 3500);
+      }
+
+      // 1. Cookie & Privacy Consent Banner (localStorage 'nosuit_cookie_consent_v1')
+      const COOKIE_CONSENT_KEY = 'nosuit_cookie_consent_v1';
+      const cookieBanner = document.getElementById('cookieConsentBanner');
+      try {
+        if (localStorage.getItem(COOKIE_CONSENT_KEY) === 'accepted' && cookieBanner) {
+          cookieBanner.classList.add('hidden');
+        }
+      } catch (e) {}
+
+      document.getElementById('acceptCookiesBtn')?.addEventListener('click', () => {
+        try {
+          localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+        } catch (e) {}
+        cookieBanner?.classList.add('hidden');
+        trackGa4Event('cookie_consent_accepted', { event_category: 'compliance', consent_status: 'accepted' });
+        showToast('Cookie & privacy preferences saved.');
+      });
+
+      // 2. Share With Your Spouse or Retirement Friend Bar (#spouseShareBar)
+      function updateSpouseShareLinks() {
+        const netSS = document.getElementById('kpiNetSS')?.textContent || '$2,770/mo';
+        const totalCheck = document.getElementById('kpiTotalPaycheck')?.textContent || '$4,270/mo';
+        const b1 = document.getElementById('bucket1Amt')?.textContent || '$36,000';
+        const subject = encodeURIComponent('Our 2027 No-Suit Retirement Numbers & 3-Bucket Plan');
+        const body = encodeURIComponent(
+          'Hi — I ran our retirement numbers on the No-Suit Retirement Calculator (100% private in-browser tool):\\n\\n' +
+          '• 2027 True Net Social Security: ' + netSS + '\\n' +
+          '• Total Monthly Retirement Paycheck: ' + totalCheck + '\\n' +
+          '• Bucket 1 Safe Cash Shield (24 Months): ' + b1 + '\\n\\n' +
+          'Try the calculator here: https://nosuitretirement.com/'
+        );
+        const emailBtn = document.getElementById('shareEmailSpouseBtn');
+        if (emailBtn) emailBtn.setAttribute('href', 'mailto:?subject=' + subject + '&body=' + body);
+      }
+
+      document.getElementById('copyWebsiteLinkBtn')?.addEventListener('click', () => {
+        const siteUrl = 'https://nosuitretirement.com/';
+        const label = document.getElementById('copyWebsiteLinkLabel');
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(siteUrl).catch(() => {});
+        }
+        if (label) {
+          label.textContent = '✓ Link Copied!';
+          setTimeout(() => { label.textContent = '🔗 Copy Website Link'; }, 3000);
+        }
+        trackGa4Event('share_action', { event_category: 'viral_share', method: 'copy_website_link', link_url: siteUrl });
+        showToast('Website link (https://nosuitretirement.com/) copied to clipboard!');
+      });
+
+      document.getElementById('shareFacebookBtn')?.addEventListener('click', () => {
+        trackGa4Event('share_action', { event_category: 'viral_share', method: 'facebook_share', link_url: 'https://nosuitretirement.com/' });
+      });
+
+      document.getElementById('shareEmailSpouseBtn')?.addEventListener('click', () => {
+        updateSpouseShareLinks();
+        trackGa4Event('share_action', { event_category: 'viral_share', method: 'email_to_spouse', link_url: 'https://nosuitretirement.com/' });
+      });
+
+      // 3. Sticky Mobile Bottom Navigation Bar (#mobileBottomNavBar)
+      function switchCalculatorTab(tabId) {
+        document.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+          const isMatch = btn.getAttribute('data-tab') === tabId;
+          btn.className = isMatch
+            ? 'nav-tab-btn py-2.5 px-2.5 rounded-lg font-bold text-xs bg-[#1b4332] text-amber-300 shadow'
+            : 'nav-tab-btn py-2.5 px-2.5 rounded-lg font-bold text-xs bg-white text-slate-800 hover:bg-amber-50';
+        });
+        document.querySelectorAll('.tab-panel').forEach((panel) => {
+          panel.classList.toggle('hidden', panel.id !== tabId);
+        });
+      }
+
+      document.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          if (target) switchCalculatorTab(target);
+        });
+      });
+
+      document.querySelectorAll('.guide-tab-link').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-goto-tab');
+          if (target) {
+            switchCalculatorTab(target);
+            document.getElementById('calculatorSectionAnchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      document.getElementById('mobileNavCalculatorBtn')?.addEventListener('click', () => {
+        document.getElementById('calculatorSectionAnchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        trackGa4Event('calculator_tab_switch', { event_category: 'mobile_bottom_nav', source: 'mobile_bottom_nav_calculator' });
+      });
+
+      document.getElementById('mobileNavVideosBtn')?.addEventListener('click', () => {
+        document.getElementById('youtubeChannelHub')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        trackGa4Event('youtube_video_play', { event_category: 'mobile_bottom_nav', video_title: 'Mobile Bottom Nav - 3 Videos' });
+      });
+
+      document.getElementById('mobileNavBinderBtn')?.addEventListener('click', () => {
+        switchCalculatorTab('tab-binder');
+        trackGa4Event('calculator_tab_switch', { event_category: 'mobile_bottom_nav', tab_id: 'tab-binder', source: 'mobile_bottom_nav_binder' });
+        setTimeout(() => {
+          document.getElementById('tab-binder')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      });
+
       document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
         const netSS = document.getElementById('printNetSS')?.textContent || '';
         const draw = document.getElementById('printPortDraw')?.textContent || '';
@@ -1508,10 +1864,12 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         if (navigator.clipboard) {
           navigator.clipboard.writeText('No-Suit Retirement Summary — Net SS: ' + netSS + ' | Safe Draw: ' + draw + ' | ' + buckets).catch(() => {});
         }
+        showToast('Plan summary copied to clipboard!');
       });
 
       applyAdLayout();
       updateAllCalculations();
+      updateSpouseShareLinks();
     })();
   </script>
 </body>

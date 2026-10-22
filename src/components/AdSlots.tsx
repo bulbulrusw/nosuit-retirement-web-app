@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 export interface AdConfig {
   gscVerificationCode: string;
+  gaMeasurementId: string;
   topLeaderboardEnabled: boolean;
   topLeaderboardCode: string;
   sidebarRectEnabled: boolean;
@@ -10,6 +11,17 @@ export interface AdConfig {
   sidebarSkyscraperCode: string;
   inContentBannerEnabled: boolean;
   inContentBannerCode: string;
+}
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    channelConfig?: AdConfig;
+    DEFAULT_AD_CONFIG?: AdConfig;
+    DEFAULT_CHANNEL_CONFIG?: AdConfig;
+    __GA4_CONFIGURED_ID__?: string;
+  }
 }
 
 export type AdSlotCodeKey =
@@ -23,6 +35,8 @@ export type AdSlotEnabledKey =
   | 'sidebarRectEnabled'
   | 'sidebarSkyscraperEnabled'
   | 'inContentBannerEnabled';
+
+export const DEFAULT_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
 
 export const DEFAULT_ADSTERRA_SLOT_1_CODE = `<script async="async" data-cfasync="false" src="https://bauval.org/21/689ae6c1012387fe1c48d819d275f89a"></script>
 <div id="container-689ae6c1012387fe1c48d819d275f89a"></div>`;
@@ -62,6 +76,7 @@ export const DEFAULT_ADSTERRA_SLOT_4_CODE = `<script>
 
 export const DEFAULT_AD_CONFIG: AdConfig = {
   gscVerificationCode: 'YOUR_GSC_CODE',
+  gaMeasurementId: DEFAULT_GA_MEASUREMENT_ID,
   topLeaderboardEnabled: true,
   topLeaderboardCode: DEFAULT_ADSTERRA_SLOT_1_CODE,
   sidebarRectEnabled: true,
@@ -75,6 +90,14 @@ export const DEFAULT_AD_CONFIG: AdConfig = {
 // Alias for compatibility with DEFAULT_CHANNEL_CONFIG references
 export const DEFAULT_CHANNEL_CONFIG: AdConfig = DEFAULT_AD_CONFIG;
 
+export function extractGaMeasurementId(rawInput?: string): string {
+  const trimmed = (rawInput || '').trim();
+  if (!trimmed) return DEFAULT_GA_MEASUREMENT_ID;
+  const match = trimmed.match(/\b(G-[A-Z0-9]{4,})\b/i);
+  if (match && match[1]) return match[1].toUpperCase();
+  return trimmed.toUpperCase();
+}
+
 export function mergeWithDefaultAdConfig(partial?: Partial<AdConfig> | null): AdConfig {
   if (!partial || typeof partial !== 'object') {
     return { ...DEFAULT_AD_CONFIG };
@@ -84,6 +107,10 @@ export function mergeWithDefaultAdConfig(partial?: Partial<AdConfig> | null): Ad
       partial.gscVerificationCode && partial.gscVerificationCode.trim()
         ? partial.gscVerificationCode
         : DEFAULT_AD_CONFIG.gscVerificationCode,
+    gaMeasurementId:
+      partial.gaMeasurementId && partial.gaMeasurementId.trim()
+        ? extractGaMeasurementId(partial.gaMeasurementId)
+        : DEFAULT_AD_CONFIG.gaMeasurementId,
     topLeaderboardEnabled:
       typeof partial.topLeaderboardEnabled === 'boolean'
         ? partial.topLeaderboardEnabled
@@ -124,6 +151,68 @@ export function extractGscCode(rawInput: string): string {
   if (!trimmed) return 'YOUR_GSC_CODE';
   const match = trimmed.match(/content=["']([^"']+)["']/i);
   return match && match[1] ? match[1].trim() : trimmed;
+}
+
+/**
+ * Synchronizes the dynamic Google Analytics 4 (gtag.js) loader in <head>
+ * with channelConfig.gaMeasurementId and ensures window.gtag is always available.
+ */
+export function syncGa4HeadScript(config: AdConfig): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const cleanGaId = extractGaMeasurementId(config.gaMeasurementId);
+  window.channelConfig = {
+    ...config,
+    gaMeasurementId: cleanGaId,
+  };
+  window.DEFAULT_CHANNEL_CONFIG = window.channelConfig;
+  window.dataLayer = window.dataLayer || [];
+  if (typeof window.gtag !== 'function') {
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer!.push(args);
+    };
+  }
+
+  let loaderScript = document.getElementById('ga4GtagScript') as HTMLScriptElement | null;
+  const targetSrc = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cleanGaId)}`;
+  if (!loaderScript) {
+    loaderScript = document.createElement('script');
+    loaderScript.id = 'ga4GtagScript';
+    loaderScript.async = true;
+    loaderScript.setAttribute('data-ga-measurement-id', cleanGaId);
+    if (cleanGaId && cleanGaId !== DEFAULT_GA_MEASUREMENT_ID) {
+      loaderScript.src = targetSrc;
+    }
+    document.head.appendChild(loaderScript);
+  } else {
+    loaderScript.setAttribute('data-ga-measurement-id', cleanGaId);
+    if (cleanGaId && cleanGaId !== DEFAULT_GA_MEASUREMENT_ID && loaderScript.src !== targetSrc) {
+      loaderScript.src = targetSrc;
+    }
+  }
+
+  if (window.__GA4_CONFIGURED_ID__ !== cleanGaId) {
+    window.__GA4_CONFIGURED_ID__ = cleanGaId;
+    window.gtag('js', new Date());
+    window.gtag('config', cleanGaId, { send_page_view: true });
+  }
+}
+
+/**
+ * Fires a Google Analytics 4 custom event via window.gtag('event', eventName, params)
+ */
+export function trackGa4Event(eventName: string, params: Record<string, unknown> = {}): void {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  if (typeof window.gtag !== 'function') {
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer!.push(args);
+    };
+  }
+  const gaId = window.channelConfig?.gaMeasurementId || DEFAULT_GA_MEASUREMENT_ID;
+  window.gtag('event', eventName, {
+    send_to: gaId,
+    ...params,
+  });
 }
 
 // Sequential execution queue so multiple Adsterra atOptions scripts never clobber window.atOptions

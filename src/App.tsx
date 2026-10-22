@@ -19,8 +19,16 @@ import {
   DEFAULT_CHANNEL_CONFIG,
   extractGscCode,
   mergeWithDefaultAdConfig,
+  syncGa4HeadScript,
+  trackGa4Event,
 } from './components/AdSlots';
 import { ChannelStudioModal, OwnerPinModal } from './components/ChannelStudioModal';
+import {
+  COOKIE_CONSENT_STORAGE_KEY,
+  CookieConsentBanner,
+  MobileBottomNavBar,
+  SpouseShareBar,
+} from './components/ConversionAndComplianceBars';
 
 const SCAM_ITEMS = [
   {
@@ -102,6 +110,13 @@ export default function App() {
   });
   const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isCookieAccepted, setIsCookieAccepted] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'accepted';
+    } catch {
+      return false;
+    }
+  });
   const footerTapCountRef = useRef<number>(0);
   const footerTapTimerRef = useRef<number | null>(null);
 
@@ -149,7 +164,62 @@ export default function App() {
       document.head.appendChild(metaEl);
     }
     metaEl.content = cleanGsc;
-  }, [adConfig.gscVerificationCode]);
+    syncGa4HeadScript(adConfig);
+  }, [adConfig]);
+
+  // Automatic GA4 Custom Event Tracking for $5 Gumroad button, YouTube videos, and Affiliate links
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const gumroadEl = target.closest(
+        '[data-ga-event="gumroad_click"], #gumroadCtaBtn, a[href*="gumroad.com"]'
+      ) as HTMLElement | null;
+      if (gumroadEl) {
+        trackGa4Event('gumroad_click', {
+          event_category: 'monetization',
+          item_name: gumroadEl.getAttribute('data-item-name') || '$5 Printable Retirement Workbook',
+          value: 5,
+          currency: 'USD',
+          link_url: (gumroadEl as HTMLAnchorElement).href || 'https://gumroad.com/',
+        });
+        return;
+      }
+
+      const affiliateEl = target.closest(
+        '[data-ga-event="affiliate_click"], [data-affiliate], .affiliate-link'
+      ) as HTMLElement | null;
+      if (affiliateEl) {
+        trackGa4Event('affiliate_click', {
+          event_category: 'affiliate_monetization',
+          partner_name:
+            affiliateEl.getAttribute('data-affiliate') ||
+            affiliateEl.textContent?.trim() ||
+            'Senior Resource Partner',
+          link_url: (affiliateEl as HTMLAnchorElement).href || '',
+        });
+        return;
+      }
+
+      const youtubeEl = target.closest(
+        '[data-ga-event="youtube_video_play"], #youtubeVideoSection a, a[href*="youtube.com"], a[href*="youtu.be"]'
+      ) as HTMLElement | null;
+      if (youtubeEl) {
+        trackGa4Event('youtube_video_play', {
+          event_category: 'video_engagement',
+          video_title:
+            youtubeEl.getAttribute('data-video-title') ||
+            youtubeEl.textContent?.trim() ||
+            'NoSuitRetirement YouTube Video',
+          link_url: (youtubeEl as HTMLAnchorElement).href || YOUTUBE_CHANNEL_URL,
+        });
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+    return () => document.removeEventListener('click', handleDocumentClick);
+  }, []);
 
   // Owner keyboard shortcut: Ctrl+Shift+E opens PIN modal (or Studio directly if already unlocked)
   useEffect(() => {
@@ -207,6 +277,50 @@ export default function App() {
       next.inContentBannerEnabled,
     ].filter(Boolean).length;
     showToast(`SEO & Ad settings saved (${activeSlots} of 4 ad slots enabled).`);
+  };
+
+  const handleAcceptCookies = () => {
+    setIsCookieAccepted(true);
+    try {
+      localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'accepted');
+    } catch {
+      // ignore storage errors
+    }
+    trackGa4Event('cookie_consent_accepted', {
+      event_category: 'compliance',
+      consent_status: 'accepted',
+    });
+    showToast('Cookie & privacy preferences saved.');
+  };
+
+  const handleMobileGoCalculator = () => {
+    document.getElementById('calculatorSectionAnchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    trackGa4Event('calculator_tab_switch', {
+      event_category: 'mobile_bottom_nav',
+      tab_id: activeTab,
+      source: 'mobile_bottom_nav_calculator',
+    });
+  };
+
+  const handleMobileGoVideos = () => {
+    document.getElementById('youtubeChannelHub')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    trackGa4Event('youtube_video_play', {
+      event_category: 'mobile_bottom_nav',
+      video_title: 'Mobile Bottom Nav - 3 Videos',
+      link_url: YOUTUBE_CHANNEL_URL,
+    });
+  };
+
+  const handleMobileGoBinder = () => {
+    setActiveTab('tab-binder');
+    trackGa4Event('calculator_tab_switch', {
+      event_category: 'mobile_bottom_nav',
+      tab_id: 'tab-binder',
+      source: 'mobile_bottom_nav_binder',
+    });
+    window.setTimeout(() => {
+      document.getElementById('tab-binder')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
   };
 
   const handleSetFontSize = (scale: 'normal' | 'large' | 'xlarge') => {
@@ -298,7 +412,7 @@ export default function App() {
   const hasSidebarAds = adConfig.sidebarRectEnabled || adConfig.sidebarSkyscraperEnabled;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col pb-20 md:pb-0">
       <BrandHeader
         fontSizeScale={fontSizeScale}
         onSetFontSize={handleSetFontSize}
@@ -316,7 +430,14 @@ export default function App() {
       <UserGuideSection
         isOpen={isGuideOpen}
         onToggle={() => setIsGuideOpen((v) => !v)}
-        onSelectTab={(tab) => setActiveTab(tab)}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          trackGa4Event('calculator_tab_switch', {
+            event_category: 'calculator_navigation',
+            tab_id: tab,
+            source: 'user_guide',
+          });
+        }}
       />
 
       {/* AD SLOT 1 (#adSlotTopBanner): Top Leaderboard Banner (728x90) Above the Calculator */}
@@ -346,7 +467,7 @@ export default function App() {
           id="appToast"
           role="status"
           aria-live="polite"
-          className="fixed bottom-5 right-5 z-50 bg-[#1b4332] text-amber-200 border-2 border-amber-400 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm max-w-sm"
+          className="fixed bottom-20 md:bottom-5 right-5 z-50 bg-[#1b4332] text-amber-200 border-2 border-amber-400 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm max-w-sm"
         >
           {toastMsg}
         </div>
@@ -370,7 +491,14 @@ export default function App() {
                       key={tab.id}
                       type="button"
                       data-tab={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        trackGa4Event('calculator_tab_switch', {
+                          event_category: 'calculator_navigation',
+                          tab_id: tab.id,
+                          tab_name: tab.label,
+                        });
+                      }}
                       className={`nav-tab-btn py-2.5 px-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap truncate ${
                         idx === 4 ? 'col-span-2 sm:col-span-1' : ''
                       } ${
@@ -1518,6 +1646,17 @@ export default function App() {
           </div>
         </div>
 
+        {/* SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator */}
+        <SpouseShareBar
+          snapshot={{
+            netSS: formatUSD(metrics.newNetSS),
+            portDraw: formatUSD(metrics.monthlyPortDraw),
+            totalPaycheck: formatUSD(metrics.totalMonthlyPaycheck),
+            bucket1: formatUSD(metrics.bucket1),
+          }}
+          onShowToast={showToast}
+        />
+
         {/* AD SLOT 4 (#adSlotInContent): In-Content Horizontal Banner (728x90) between the Calculator Section and the YouTube Video Showcase */}
         <div
           className={`w-full min-h-[90px] flex justify-center items-center overflow-x-auto no-print ${
@@ -1565,6 +1704,8 @@ export default function App() {
               href={YOUTUBE_CHANNEL_URL}
               target="_blank"
               rel="noopener noreferrer"
+              data-ga-event="youtube_video_play"
+              data-video-title="Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B"
               className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
             >
               <div className="space-y-1.5">
@@ -1587,6 +1728,8 @@ export default function App() {
               href={YOUTUBE_CHANNEL_URL}
               target="_blank"
               rel="noopener noreferrer"
+              data-ga-event="youtube_video_play"
+              data-video-title="How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash"
               className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
             >
               <div className="space-y-1.5">
@@ -1609,6 +1752,8 @@ export default function App() {
               href={YOUTUBE_CHANNEL_URL}
               target="_blank"
               rel="noopener noreferrer"
+              data-ga-event="youtube_video_play"
+              data-video-title="Beating the 1984 IRS Ghost Tax & Filing Form SSA-44 After Retirement"
               className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
             >
               <div className="space-y-1.5">
@@ -1626,6 +1771,33 @@ export default function App() {
                 Watch on YouTube →
               </span>
             </a>
+          </div>
+
+          {/* Vet-Checked Senior Tools & Official Links (Tracked via GA4 Custom Events) */}
+          <div className="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-amber-200/90 font-semibold">Senior Tools &amp; Official Links:</span>
+              <a
+                href="https://www.treasurydirect.gov/"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ga-event="affiliate_click"
+                data-affiliate="TreasuryDirect Bucket 2 T-Bills"
+                className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+              >
+                🏦 Bucket 2 T-Bill &amp; HYSA Rates →
+              </a>
+              <a
+                href="https://www.ssa.gov/forms/ssa-44.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ga-event="affiliate_click"
+                data-affiliate="Official IRS/SSA Form SSA-44 PDF"
+                className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+              >
+                📄 Official Form SSA-44 (PDF) →
+              </a>
+            </div>
           </div>
           </section>
         </div>
@@ -1713,6 +1885,20 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Google AdSense-Compliant Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) */}
+      <CookieConsentBanner
+        isAccepted={isCookieAccepted}
+        onAccept={handleAcceptCookies}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+      />
+
+      {/* Sticky Mobile Bottom Navigation Bar (#mobileBottomNavBar) */}
+      <MobileBottomNavBar
+        onGoCalculator={handleMobileGoCalculator}
+        onGoVideos={handleMobileGoVideos}
+        onGoBinder={handleMobileGoBinder}
+      />
     </div>
   );
 }

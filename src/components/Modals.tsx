@@ -92,15 +92,24 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
         </div>
         <div className="space-y-3 text-xs md:text-sm text-slate-800 leading-relaxed">
           <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300">
-            <div className="font-extrabold text-emerald-950">1. 100% Local Processing — Zero Data Collection</div>
+            <div className="font-extrabold text-emerald-950">1. 100% Local Retirement Math — Zero Financial Data Collection</div>
             <p className="mt-1">
-              <strong>No-Suit Retirement Companion</strong> runs 100% locally on your device. We do <strong>not</strong> collect, store, transmit, sell, or share any personal information, financial numbers, Social Security estimates, tax inputs, or family binder notes. No user accounts, bank logins, cookies, analytics trackers, or advertising SDKs are used.
+              <strong>No-Suit Retirement Companion</strong> runs all retirement calculations 100% locally in your browser. We do <strong>not</strong> collect, store, transmit, sell, or share any personal financial numbers, Social Security estimates, tax inputs, or family binder notes. No user accounts or bank logins are ever used.
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
-            <div className="font-extrabold text-amber-950">2. Zero Sensitive Device Permissions</div>
+            <div className="font-extrabold text-amber-950">2. Google AdSense, Partner Ads &amp; Cookie Consent Disclosure</div>
             <p className="mt-1">
-              This application requests <strong>zero</strong> access to your camera, microphone, contacts, precise location, phone state, photos, or Advertising ID. All calculations happen transiently in device memory and are cleared when you close or reset the app.
+              To keep this senior retirement calculator 100% free, this website displays clearly labeled sponsored advertisements (including Google AdSense and partner display networks) and uses anonymous Google Analytics 4 traffic measurement. Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to this or other websites. You may opt out of personalized advertising by visiting{' '}
+              <a
+                href="https://www.google.com/settings/ads"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-semibold text-amber-950"
+              >
+                Google Ads Settings
+              </a>
+              . Your cookie consent choice is stored locally in your browser&apos;s <code className="font-mono">localStorage</code>.
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-300">

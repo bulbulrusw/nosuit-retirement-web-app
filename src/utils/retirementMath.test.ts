@@ -9,8 +9,16 @@ import {
 import {
   DEFAULT_AD_CONFIG,
   DEFAULT_CHANNEL_CONFIG,
+  DEFAULT_GA_MEASUREMENT_ID,
+  extractGaMeasurementId,
   mergeWithDefaultAdConfig,
 } from '../components/AdSlots';
+import {
+  COOKIE_CONSENT_STORAGE_KEY,
+  SITE_CANONICAL_URL,
+  buildSpouseShareLinks,
+} from '../components/ConversionAndComplianceBars';
+import { buildFullStandaloneHtml } from './fullStandaloneTemplate';
 
 test('default couple400k profile computes accurate Net SS, 3-Bucket allocations, and paycheck', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
@@ -69,7 +77,15 @@ test('claiming age break-even and IRMAA SSA-44 appeal logic', () => {
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 });
 
-test('all 4 Adsterra ad slots (#1, #2, #3, #4) are enabled and hardcoded by default', () => {
+test('all 4 Adsterra ad slots (#1, #2, #3, #4) and GA4 Measurement ID are configured by default', () => {
+  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, 'G-XXXXXXXXXX');
+  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
+  assert.equal(extractGaMeasurementId('  g-abc1234567 '), 'G-ABC1234567');
+  assert.equal(
+    extractGaMeasurementId('<script async src="https://www.googletagmanager.com/gtag/js?id=G-9988776655"></script>'),
+    'G-9988776655'
+  );
+
   assert.equal(DEFAULT_AD_CONFIG.topLeaderboardEnabled, true);
   assert.equal(DEFAULT_AD_CONFIG.sidebarRectEnabled, true);
   assert.equal(DEFAULT_AD_CONFIG.sidebarSkyscraperEnabled, true);
@@ -86,8 +102,48 @@ test('all 4 Adsterra ad slots (#1, #2, #3, #4) are enabled and hardcoded by defa
   // Empty strings in partial storage must fall back to hardcoded Adsterra codes
   const merged = mergeWithDefaultAdConfig({
     inContentBannerCode: '   ',
+    gaMeasurementId: 'g-test999999',
   });
   assert.equal(merged.inContentBannerEnabled, true);
+  assert.equal(merged.gaMeasurementId, 'G-TEST999999');
   assert.ok(merged.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
 });
+
+test('Cookie Consent, Spouse Share Bar, and Mobile Bottom Nav Bar are properly built and exported in standalone HTML', () => {
+  assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'nosuit_cookie_consent_v1');
+  assert.equal(SITE_CANONICAL_URL, 'https://nosuitretirement.com/');
+
+  const links = buildSpouseShareLinks({
+    netSS: '$2,770',
+    portDraw: '$1,500',
+    totalPaycheck: '$4,270',
+    bucket1: '$36,000',
+  });
+
+  assert.ok(links.facebookShareUrl.includes('facebook.com/sharer/sharer.php'));
+  assert.ok(links.emailShareUrl.startsWith('mailto:?subject='));
+  assert.ok(decodeURIComponent(links.emailShareUrl).includes('$2,770/mo'));
+  assert.equal(links.copyUrl, 'https://nosuitretirement.com/');
+
+  const html = buildFullStandaloneHtml(DEFAULT_AD_CONFIG);
+  assert.ok(html.includes('id="cookieConsentBanner"'));
+  assert.ok(html.includes('id="acceptCookiesBtn"'));
+  assert.ok(html.includes('id="cookiePrivacyPolicyBtn"'));
+  assert.ok(html.includes('nosuit_cookie_consent_v1'));
+
+  assert.ok(html.includes('id="spouseShareBar"'));
+  assert.ok(html.includes('id="shareFacebookBtn"'));
+  assert.ok(html.includes('id="shareEmailSpouseBtn"'));
+  assert.ok(html.includes('id="copyWebsiteLinkBtn"'));
+
+  assert.ok(html.includes('id="mobileBottomNavBar"'));
+  assert.ok(html.includes('id="mobileNavCalculatorBtn"'));
+  assert.ok(html.includes('id="mobileNavVideosBtn"'));
+  assert.ok(html.includes('id="mobileNavBinderBtn"'));
+  assert.equal(html.includes('Get the $5 Printable Kitchen-Table Workbook (Gumroad)'), false);
+  assert.equal(html.includes('id="gumroadCtaBtn"'), false);
+  assert.ok(html.includes('WATCH RETIREMENT MATH IN PLAIN ENGLISH'));
+});
+
+
 

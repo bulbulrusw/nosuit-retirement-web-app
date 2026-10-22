@@ -4,6 +4,7 @@ import {
   AdSlotCodeKey,
   AdSlotEnabledKey,
   DEFAULT_AD_CONFIG,
+  extractGaMeasurementId,
   extractGscCode,
 } from './AdSlots';
 import { YOUTUBE_CHANNEL_URL } from './YouTubeButton';
@@ -254,13 +255,16 @@ export const ChannelStudioModal: React.FC<ChannelStudioModalProps> = ({
   if (!isOpen) return null;
 
   const cleanGscCode = extractGscCode(draft.gscVerificationCode);
+  const cleanGaId = extractGaMeasurementId(draft.gaMeasurementId);
   const fullGscMetaTag = `<meta name="google-site-verification" content="${cleanGscCode}" />`;
+  const fullGaLoaderTag = `<script async src="https://www.googletagmanager.com/gtag/js?id=${cleanGaId}"></script>`;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveAdConfig({
       ...draft,
       gscVerificationCode: cleanGscCode,
+      gaMeasurementId: cleanGaId,
     });
     onClose();
   };
@@ -284,6 +288,7 @@ export const ChannelStudioModal: React.FC<ChannelStudioModalProps> = ({
     const nextConfig: AdConfig = {
       ...draft,
       gscVerificationCode: cleanGscCode,
+      gaMeasurementId: cleanGaId,
     };
     onSaveAdConfig(nextConfig);
     triggerFileDownload(
@@ -292,7 +297,7 @@ export const ChannelStudioModal: React.FC<ChannelStudioModalProps> = ({
       'text/html;charset=utf-8'
     );
     onShowToast?.(
-      'Downloaded index.html with all 4 Ad ON/OFF states, Ad codes & GSC tag baked in!'
+      'Downloaded index.html with all 4 Ad ON/OFF states, Ad codes, GSC & GA4 Measurement ID baked in!'
     );
   };
 
@@ -507,6 +512,42 @@ export const ChannelStudioModal: React.FC<ChannelStudioModalProps> = ({
                   className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 font-num text-[11px] text-emerald-950 truncate"
                 >
                   {fullGscMetaTag}
+                </div>
+              </div>
+            </div>
+
+            {/* Google Analytics 4 (GA4) Measurement ID Input Field */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-2 border-t border-emerald-700/20">
+              <div className="md:col-span-6">
+                <label
+                  htmlFor="gaMeasurementIdInput"
+                  className="block text-xs font-bold text-slate-800"
+                >
+                  Google Analytics 4 Measurement ID (G-XXXXXXXXXX)
+                </label>
+                <input
+                  id="gaMeasurementIdInput"
+                  type="text"
+                  placeholder="G-XXXXXXXXXX"
+                  value={draft.gaMeasurementId}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      gaMeasurementId: e.target.value,
+                    }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-num text-xs text-slate-900 focus:border-[#1b4332] focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-6">
+                <span className="block text-[11px] font-bold text-slate-600">
+                  Live <code>&lt;head&gt;</code> Dynamic <code>gtag.js</code> Loader Preview:
+                </span>
+                <div
+                  id="gaLoaderPreview"
+                  className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 font-num text-[11px] text-emerald-950 truncate"
+                >
+                  {fullGaLoaderTag}
                 </div>
               </div>
             </div>
