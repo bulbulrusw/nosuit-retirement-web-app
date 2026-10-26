@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   DEFAULT_INPUTS,
   PRESET_PROFILES,
@@ -13,16 +13,13 @@ import { PaycheckCashFlowChart, BreakevenLineChart } from './components/Charts';
 import { GlossaryModal, PrivacyModal } from './components/Modals';
 import { YouTubeButton, YOUTUBE_CHANNEL_URL } from './components/YouTubeButton';
 import {
-  AdConfig,
-  AdSlot,
-  DEFAULT_AD_CONFIG,
   DEFAULT_CHANNEL_CONFIG,
-  extractGscCode,
-  mergeWithDefaultAdConfig,
+  FEATURED_YOUTUBE_VIDEOS,
+  FeaturedVideoEpisode,
+  purgeLegacyConfigStorage,
   syncGa4HeadScript,
   trackGa4Event,
 } from './components/AdSlots';
-import { ChannelStudioModal, OwnerPinModal } from './components/ChannelStudioModal';
 import {
   COOKIE_CONSENT_STORAGE_KEY,
   CookieConsentBanner,
@@ -81,8 +78,6 @@ const AUDIT_ITEMS = [
   },
 ];
 
-const AD_STORAGE_KEY = 'nosuit_ad_config_v5';
-
 export default function App() {
   const [inputs, setInputs] = useState<RetirementInputs>(DEFAULT_INPUTS);
   const [activePreset, setActivePreset] = useState<PresetKey>('couple400k');
@@ -91,23 +86,7 @@ export default function App() {
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState<boolean>(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState<boolean>(false);
-  const [isOwnerUnlocked, setIsOwnerUnlocked] = useState<boolean>(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('admin') === 'nosuit';
-    } catch {
-      return false;
-    }
-  });
-  const [isOwnerPinModalOpen, setIsOwnerPinModalOpen] = useState<boolean>(false);
-  const [isChannelStudioOpen, setIsChannelStudioOpen] = useState<boolean>(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('admin') === 'nosuit';
-    } catch {
-      return false;
-    }
-  });
+  const [activeVideoModal, setActiveVideoModal] = useState<FeaturedVideoEpisode | null>(null);
   const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isCookieAccepted, setIsCookieAccepted] = useState<boolean>(() => {
@@ -116,20 +95,6 @@ export default function App() {
     } catch {
       return false;
     }
-  });
-  const footerTapCountRef = useRef<number>(0);
-  const footerTapTimerRef = useRef<number | null>(null);
-
-  const [adConfig, setAdConfig] = useState<AdConfig>(() => {
-    try {
-      const saved = localStorage.getItem(AD_STORAGE_KEY);
-      if (saved) {
-        return mergeWithDefaultAdConfig(JSON.parse(saved));
-      }
-    } catch {
-      // ignore storage errors
-    }
-    return DEFAULT_CHANNEL_CONFIG;
   });
 
   // Scam & Audit checklists
@@ -155,37 +120,15 @@ export default function App() {
   }, [toastMsg]);
 
   useEffect(() => {
-    const cleanGsc = extractGscCode(adConfig.gscVerificationCode);
-    let metaEl = document.querySelector('meta[name="google-site-verification"]') as HTMLMetaElement | null;
-    if (!metaEl) {
-      metaEl = document.createElement('meta');
-      metaEl.id = 'gscVerificationMeta';
-      metaEl.name = 'google-site-verification';
-      document.head.appendChild(metaEl);
-    }
-    metaEl.content = cleanGsc;
-    syncGa4HeadScript(adConfig);
-  }, [adConfig]);
+    purgeLegacyConfigStorage();
+    syncGa4HeadScript(DEFAULT_CHANNEL_CONFIG);
+  }, []);
 
-  // Automatic GA4 Custom Event Tracking for $5 Gumroad button, YouTube videos, and Affiliate links
+  // Automatic GA4 Custom Event Tracking for YouTube videos and Official/Partner resource links
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
-
-      const gumroadEl = target.closest(
-        '[data-ga-event="gumroad_click"], #gumroadCtaBtn, a[href*="gumroad.com"]'
-      ) as HTMLElement | null;
-      if (gumroadEl) {
-        trackGa4Event('gumroad_click', {
-          event_category: 'monetization',
-          item_name: gumroadEl.getAttribute('data-item-name') || '$5 Printable Retirement Workbook',
-          value: 5,
-          currency: 'USD',
-          link_url: (gumroadEl as HTMLAnchorElement).href || 'https://gumroad.com/',
-        });
-        return;
-      }
 
       const affiliateEl = target.closest(
         '[data-ga-event="affiliate_click"], [data-affiliate], .affiliate-link'
@@ -221,64 +164,6 @@ export default function App() {
     return () => document.removeEventListener('click', handleDocumentClick);
   }, []);
 
-  // Owner keyboard shortcut: Ctrl+Shift+E opens PIN modal (or Studio directly if already unlocked)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
-        e.preventDefault();
-        if (isOwnerUnlocked) {
-          setIsChannelStudioOpen(true);
-        } else {
-          setIsOwnerPinModalOpen(true);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOwnerUnlocked]);
-
-  const handleFooterVersionTap = () => {
-    footerTapCountRef.current += 1;
-    if (footerTapTimerRef.current) {
-      window.clearTimeout(footerTapTimerRef.current);
-    }
-    if (footerTapCountRef.current >= 5) {
-      footerTapCountRef.current = 0;
-      if (isOwnerUnlocked) {
-        setIsChannelStudioOpen(true);
-      } else {
-        setIsOwnerPinModalOpen(true);
-      }
-      return;
-    }
-    footerTapTimerRef.current = window.setTimeout(() => {
-      footerTapCountRef.current = 0;
-    }, 2500);
-  };
-
-  const handleOwnerPinSuccess = () => {
-    setIsOwnerUnlocked(true);
-    setIsOwnerPinModalOpen(false);
-    setIsChannelStudioOpen(true);
-    showToast('Owner Studio unlocked (PIN 2027 verified).');
-  };
-
-  const handleSaveAdConfig = (next: AdConfig) => {
-    setAdConfig(next);
-    try {
-      localStorage.setItem(AD_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors
-    }
-    const activeSlots = [
-      next.topLeaderboardEnabled,
-      next.sidebarRectEnabled,
-      next.sidebarSkyscraperEnabled,
-      next.inContentBannerEnabled,
-    ].filter(Boolean).length;
-    showToast(`SEO & Ad settings saved (${activeSlots} of 4 ad slots enabled).`);
-  };
-
   const handleAcceptCookies = () => {
     setIsCookieAccepted(true);
     try {
@@ -291,6 +176,49 @@ export default function App() {
       consent_status: 'accepted',
     });
     showToast('Cookie & privacy preferences saved.');
+  };
+
+  const handleWatchLatestVideo = () => {
+    const latestVideo = FEATURED_YOUTUBE_VIDEOS[0];
+    setActiveVideoModal(latestVideo);
+    trackGa4Event('youtube_video_play', {
+      event_category: 'hero_watch_latest_video',
+      video_id: latestVideo.videoId,
+      video_title: latestVideo.title,
+      link_url: latestVideo.videoUrl,
+    });
+  };
+
+  const handleVideoCalculatorAction = (video: FeaturedVideoEpisode) => {
+    if (video.calculatorPreset) {
+      const profile = PRESET_PROFILES[video.calculatorPreset];
+      setActivePreset(video.calculatorPreset);
+      setInputs((prev) => ({
+        ...prev,
+        ...profile.values,
+      }));
+    }
+    if (video.workerAgeGroup) {
+      setInputs((prev) => ({
+        ...prev,
+        workerAgeGroup: video.workerAgeGroup!,
+      }));
+    }
+    setActiveTab(video.calculatorTab);
+    setActiveVideoModal(null);
+    trackGa4Event('calculator_tab_switch', {
+      event_category: 'video_card_calculator_action',
+      tab_id: video.calculatorTab,
+      video_title: video.title,
+    });
+    showToast(
+      video.calculatorTab === 'tab-paycheck'
+        ? 'Loaded $400K Couple (Age 62) preset in Tab 1: Net Check & $400K.'
+        : 'Opened Tab 3: Age 60–63 $11,250 Super Catch-Up ($35,750 total 401k limit).'
+    );
+    window.setTimeout(() => {
+      document.getElementById('calculatorSectionAnchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
   };
 
   const handleMobileGoCalculator = () => {
@@ -409,8 +337,6 @@ export default function App() {
     { id: 'tab-binder', label: '5. Print Plan & Binder' },
   ];
 
-  const hasSidebarAds = adConfig.sidebarRectEnabled || adConfig.sidebarSkyscraperEnabled;
-
   return (
     <div className="min-h-screen flex flex-col pb-20 md:pb-0">
       <BrandHeader
@@ -419,8 +345,7 @@ export default function App() {
         onToggleGuide={() => setIsGuideOpen((v) => !v)}
         onOpenGlossary={() => setIsGlossaryOpen(true)}
         onOpenPrivacy={() => setIsPrivacyOpen(true)}
-        onOpenChannelStudio={() => setIsChannelStudioOpen(true)}
-        isOwnerUnlocked={isOwnerUnlocked}
+        onWatchLatestVideo={handleWatchLatestVideo}
         onReadAloud={handleReadAloud}
         isReadingAloud={isReadingAloud}
         activePreset={activePreset}
@@ -440,27 +365,6 @@ export default function App() {
         }}
       />
 
-      {/* AD SLOT 1 (#adSlotTopBanner): Top Leaderboard Banner (728x90) Above the Calculator */}
-      <div
-        className={`max-w-7xl w-full mx-auto px-4 mt-4 no-print ${
-          adConfig.topLeaderboardEnabled ? '' : 'hidden'
-        }`}
-      >
-        <AdSlot
-          id="adSlotTopBanner"
-          slotNumber={1}
-          slotKey="topLeaderboardCode"
-          enabledKey="topLeaderboardEnabled"
-          title="Top Leaderboard Banner"
-          dimensionsLabel="728 × 90 Leaderboard (Responsive)"
-          networkHint="High-visibility header placement for Google AdSense Display Leaderboard or Adsterra 728×90 Banner."
-          minHeightClass="min-h-[90px]"
-          adConfig={adConfig}
-          isOwnerUnlocked={isOwnerUnlocked}
-          onOpenStudio={() => setIsChannelStudioOpen(true)}
-        />
-      </div>
-
       {/* Toast Notification */}
       {toastMsg && (
         <div
@@ -473,13 +377,13 @@ export default function App() {
         </div>
       )}
 
-      {/* Main 12-Column Desktop Grid: 8-Col 5-Tab Calculator + 4-Col Sticky Right Sidebar (or 12-Col Full Width when Sidebar Ads #2 & #3 are OFF) */}
+      {/* Main 12-Column Full-Width Desktop Grid for the 5-Tab Interactive Calculator */}
       <main className="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-8">
         <div id="calculatorSectionAnchor" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* LEFT 8 COLUMNS (or 12 COLUMNS when both sidebar ads are OFF): 5-Tab Calculator */}
+          {/* FULL 12 COLUMNS: 5-Tab Interactive Calculator */}
           <div
             id="calculatorMainColumn"
-            className={`${hasSidebarAds ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-6`}
+            className="lg:col-span-12 space-y-6"
           >
             {/* 5 Navigation Tabs */}
             <nav className="no-print" aria-label="Main Modules">
@@ -921,7 +825,7 @@ export default function App() {
 
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-300">
-                    <div className="text-xs font-bold uppercase text-amber-900">Claim Early at 62</div>
+                    <div className="text-xs font-bold uppercase text-amber-900">Claim Early at 62 (70%)</div>
                     <div id="claim62Mo" className="text-xl font-extrabold text-slate-900 mt-1 font-num">
                       {formatUSD(metrics.mo62)}/mo
                     </div>
@@ -930,7 +834,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-emerald-50/90 border-2 border-emerald-500">
-                    <div className="text-xs font-bold uppercase text-emerald-900">Claim Full at 67</div>
+                    <div className="text-xs font-bold uppercase text-emerald-900">Claim Full at 67 (100% FRA)</div>
                     <div id="claim67Mo" className="text-xl font-extrabold text-emerald-900 mt-1 font-num">
                       {formatUSD(metrics.mo67)}/mo
                     </div>
@@ -939,7 +843,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-sky-50/90 border border-sky-300">
-                    <div className="text-xs font-bold uppercase text-sky-900">Claim Max at 70</div>
+                    <div className="text-xs font-bold uppercase text-sky-900">Claim Max at 70 (124%)</div>
                     <div id="claim70Mo" className="text-xl font-extrabold text-sky-900 mt-1 font-num">
                       {formatUSD(metrics.mo70)}/mo
                     </div>
@@ -1606,44 +1510,6 @@ export default function App() {
               </div>
             </section>
           </div>
-
-          {/* RIGHT 4 COLUMNS: Sticky Right Sidebar for Policy-Compliant Ad Slots #2 & #3 (Hidden automatically if both are OFF) */}
-          <div
-            id="rightAdSidebar"
-            className={`${
-              hasSidebarAds ? 'lg:col-span-4' : 'hidden'
-            } lg:sticky lg:top-4 space-y-6 no-print`}
-          >
-            {/* AD SLOT 2 (#adSlotSidebarRect): Right Sidebar Sticky Slot #1 (300x250 Medium Rectangle) beside calculator inputs */}
-            <AdSlot
-              id="adSlotSidebarRect"
-              slotNumber={2}
-              enabledKey="sidebarRectEnabled"
-              slotKey="sidebarRectCode"
-              title="Right Sidebar Sticky Slot #1"
-              dimensionsLabel="300 × 250 Medium Rectangle"
-              networkHint="Positioned beside calculator inputs for high-viewability Google AdSense 300×250 or Adsterra Rectangle."
-              minHeightClass="min-h-[250px]"
-              adConfig={adConfig}
-              isOwnerUnlocked={isOwnerUnlocked}
-              onOpenStudio={() => setIsChannelStudioOpen(true)}
-            />
-
-            {/* AD SLOT 3 (#adSlotSidebarSky): Right Sidebar Sticky Slot #2 (300x600 Skyscraper / Adsterra Native Banner) beside calculator results */}
-            <AdSlot
-              id="adSlotSidebarSky"
-              slotNumber={3}
-              enabledKey="sidebarSkyscraperEnabled"
-              slotKey="sidebarSkyscraperCode"
-              title="Right Sidebar Sticky Slot #2"
-              dimensionsLabel="300 × 600 Skyscraper / Adsterra Native Banner"
-              networkHint="Positioned beside calculator results for high-RPM 300×600 Half-Page Skyscraper or Adsterra Native Banner."
-              minHeightClass="min-h-[420px] lg:min-h-[540px]"
-              adConfig={adConfig}
-              isOwnerUnlocked={isOwnerUnlocked}
-              onOpenStudio={() => setIsChannelStudioOpen(true)}
-            />
-          </div>
         </div>
 
         {/* SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator */}
@@ -1657,168 +1523,284 @@ export default function App() {
           onShowToast={showToast}
         />
 
-        {/* AD SLOT 4 (#adSlotInContent): In-Content Horizontal Banner (728x90) between the Calculator Section and the YouTube Video Showcase */}
-        <div
-          className={`w-full min-h-[90px] flex justify-center items-center overflow-x-auto no-print ${
-            adConfig.inContentBannerEnabled ? '' : 'hidden'
-          }`}
-        >
-          <AdSlot
-            id="adSlotInContent"
-            slotNumber={4}
-            enabledKey="inContentBannerEnabled"
-            slotKey="inContentBannerCode"
-            title="In-Content Horizontal Banner"
-            dimensionsLabel="728 × 90 In-Content Banner (Responsive)"
-            networkHint="Positioned between the Interactive Calculator Section and the YouTube Video Showcase for high engagement."
-            minHeightClass="min-h-[90px]"
-            adConfig={adConfig}
-            isOwnerUnlocked={isOwnerUnlocked}
-            onOpenStudio={() => setIsChannelStudioOpen(true)}
-          />
-        </div>
-
         {/* YOUTUBE VIDEO SECTION (#youtubeChannelHub / #youtubeVideoSection) */}
         <div id="youtubeChannelHub" className="no-print">
           <section
             id="youtubeVideoSection"
-            className="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5"
+            className="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-6"
           >
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-amber-400/30 pb-4">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
-                Official YouTube Education Hub · @NoSuitRetirement
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-amber-400/30 pb-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
+                  Official YouTube Education Hub · @NoSuitRetirement
+                </div>
+                <h2 className="text-xl md:text-2xl font-extrabold text-white mt-1">
+                  Watch Plain-English Chalkboard Retirement Breakdowns
+                </h2>
+                <p className="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">
+                  Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and the Age 60–63 $11,250 Super Catch-Up.
+                </p>
               </div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-white mt-1">
-                Watch Plain-English Chalkboard Retirement Breakdowns
-              </h2>
-              <p className="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">
-                Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and 1984 Ghost Tax shields.
-              </p>
+              <YouTubeButton variant="hero" />
             </div>
-            <YouTubeButton variant="hero" />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
-              href={YOUTUBE_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-ga-event="youtube_video_play"
-              data-video-title="Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B"
-              className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
-            >
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
-                  Episode Spotlight · COLA &amp; Medicare
-                </div>
-                <div className="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors">
-                  Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B
-                </div>
-                <p className="text-xs text-emerald-100/90 leading-relaxed">
-                  How the Two-Envelope test reveals your true net deposit—and how to protect your buying power.
-                </p>
-              </div>
-              <span className="text-xs font-bold text-amber-300 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                Watch on YouTube →
-              </span>
-            </a>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {FEATURED_YOUTUBE_VIDEOS.map((video) => {
+                if (video.isChannelLinkOnly) {
+                  return (
+                    <div
+                      key={video.id}
+                      id={`videoCard-${video.position}`}
+                      onClick={() => {
+                        window.open(video.videoUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      role="link"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          window.open(video.videoUrl, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      className="chalk-card rounded-2xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-4 cursor-pointer"
+                    >
+                      <div className="space-y-3">
+                        <a
+                          href={video.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          data-ga-event="youtube_video_play"
+                          data-video-title={video.title}
+                          className="block relative aspect-video w-full rounded-xl overflow-hidden bg-[#0f291e] border border-amber-400/40 flex flex-col items-center justify-center p-4 text-center group-hover:border-amber-300 transition-colors"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg mb-2 group-hover:scale-105 transition-transform">
+                            <svg className="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                          <div className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300">
+                            @NoSuitRetirement Channel Spotlight
+                          </div>
+                          <div className="text-xs font-bold text-emerald-100 mt-0.5">
+                            Age 60–63 SECURE 2.0 $11,250 Super Catch-Up
+                          </div>
+                        </a>
 
-            <a
-              href={YOUTUBE_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-ga-event="youtube_video_play"
-              data-video-title="How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash"
-              className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
-            >
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
-                  Episode Spotlight · $400K Nest Egg Math
-                </div>
-                <div className="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors">
-                  How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash
-                </div>
-                <p className="text-xs text-emerald-100/90 leading-relaxed">
-                  Setting up your 3-Bucket Crash Shield with 8 full years of protected cash and T-Bill runway.
-                </p>
-              </div>
-              <span className="text-xs font-bold text-amber-300 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                Watch on YouTube →
-              </span>
-            </a>
+                        <div className="space-y-1.5">
+                          <div className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
+                            {video.badge}
+                          </div>
+                          <a
+                            href={video.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            data-ga-event="youtube_video_play"
+                            data-video-title={video.title}
+                            className="block text-sm md:text-base font-extrabold text-white group-hover:text-amber-200 transition-colors leading-snug"
+                          >
+                            {video.title}
+                          </a>
+                          <p className="text-xs text-emerald-100/90 leading-relaxed">
+                            {video.description}
+                          </p>
+                        </div>
+                      </div>
 
-            <a
-              href={YOUTUBE_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-ga-event="youtube_video_play"
-              data-video-title="Beating the 1984 IRS Ghost Tax & Filing Form SSA-44 After Retirement"
-              className="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-3"
-            >
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
-                  Episode Spotlight · Tax &amp; IRMAA Shield
-                </div>
-                <div className="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors">
-                  Beating the 1984 IRS &ldquo;Ghost Tax&rdquo; &amp; Filing Form SSA-44 After Retirement
-                </div>
-                <p className="text-xs text-emerald-100/90 leading-relaxed">
-                  How to use the Roth valve to drop out of the 85% tax zone and erase Medicare IRMAA surcharges.
-                </p>
-              </div>
-              <span className="text-xs font-bold text-amber-300 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                Watch on YouTube →
-              </span>
-            </a>
-          </div>
+                      <div className="flex flex-col gap-2 pt-2 border-t border-amber-400/20">
+                        <a
+                          id={`watchVideoBtn-${video.position}`}
+                          href={video.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          data-ga-event="youtube_video_play"
+                          data-video-title={video.title}
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm transition-colors"
+                        >
+                          <span>▶ Watch Video</span>
+                        </a>
+                        <button
+                          id={`calcActionBtn-${video.position}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVideoCalculatorAction(video);
+                          }}
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 transition-colors cursor-pointer"
+                        >
+                          <span>{video.calculatorActionLabel}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
-          {/* Vet-Checked Senior Tools & Official Links (Tracked via GA4 Custom Events) */}
-          <div className="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-amber-200/90 font-semibold">Senior Tools &amp; Official Links:</span>
-              <a
-                href="https://www.treasurydirect.gov/"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-ga-event="affiliate_click"
-                data-affiliate="TreasuryDirect Bucket 2 T-Bills"
-                className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
-              >
-                🏦 Bucket 2 T-Bill &amp; HYSA Rates →
-              </a>
-              <a
-                href="https://www.ssa.gov/forms/ssa-44.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-ga-event="affiliate_click"
-                data-affiliate="Official IRS/SSA Form SSA-44 PDF"
-                className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
-              >
-                📄 Official Form SSA-44 (PDF) →
-              </a>
+                return (
+                  <div
+                    key={video.id}
+                    id={`videoCard-${video.position}`}
+                    className="chalk-card rounded-2xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-4"
+                  >
+                    <div className="space-y-3">
+                      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-amber-400/40">
+                        <iframe
+                          src={video.embedUrl!}
+                          title={video.title}
+                          loading="lazy"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          className="w-full h-full border-0"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                          {video.badge}
+                        </div>
+                        <a
+                          href={video.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-ga-event="youtube_video_play"
+                          data-video-title={video.title}
+                          className="block text-sm md:text-base font-extrabold text-white hover:text-amber-200 transition-colors leading-snug"
+                        >
+                          {video.title}
+                        </a>
+                        <p className="text-xs text-emerald-100/90 leading-relaxed">
+                          {video.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2 border-t border-amber-400/20">
+                      <a
+                        id={`watchVideoBtn-${video.position}`}
+                        href={video.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-ga-event="youtube_video_play"
+                        data-video-title={video.title}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm transition-colors"
+                      >
+                        <span>▶ Watch Video</span>
+                      </a>
+                      <button
+                        id={`calcActionBtn-${video.position}`}
+                        type="button"
+                        onClick={() => handleVideoCalculatorAction(video)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 transition-colors cursor-pointer"
+                      >
+                        <span>{video.calculatorActionLabel}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+
+            {/* Vet-Checked Senior Tools & Official Links (Tracked via GA4 Custom Events) */}
+            <div className="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-amber-200/90 font-semibold">Senior Tools &amp; Official Links:</span>
+                <a
+                  href="https://www.treasurydirect.gov/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-ga-event="affiliate_click"
+                  data-affiliate="TreasuryDirect Bucket 2 T-Bills"
+                  className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+                >
+                  🏦 Bucket 2 T-Bill &amp; HYSA Rates →
+                </a>
+                <a
+                  href="https://www.ssa.gov/forms/ssa-44.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-ga-event="affiliate_click"
+                  data-affiliate="Official IRS/SSA Form SSA-44 PDF"
+                  className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+                >
+                  📄 Official Form SSA-44 (PDF) →
+                </a>
+              </div>
+            </div>
           </section>
         </div>
       </main>
 
+      {/* Featured Video Player Modal (Opened by Hero "▶️ Watch Latest Video" Button) */}
+      {activeVideoModal && activeVideoModal.embedUrl && (
+        <div
+          id="featuredVideoModal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="featuredVideoModalTitle"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 no-print"
+          onClick={() => setActiveVideoModal(null)}
+        >
+          <div
+            className="bg-[#143325] text-white rounded-2xl max-w-3xl w-full p-5 md:p-6 border-2 border-amber-400 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-amber-400/30 pb-3">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
+                  {activeVideoModal.badge}
+                </div>
+                <h3 id="featuredVideoModalTitle" className="text-base md:text-lg font-extrabold text-white mt-0.5">
+                  {activeVideoModal.title}
+                </h3>
+              </div>
+              <button
+                id="closeFeaturedVideoModalBtn"
+                type="button"
+                onClick={() => setActiveVideoModal(null)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs cursor-pointer shrink-0"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-amber-400/40">
+              <iframe
+                src={activeVideoModal.embedUrl}
+                title={activeVideoModal.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <a
+                href={activeVideoModal.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ga-event="youtube_video_play"
+                data-video-title={activeVideoModal.title}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm"
+              >
+                <span>▶ Watch Directly on YouTube ({activeVideoModal.videoId}) →</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => handleVideoCalculatorAction(activeVideoModal)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 cursor-pointer"
+              >
+                <span>{activeVideoModal.calculatorActionLabel}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <GlossaryModal isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
-      <OwnerPinModal
-        isOpen={isOwnerPinModalOpen}
-        onClose={() => setIsOwnerPinModalOpen(false)}
-        onUnlockSuccess={handleOwnerPinSuccess}
-      />
-      <ChannelStudioModal
-        isOpen={isChannelStudioOpen}
-        onClose={() => setIsChannelStudioOpen(false)}
-        adConfig={adConfig}
-        onSaveAdConfig={handleSaveAdConfig}
-        onShowToast={showToast}
-      />
 
-      {/* Footer with YouTube Channel CTA, Disclaimers & Hidden 5-Tap Owner Version Trigger */}
+      {/* Footer with YouTube Channel CTA & Official Disclaimers */}
       <footer className="bg-[#0f291e] text-emerald-100 border-t-2 border-[#b07d4b] py-6 px-4 mt-8 text-xs no-print">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-5">
           <div className="space-y-1.5 text-center lg:text-left max-w-3xl leading-relaxed">
@@ -1856,16 +1838,6 @@ export default function App() {
 
           <div className="flex flex-wrap items-center justify-center gap-4 shrink-0">
             <YouTubeButton variant="footer" />
-            {isOwnerUnlocked && (
-              <button
-                id="openChannelStudioFooterBtn"
-                type="button"
-                onClick={() => setIsChannelStudioOpen(true)}
-                className="underline text-amber-300 hover:text-amber-200 font-bold cursor-pointer"
-              >
-                🔒 Owner Ad Manager
-              </button>
-            )}
             <button
               id="openPrivacyFooterBtn"
               type="button"
@@ -1875,18 +1847,16 @@ export default function App() {
               Privacy Policy &amp; Data Safety
             </button>
             <span
-              id="footerVersionTapTarget"
-              onClick={handleFooterVersionTap}
               title="No-Suit Retirement Edition"
-              className="text-[11px] text-emerald-300/70 select-none cursor-default"
+              className="text-[11px] text-emerald-300/70 select-none"
             >
-              v2027.4
+              v2027.5
             </span>
           </div>
         </div>
       </footer>
 
-      {/* Google AdSense-Compliant Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) */}
+      {/* Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) */}
       <CookieConsentBanner
         isAccepted={isCookieAccepted}
         onAccept={handleAcceptCookies}

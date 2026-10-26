@@ -7,12 +7,10 @@ import {
   formatUSD,
 } from './retirementMath.ts';
 import {
-  DEFAULT_AD_CONFIG,
   DEFAULT_CHANNEL_CONFIG,
   DEFAULT_GA_MEASUREMENT_ID,
-  buildAtOptionsSrcDoc,
+  FEATURED_YOUTUBE_VIDEOS,
   extractGaMeasurementId,
-  mergeWithDefaultAdConfig,
 } from '../components/AdSlots';
 import {
   COOKIE_CONSENT_STORAGE_KEY,
@@ -42,10 +40,19 @@ test('default couple400k profile computes accurate Net SS, 3-Bucket allocations,
   assert.equal(res.yearsProtected, 8);
 });
 
-test('1984 Ghost Tax speedometer accurately identifies 85% and 0% zones', () => {
+test('1984 Ghost Tax speedometer accurately identifies 85% and 0% zones ($25K/$34K Single, $32K/$44K Married)', () => {
   const resDefault = calculateRetirementMetrics(DEFAULT_INPUTS);
+  assert.equal(resDefault.line50, 32000);
+  assert.equal(resDefault.line85, 44000);
   assert.equal(resDefault.taxZone, '85% Zone');
   assert.equal(formatUSD(resDefault.combinedIncome), '$46,770');
+
+  const resSingle = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ...PRESET_PROFILES.single.values,
+  });
+  assert.equal(resSingle.line50, 25000);
+  assert.equal(resSingle.line85, 34000);
 
   const resLowTax = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
@@ -70,63 +77,52 @@ test('side-gig $24,480 earnings penalty and safe hours calculation', () => {
   assert.equal(resUnder.sideGigBuffer, 4480);
 });
 
-test('claiming age break-even and IRMAA SSA-44 appeal logic', () => {
+test('claiming age break-even (70% at 62, 100% FRA at 67, 124% at 70), SECURE 2.0 $11,250 Super Catch-Up, and IRMAA SSA-44 appeal logic', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
-  assert.equal(res.mo62, 1540);
-  assert.equal(res.mo67, 2200);
-  assert.equal(res.mo70, 2728);
+  assert.equal(res.mo62, 1540); // 70% of $2,200
+  assert.equal(res.mo67, 2200); // 100% FRA (67)
+  assert.equal(res.mo70, 2728); // 124% of $2,200
+  assert.equal(res.catchupLimit, 11250);
+  assert.equal(res.total401kLimit, 35750);
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 });
 
-test('all 4 Adsterra ad slots (#1, #2, #3, #4) and GA4 Measurement ID G-66NLH28JBQ are hardcoded by default', () => {
-  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
-  assert.equal(DEFAULT_AD_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
+test('3 Featured YouTube Videos and GA4 Measurement ID G-66NLH28JBQ are hardcoded with zero Adsterra ads or admin studio', () => {
+  assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
+  assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
   assert.equal(extractGaMeasurementId(''), 'G-66NLH28JBQ');
   assert.equal(extractGaMeasurementId('G-XXXXXXXXXX'), 'G-66NLH28JBQ');
-  assert.equal(extractGaMeasurementId('  g-66nlh28jbq '), 'G-66NLH28JBQ');
+
+  assert.equal(FEATURED_YOUTUBE_VIDEOS.length, 3);
   assert.equal(
-    extractGaMeasurementId('<script async src="https://www.googletagmanager.com/gtag/js?id=G-9988776655"></script>'),
-    'G-9988776655'
+    FEATURED_YOUTUBE_VIDEOS[0].title,
+    'Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)'
   );
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].videoUrl, 'https://youtu.be/XHIm3Q1OvK8');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].embedUrl, 'https://www.youtube.com/embed/XHIm3Q1OvK8');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorPreset, 'couple400k');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorTab, 'tab-paycheck');
 
-  assert.equal(DEFAULT_AD_CONFIG.topLeaderboardEnabled, true);
-  assert.equal(DEFAULT_AD_CONFIG.sidebarRectEnabled, true);
-  assert.equal(DEFAULT_AD_CONFIG.sidebarSkyscraperEnabled, true);
-  assert.equal(DEFAULT_AD_CONFIG.inContentBannerEnabled, true);
-
-  assert.ok(DEFAULT_AD_CONFIG.topLeaderboardCode.includes('689ae6c1012387fe1c48d819d275f89a'));
-  assert.ok(DEFAULT_AD_CONFIG.sidebarRectCode.includes('a90397b0636ccb40a94c951a9b410e8f'));
-  assert.ok(DEFAULT_AD_CONFIG.sidebarSkyscraperCode.includes('4caea752f3b7fb129968dc3c9995eb52'));
-  assert.ok(DEFAULT_AD_CONFIG.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
-  assert.ok(DEFAULT_AD_CONFIG.inContentBannerCode.includes('https://bauval.org/22/0870404dd626af0ee07a6ff29938d63e'));
-
-  assert.deepEqual(DEFAULT_CHANNEL_CONFIG, DEFAULT_AD_CONFIG);
-
-  // Empty strings or placeholder G-XXXXXXXXXX in localStorage must fall back to hardcoded defaults
-  const merged = mergeWithDefaultAdConfig({
-    topLeaderboardCode: '   ',
-    sidebarRectCode: '',
-    sidebarSkyscraperCode: '',
-    inContentBannerCode: '   ',
-    gaMeasurementId: 'G-XXXXXXXXXX',
-  });
-  assert.equal(merged.inContentBannerEnabled, true);
-  assert.equal(merged.gaMeasurementId, 'G-66NLH28JBQ');
-  assert.ok(merged.topLeaderboardCode.includes('689ae6c1012387fe1c48d819d275f89a'));
-  assert.ok(merged.sidebarRectCode.includes('a90397b0636ccb40a94c951a9b410e8f'));
-  assert.ok(merged.sidebarSkyscraperCode.includes('4caea752f3b7fb129968dc3c9995eb52'));
-  assert.ok(merged.inContentBannerCode.includes('0870404dd626af0ee07a6ff29938d63e'));
-
-  const srcDoc = buildAtOptionsSrcDoc(DEFAULT_AD_CONFIG.sidebarRectCode);
-  assert.ok(
-    srcDoc.startsWith(
-      '<!DOCTYPE html><html><body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:transparent;">'
-    )
+  assert.equal(
+    FEATURED_YOUTUBE_VIDEOS[1].title,
+    'How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)'
   );
-  assert.ok(srcDoc.includes('a90397b0636ccb40a94c951a9b410e8f'));
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[1].videoUrl, 'https://youtu.be/alUfXINV93Y');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[1].embedUrl, 'https://www.youtube.com/embed/alUfXINV93Y');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[1].calculatorPreset, 'couple400k');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[1].calculatorTab, 'tab-paycheck');
+
+  assert.equal(
+    FEATURED_YOUTUBE_VIDEOS[2].title,
+    'Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31'
+  );
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[2].videoUrl, 'https://www.youtube.com/@NoSuitRetirement');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[2].isChannelLinkOnly, true);
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[2].calculatorTab, 'tab-taxshield');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[2].workerAgeGroup, '61');
 });
 
-test('Cookie Consent, Spouse Share Bar, Mobile Bottom Nav Bar, and G-66NLH28JBQ are properly built in standalone HTML without demo placeholders', () => {
+test('Standalone HTML contains 3 featured videos, G-66NLH28JBQ, full 12-col calculator, and zero Adsterra or Owner Studio elements', () => {
   assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'nosuit_cookie_consent_v1');
   assert.equal(SITE_CANONICAL_URL, 'https://nosuitretirement.com/');
 
@@ -142,29 +138,26 @@ test('Cookie Consent, Spouse Share Bar, Mobile Bottom Nav Bar, and G-66NLH28JBQ 
   assert.ok(decodeURIComponent(links.emailShareUrl).includes('$2,770/mo'));
   assert.equal(links.copyUrl, 'https://nosuitretirement.com/');
 
-  const html = buildFullStandaloneHtml(DEFAULT_AD_CONFIG);
+  const html = buildFullStandaloneHtml(DEFAULT_CHANNEL_CONFIG);
   assert.ok(html.includes('https://www.googletagmanager.com/gtag/js?id=G-66NLH28JBQ'));
   assert.ok(html.includes("gtag('config', 'G-66NLH28JBQ');"));
-  assert.ok(html.includes('id="container-689ae6c1012387fe1c48d819d275f89a"'));
-  assert.equal(html.includes('Advertisement · Sponsored'), false);
-  assert.ok(html.includes('id="cookieConsentBanner"'));
-  assert.ok(html.includes('id="acceptCookiesBtn"'));
-  assert.ok(html.includes('id="cookiePrivacyPolicyBtn"'));
-  assert.ok(html.includes('nosuit_cookie_consent_v1'));
+  assert.ok(html.includes('https://youtu.be/XHIm3Q1OvK8'));
+  assert.ok(html.includes('https://www.youtube.com/embed/XHIm3Q1OvK8'));
+  assert.ok(html.includes('https://youtu.be/alUfXINV93Y'));
+  assert.ok(html.includes('https://www.youtube.com/embed/alUfXINV93Y'));
+  assert.ok(html.includes('Turning 60 in 2026? The $11,250'));
 
-  assert.ok(html.includes('id="spouseShareBar"'));
-  assert.ok(html.includes('id="shareFacebookBtn"'));
-  assert.ok(html.includes('id="shareEmailSpouseBtn"'));
-  assert.ok(html.includes('id="copyWebsiteLinkBtn"'));
-
-  assert.ok(html.includes('id="mobileBottomNavBar"'));
-  assert.ok(html.includes('id="mobileNavCalculatorBtn"'));
-  assert.ok(html.includes('id="mobileNavVideosBtn"'));
-  assert.ok(html.includes('id="mobileNavBinderBtn"'));
-  assert.equal(html.includes('Get the $5 Printable Kitchen-Table Workbook (Gumroad)'), false);
-  assert.equal(html.includes('id="gumroadCtaBtn"'), false);
+  // Verify zero Adsterra scripts, ad containers, or Owner Studio elements
+  assert.equal(html.includes('bauval.org'), false);
+  assert.equal(html.includes('atOptions'), false);
+  assert.equal(html.includes('adSlotTopBanner'), false);
+  assert.equal(html.includes('adSlotSidebarRect'), false);
+  assert.equal(html.includes('adSlotSidebarSky'), false);
+  assert.equal(html.includes('adSlotInContent'), false);
+  assert.equal(html.includes('rightAdSidebar'), false);
+  assert.equal(html.includes('channelStudioModal'), false);
+  assert.equal(html.includes('ownerPinModal'), false);
+  assert.equal(html.includes('admin=nosuit'), false);
+  assert.ok(html.includes('id="calculatorMainColumn" class="lg:col-span-12 space-y-6"'));
   assert.ok(html.includes('WATCH RETIREMENT MATH IN PLAIN ENGLISH'));
 });
-
-
-

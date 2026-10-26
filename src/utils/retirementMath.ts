@@ -234,6 +234,11 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   );
   const rothSweetSpotRoom = Math.max(0, bracket12Top - currentTaxable);
 
+  // SECURE 2.0 Catch-Up Limits (2026-2027)
+  const base401kLimit = 24500;
+  const catchupLimit = inputs.workerAgeGroup === '61' ? 11250 : 8000;
+  const total401kLimit = base401kLimit + catchupLimit;
+
   // IRMAA Appeal Checker
   const irmaaIncome = Math.max(0, Number(inputs.irmaa2025Income) || 0);
   const irmaaLimit = inputs.taxFilingStatus === 'married' ? 212000 : 106000;
@@ -305,6 +310,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     taxZone,
     shiftToRothNeeded,
     rothSweetSpotRoom,
+    base401kLimit,
+    catchupLimit,
+    total401kLimit,
     irmaaIncome,
     irmaaLimit,
     irmaaOverLimit,

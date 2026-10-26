@@ -1,33 +1,13 @@
 import {
-  AdConfig,
-  DEFAULT_AD_CONFIG,
+  AnalyticsConfig,
+  DEFAULT_CHANNEL_CONFIG,
   extractGaMeasurementId,
-  extractGscCode,
-  mergeWithDefaultAdConfig,
 } from '../components/AdSlots';
 import { BRAND_LOGO_BASE64 } from '../data/logoData';
 
-export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFIG): string {
-  const config = mergeWithDefaultAdConfig(inputConfig);
-  const cleanGsc = extractGscCode(config.gscVerificationCode);
-  const cleanGaId = extractGaMeasurementId(config.gaMeasurementId);
-  const bothSidebarOff = !config.sidebarRectEnabled && !config.sidebarSkyscraperEnabled;
-  const serializedConfig = JSON.stringify(
-    {
-      gscVerificationCode: cleanGsc,
-      gaMeasurementId: cleanGaId,
-      topLeaderboardEnabled: Boolean(config.topLeaderboardEnabled),
-      topLeaderboardCode: config.topLeaderboardCode,
-      sidebarRectEnabled: Boolean(config.sidebarRectEnabled),
-      sidebarRectCode: config.sidebarRectCode,
-      sidebarSkyscraperEnabled: Boolean(config.sidebarSkyscraperEnabled),
-      sidebarSkyscraperCode: config.sidebarSkyscraperCode || '',
-      inContentBannerEnabled: Boolean(config.inContentBannerEnabled),
-      inContentBannerCode: config.inContentBannerCode,
-    },
-    null,
-    2
-  ).replace(/<\/script>/gi, '<\\/script>');
+export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_CHANNEL_CONFIG): string {
+  const cleanGsc = (inputConfig?.gscVerificationCode || 'YOUR_GSC_CODE').trim() || 'YOUR_GSC_CODE';
+  const cleanGaId = extractGaMeasurementId(inputConfig?.gaMeasurementId);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -140,29 +120,29 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           {
             "@type": "VideoObject",
             "position": 1,
-            "name": "Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B",
+            "name": "Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)",
             "description": "Plain-English chalkboard breakdown of how the Two-Envelope test reveals your true net Social Security deposit after Medicare Part B and Part D deductions.",
-            "thumbnailUrl": ["https://nosuitretirement.com/og-cola-medicare.jpg"],
+            "thumbnailUrl": ["https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg"],
             "uploadDate": "2026-10-01T08:00:00-05:00",
-            "contentUrl": "https://www.youtube.com/@NoSuitRetirement",
-            "embedUrl": "https://www.youtube.com/@NoSuitRetirement"
+            "contentUrl": "https://youtu.be/XHIm3Q1OvK8",
+            "embedUrl": "https://www.youtube.com/embed/XHIm3Q1OvK8"
           },
           {
             "@type": "VideoObject",
             "position": 2,
-            "name": "How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash",
-            "description": "Step-by-step kitchen-table guide to setting up a 3-Bucket Crash Shield with 8 full years of protected cash and T-Bill runway.",
-            "thumbnailUrl": ["https://nosuitretirement.com/og-400k-buckets.jpg"],
+            "name": "How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)",
+            "description": "Step-by-step kitchen-table guide to retiring comfortably at age 62 with $400,000 and Social Security using a 3-Bucket Crash Shield with 8 full years of protected cash and T-Bill runway.",
+            "thumbnailUrl": ["https://i.ytimg.com/vi/alUfXINV93Y/hqdefault.jpg"],
             "uploadDate": "2026-10-08T08:00:00-05:00",
-            "contentUrl": "https://www.youtube.com/@NoSuitRetirement",
-            "embedUrl": "https://www.youtube.com/@NoSuitRetirement"
+            "contentUrl": "https://youtu.be/alUfXINV93Y",
+            "embedUrl": "https://www.youtube.com/embed/alUfXINV93Y"
           },
           {
             "@type": "VideoObject",
             "position": 3,
-            "name": "Beating the 1984 IRS Ghost Tax & Filing Form SSA-44 After Retirement",
-            "description": "How to use tax-free Roth withdrawals to drop out of the 85% Social Security tax zone and file Form SSA-44 to remove Medicare IRMAA surcharges.",
-            "thumbnailUrl": ["https://nosuitretirement.com/og-ghost-tax-irmaa.jpg"],
+            "name": "Turning 60 in 2026? The $11,250 \"Super Catch-Up\" Window Closing on Dec 31",
+            "description": "How workers aged 60, 61, 62, or 63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 and shield their retirement savings from the 1984 IRS Ghost Tax.",
+            "thumbnailUrl": ["https://nosuitretirement.com/og-super-catchup-2026.jpg"],
             "uploadDate": "2026-10-15T08:00:00-05:00",
             "contentUrl": "https://www.youtube.com/@NoSuitRetirement",
             "embedUrl": "https://www.youtube.com/@NoSuitRetirement"
@@ -214,7 +194,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         <button id="toggleGuideTopBtn" type="button" class="ml-1 px-3 py-1 rounded bg-amber-300 hover:bg-amber-200 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm">📘 How to Use (3-Min Guide)</button>
         <button id="openGlossaryBtn" type="button" class="px-3 py-1 rounded bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs">📖 No-Suit Glossary</button>
         <button id="openPrivacyBtn" type="button" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs border border-amber-400/40">🔒 Privacy &amp; Policy</button>
-        <button id="ownerTopBarBtn" type="button" class="hidden px-3 py-1 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs">🔒 Owner Ad Manager</button>
         <button id="readAloudBtn" type="button" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
           <span id="readAloudLabel">🔊 Listen to My Summary</span>
         </button>
@@ -288,24 +267,38 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         </div>
       </div>
 
-      <!-- Right Column: YouTube Channel CTA + Sample Household Presets -->
-      <div class="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-3">
-        <a
-          href="https://www.youtube.com/@NoSuitRetirement"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0000] to-[#cc0000] hover:from-[#e60000] hover:to-[#b30000] text-white font-extrabold text-sm shadow-lg border border-white/25 transition-all duration-200 hover:scale-[1.02]"
-        >
-          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white text-[#FF0000] flex-shrink-0">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-          </span>
-          <span class="flex flex-col text-left leading-tight">
-            <span class="text-[10px] uppercase tracking-wider font-semibold text-red-100">WATCH RETIREMENT MATH IN PLAIN ENGLISH</span>
-            <span class="text-xs sm:text-sm font-extrabold text-white">Subscribe on YouTube - NoSuitRetirement</span>
-          </span>
-        </a>
+      <!-- Right Column: YouTube Channel CTA + Hero Watch Latest Video + Sample Household Presets -->
+      <div class="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-2.5">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <a
+            href="https://www.youtube.com/@NoSuitRetirement"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0000] to-[#cc0000] hover:from-[#e60000] hover:to-[#b30000] text-white font-extrabold text-sm shadow-lg border border-white/25 transition-all duration-200 hover:scale-[1.02]"
+          >
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white text-[#FF0000] flex-shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </span>
+            <span class="flex flex-col text-left leading-tight">
+              <span class="text-[10px] uppercase tracking-wider font-semibold text-red-100">WATCH RETIREMENT MATH IN PLAIN ENGLISH</span>
+              <span class="text-xs sm:text-sm font-extrabold text-white">Subscribe on YouTube - NoSuitRetirement</span>
+            </span>
+          </a>
+          <a
+            id="heroWatchLatestVideoBtn"
+            href="https://youtu.be/XHIm3Q1OvK8"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-event="youtube_video_play"
+            data-video-id="XHIm3Q1OvK8"
+            data-video-title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)"
+            class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm border border-amber-500 shadow-md"
+          >
+            <span>▶️ Watch Latest Video</span>
+          </a>
+        </div>
 
         <div class="bg-[#143325]/90 border border-amber-400/40 rounded-xl p-2.5 w-full sm:w-auto flex flex-col gap-1.5">
           <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300 text-center xl:text-left">Click to Load Sample Household:</span>
@@ -379,23 +372,14 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
     </div>
   </section>
 
-  <!-- AD SLOT #1 (#adSlotTopBanner): Top Native Banner Above the Calculator -->
-  <div class="max-w-7xl w-full mx-auto px-4 mt-4 no-print">
-    <aside id="adSlotTopBanner" aria-label="Top Native Banner" class="no-print flex flex-col items-center justify-center w-full min-h-[90px] ${config.topLeaderboardEnabled ? '' : 'hidden'}">
-      <div id="adSlotTopBannerBody" class="w-full min-h-[90px] flex items-center justify-center">
-        <div id="container-689ae6c1012387fe1c48d819d275f89a" class="w-full"></div>
-      </div>
-    </aside>
-  </div>
-
   <!-- Toast Notification -->
   <div id="appToast" class="hidden fixed bottom-20 md:bottom-5 right-5 z-50 bg-[#1b4332] text-amber-200 border-2 border-amber-400 px-4 py-3 rounded-xl shadow-2xl font-semibold text-sm max-w-sm"></div>
 
-  <!-- MAIN 12-COLUMN DESKTOP GRID: 8-Col 5-Tab Calculator + 4-Col Sticky Right Sidebar -->
+  <!-- MAIN 12-COLUMN FULL-WIDTH DESKTOP GRID -->
   <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-8">
     <div id="calculatorSectionAnchor" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- LEFT 8 COLUMNS (Auto-expands to lg:col-span-12 when both Sidebar Ads #2 & #3 are OFF) -->
-      <div id="calculatorMainColumn" class="${bothSidebarOff ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-6">
+      <!-- FULL 12 COLUMNS: 5-Tab Interactive Calculator -->
+      <div id="calculatorMainColumn" class="lg:col-span-12 space-y-6">
         <!-- 5 Navigation Tabs -->
         <nav class="no-print" aria-label="Main Modules">
           <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 bg-[#e9e2d0] p-2 rounded-xl border-2 border-[#b07d4b]">
@@ -839,19 +823,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           </div>
         </section>
       </div>
-
-      <!-- RIGHT 4 COLUMNS: Sticky Right Sidebar for Ad Slots #2 & #3 -->
-      <div id="rightAdSidebar" class="${bothSidebarOff ? 'hidden' : 'lg:col-span-4'} lg:sticky lg:top-4 space-y-6 no-print">
-        <!-- AD SLOT #2 (#adSlotSidebarRect): Right Sidebar Sticky Slot #1 (300x250 Medium Rectangle) -->
-        <aside id="adSlotSidebarRect" aria-label="Right Sidebar Sticky Slot #1" class="no-print flex flex-col items-center justify-center w-full min-h-[250px] ${config.sidebarRectEnabled ? '' : 'hidden'}">
-          <div id="adSlotSidebarRectBody" class="w-full min-h-[250px] flex items-center justify-center"></div>
-        </aside>
-
-        <!-- AD SLOT #3 (#adSlotSidebarSky): Right Sidebar Sticky Slot #2 (160x600 Skyscraper) -->
-        <aside id="adSlotSidebarSky" aria-label="Right Sidebar Sticky Slot #2" class="no-print flex flex-col items-center justify-center w-full min-h-[600px] ${config.sidebarSkyscraperEnabled ? '' : 'hidden'}">
-          <div id="adSlotSidebarSkyBody" class="w-full min-h-[600px] flex items-center justify-center"></div>
-        </aside>
-      </div>
     </div>
 
     <!-- SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator -->
@@ -876,11 +847,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
       </div>
     </section>
 
-    <!-- AD SLOT #4 (#adSlotInContent): In-Content Horizontal Banner (728x90) Between Calculator Section and YouTube Video Showcase -->
-    <aside id="adSlotInContent" aria-label="In-Content Horizontal Banner" class="no-print min-h-[90px] flex justify-center items-center overflow-x-auto w-full ${config.inContentBannerEnabled ? '' : 'hidden'}">
-      <div id="adSlotInContentBody" class="w-full min-h-[90px] flex justify-center items-center overflow-x-auto"></div>
-    </aside>
-
     <!-- YOUTUBE VIDEO SECTION (#youtubeChannelHub / #youtubeVideoSection) -->
     <div id="youtubeChannelHub" class="no-print">
       <section id="youtubeVideoSection" class="chalkboard-bg rounded-2xl p-6 md:p-8 text-white no-print space-y-5">
@@ -888,7 +854,7 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           <div>
             <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Official YouTube Education Hub · @NoSuitRetirement</div>
             <h2 class="text-xl md:text-2xl font-extrabold text-white mt-1">Watch Plain-English Chalkboard Retirement Breakdowns</h2>
-            <p class="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and 1984 Ghost Tax shields.</p>
+            <p class="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and the Age 60–63 $11,250 Super Catch-Up.</p>
           </div>
           <a
             href="https://www.youtube.com/@NoSuitRetirement"
@@ -903,30 +869,45 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
-            <div class="space-y-1.5">
-              <div class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Episode Spotlight · COLA &amp; Medicare</div>
-              <div class="text-sm font-extrabold text-white">Why the 2027 Social Security COLA Raise Gets Eaten by Medicare Part B</div>
-              <p class="text-xs text-emerald-100/90 leading-relaxed">How the Two-Envelope test reveals your true net deposit—and how to protect your buying power.</p>
+          <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-2">
+              <div class="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-amber-400/40">
+                <iframe src="https://www.youtube.com/embed/XHIm3Q1OvK8" title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)" loading="lazy" allowfullscreen class="w-full h-full border-0"></iframe>
+              </div>
+              <div class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Episode #1 · 2027 COLA &amp; Medicare Math</div>
+              <a href="https://youtu.be/XHIm3Q1OvK8" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)" class="block text-sm font-extrabold text-white">Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)</a>
             </div>
-            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
-          </a>
-          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
-            <div class="space-y-1.5">
-              <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Episode Spotlight · $400K Nest Egg Math</div>
-              <div class="text-sm font-extrabold text-white">How to Retire Comfortably at 62 on $350K–$450K Without Selling Stocks in a Crash</div>
-              <p class="text-xs text-emerald-100/90 leading-relaxed">Setting up your 3-Bucket Crash Shield with 8 full years of protected cash and T-Bill runway.</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="https://youtu.be/XHIm3Q1OvK8" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
+              <button type="button" data-preset="couple400k" data-goto-tab="tab-paycheck" class="preset-btn guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">🧮 Load $400K Couple Math in Tab 1</button>
             </div>
-            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
-          </a>
-          <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Beating the 1984 IRS Ghost Tax & Filing Form SSA-44 After Retirement" class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
-            <div class="space-y-1.5">
-              <div class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Episode Spotlight · Tax &amp; IRMAA Shield</div>
-              <div class="text-sm font-extrabold text-white">Beating the 1984 IRS "Ghost Tax" &amp; Filing Form SSA-44 After Retirement</div>
-              <p class="text-xs text-emerald-100/90 leading-relaxed">How to use the Roth valve to drop out of the 85% tax zone and erase Medicare IRMAA surcharges.</p>
+          </div>
+
+          <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-2">
+              <div class="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-amber-400/40">
+                <iframe src="https://www.youtube.com/embed/alUfXINV93Y" title="How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)" loading="lazy" allowfullscreen class="w-full h-full border-0"></iframe>
+              </div>
+              <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Episode #2 · Retire at 62 on $400K</div>
+              <a href="https://youtu.be/alUfXINV93Y" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)" class="block text-sm font-extrabold text-white">How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)</a>
             </div>
-            <span class="text-xs font-bold text-amber-300">Watch on YouTube →</span>
-          </a>
+            <div class="flex flex-col gap-1.5">
+              <a href="https://youtu.be/alUfXINV93Y" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
+              <button type="button" data-preset="couple400k" data-goto-tab="tab-paycheck" class="preset-btn guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">🧮 Load $400K Couple Math in Tab 1</button>
+            </div>
+          </div>
+
+          <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
+            <div class="space-y-2">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Episode #3 · Age 60–63 Super Catch-Up</div>
+              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Turning 60 in 2026? The $11,250 &quot;Super Catch-Up&quot; Window Closing on Dec 31" class="block text-sm font-extrabold text-white">Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31</a>
+              <p class="text-xs text-emerald-100/90 leading-relaxed">How workers aged 60–63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 ($35,750 total 401k limit).</p>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
+              <button type="button" data-goto-tab="tab-taxshield" class="guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">🧮 Open $11,250 Super Catch-Up Tool (Tab 3)</button>
+            </div>
+          </div>
         </div>
         <div class="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
           <div class="flex flex-wrap items-center gap-2">
@@ -985,138 +966,9 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
           <p class="mt-1">No-Suit Retirement Companion runs all retirement calculations 100% locally in your browser. Zero personal financial numbers, Social Security estimates, tax inputs, or family binder notes are ever transmitted or stored on external servers.</p>
         </div>
         <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
-          <div class="font-extrabold text-amber-950">2. Google AdSense, Partner Ads &amp; Cookie Consent Disclosure</div>
-          <p class="mt-1">To keep this senior retirement calculator 100% free, this website displays clearly labeled sponsored advertisements (including Google AdSense and partner display networks) and uses anonymous Google Analytics 4 traffic measurement. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this or other websites. You may opt out of personalized advertising at <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" class="underline font-bold">Google Ads Settings</a>. Your cookie consent choice is stored locally in your browser's <code>localStorage</code>.</p>
+          <div class="font-extrabold text-amber-950">2. Cookie Consent &amp; Anonymous Google Analytics 4 Disclosure</div>
+          <p class="mt-1">To keep this senior retirement calculator 100% free, this website uses anonymous Google Analytics 4 traffic measurement (<code>G-66NLH28JBQ</code>) and standard browser cookies. Your cookie consent choice is stored locally in your browser's <code>localStorage</code>.</p>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- OWNER PIN LOCK MODAL (#ownerPinModal — Default PIN: 2027) -->
-  <div id="ownerPinModal" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 border-2 border-[#1b4332] shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-        <div>
-          <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Site Owner Security Lock</div>
-          <h3 class="text-lg font-extrabold text-[#1b4332]">Unlock Owner Studio &amp; Ad Manager</h3>
-        </div>
-        <button id="closeOwnerPinBtn" type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">✕</button>
-      </div>
-      <form id="ownerPinForm" class="space-y-3 text-xs text-slate-700">
-        <label for="ownerPinInput" class="block font-bold text-slate-800">Enter Owner PIN (Default: 2027)</label>
-        <input id="ownerPinInput" type="password" placeholder="2027" class="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono text-sm font-bold text-slate-900" />
-        <div id="ownerPinError" class="hidden text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">
-          Incorrect PIN. Default owner PIN is 2027.
-        </div>
-        <div class="flex justify-end gap-2 pt-1">
-          <button id="cancelOwnerPinBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-[#1b4332] text-amber-300 font-extrabold text-xs cursor-pointer">Unlock Studio</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- OWNER 4-SLOT AD CODE MANAGER & SEO STUDIO MODAL (#channelStudioModal) -->
-  <div id="channelStudioModal" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 no-print">
-    <div class="bg-white border-2 border-[#1b4332] rounded-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-5 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-        <div>
-          <div id="activeAdSlotsCountBadge" class="text-xs font-bold uppercase tracking-wider text-emerald-800">
-            🔒 Owner-Only Studio · 4 of 4 Ad Slots Active · PIN: 2027
-          </div>
-          <h2 class="text-xl font-extrabold text-[#1b4332]">Owner 4-Slot Ad Code Manager &amp; Google SEO Studio</h2>
-        </div>
-        <button id="closeChannelStudioBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3.5 py-1.5 rounded-lg text-sm cursor-pointer">✕ Close</button>
-      </div>
-
-      <!-- 4 Separate Ad Slots with Individual Enable Ad #1–#4 Switches -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-        <div class="p-4 rounded-xl border bg-[#faf8f2] border-[#c5b9a5] space-y-2">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <label for="adCodeTopLeaderboard" class="block font-extrabold text-slate-800 uppercase">Ad Slot #1: Top Leaderboard Banner (728×90)</label>
-              <p class="text-[11px] text-slate-500">Appears above the calculator (#adSlotTopBanner).</p>
-            </div>
-            <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold cursor-pointer bg-emerald-700 text-white border-emerald-800">
-              <input id="toggleTopLeaderboard" type="checkbox" checked class="w-3.5 h-3.5 accent-amber-400 cursor-pointer" />
-              <span id="labelEnableAd1">Enable Ad #1 (ON)</span>
-            </label>
-          </div>
-          <textarea id="adCodeTopLeaderboard" rows="3" placeholder="<!-- Paste Google AdSense 728x90 or Adsterra Leaderboard HTML/JS code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
-        </div>
-
-        <div class="p-4 rounded-xl border bg-[#faf8f2] border-[#c5b9a5] space-y-2">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <label for="adCodeSidebarRect" class="block font-extrabold text-slate-800 uppercase">Ad Slot #2: Right Sidebar Sticky Slot #1 (300×250)</label>
-              <p class="text-[11px] text-slate-500">Beside calculator inputs (#adSlotSidebarRect).</p>
-            </div>
-            <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold cursor-pointer bg-emerald-700 text-white border-emerald-800">
-              <input id="toggleSidebarRect" type="checkbox" checked class="w-3.5 h-3.5 accent-amber-400 cursor-pointer" />
-              <span id="labelEnableAd2">Enable Ad #2 (ON)</span>
-            </label>
-          </div>
-          <textarea id="adCodeSidebarRect" rows="3" placeholder="<!-- Paste AdSense 300x250 or Adsterra Medium Rectangle HTML/JS code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
-        </div>
-
-        <div class="p-4 rounded-xl border bg-[#faf8f2] border-[#c5b9a5] space-y-2">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <label for="adCodeSidebarSkyscraper" class="block font-extrabold text-slate-800 uppercase">Ad Slot #3: Right Sidebar Sticky Slot #2 (300×600)</label>
-              <p class="text-[11px] text-slate-500">Beside calculator results (#adSlotSidebarSky).</p>
-            </div>
-            <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold cursor-pointer bg-emerald-700 text-white border-emerald-800">
-              <input id="toggleSidebarSkyscraper" type="checkbox" checked class="w-3.5 h-3.5 accent-amber-400 cursor-pointer" />
-              <span id="labelEnableAd3">Enable Ad #3 (ON)</span>
-            </label>
-          </div>
-          <textarea id="adCodeSidebarSkyscraper" rows="3" placeholder="<!-- Paste 160x600 / 300x600 Skyscraper or Adsterra Native Banner code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
-        </div>
-
-        <div class="p-4 rounded-xl border bg-[#faf8f2] border-[#c5b9a5] space-y-2">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <label for="adCodeInContentBanner" class="block font-extrabold text-slate-800 uppercase">Ad Slot #4: In-Content Horizontal Banner (728×90)</label>
-              <p class="text-[11px] text-slate-500">Between Calculator and YouTube Video Showcase (#adSlotInContent).</p>
-            </div>
-            <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold cursor-pointer bg-emerald-700 text-white border-emerald-800">
-              <input id="toggleInContentBanner" type="checkbox" checked class="w-3.5 h-3.5 accent-amber-400 cursor-pointer" />
-              <span id="labelEnableAd4">Enable Ad #4 (ON)</span>
-            </label>
-          </div>
-          <textarea id="adCodeInContentBanner" rows="3" placeholder="<!-- Paste 728x90 In-Content Adsterra or AdSense Banner HTML/JS code here -->" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 font-mono text-xs"></textarea>
-        </div>
-      </div>
-
-      <!-- Google Search Console & Google Analytics 4 (GA4) Inputs -->
-      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 space-y-3 text-xs">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label for="gscVerificationInput" class="block font-extrabold text-emerald-950 uppercase">Google Search Console Verification Code (https://nosuitretirement.com/)</label>
-            <input id="gscVerificationInput" type="text" value="${cleanGsc}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-xs" />
-          </div>
-          <div>
-            <label for="gaMeasurementIdInput" class="block font-extrabold text-emerald-950 uppercase">Google Analytics 4 Measurement ID (G-XXXXXXXXXX)</label>
-            <input id="gaMeasurementIdInput" type="text" placeholder="G-XXXXXXXXXX" value="${cleanGaId}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-xs" />
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="downloadUpdatedHtmlBtn" type="button" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-xs cursor-pointer">
-            ⬇ Download Updated Website (.html)
-          </button>
-          <button id="downloadSitemapBtn" type="button" class="px-3 py-2 rounded-xl bg-[#1b4332] text-amber-300 font-extrabold text-xs cursor-pointer">
-            ⬇ Download sitemap.xml
-          </button>
-          <button id="downloadRobotsBtn" type="button" class="px-3 py-2 rounded-xl bg-slate-800 text-amber-200 font-extrabold text-xs cursor-pointer">
-            ⬇ Download robots.txt
-          </button>
-        </div>
-        <button id="saveAdConfigBtn" type="button" class="px-5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs cursor-pointer">
-          Save &amp; Apply Ad Settings
-        </button>
       </div>
     </div>
   </div>
@@ -1130,16 +982,16 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" class="px-3 py-1 rounded-lg bg-[#FF0000] text-white font-bold text-xs">▶ NoSuitRetirement</a>
         <button id="openPrivacyFooterBtn" type="button" class="underline text-amber-300 hover:text-amber-200 font-bold">🔒 Privacy Policy &amp; Data Safety</button>
         <span class="text-emerald-400">•</span>
-        <span id="footerVersionTapTarget" class="font-bold text-amber-300 select-none cursor-default" title="Tap 5 times for Owner Studio">No-Suit Retirement v2027.4</span>
+        <span class="font-bold text-amber-300 select-none">No-Suit Retirement v2027.5</span>
       </div>
     </div>
   </footer>
 
-  <!-- Google AdSense-Compliant Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) -->
+  <!-- Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) -->
   <aside id="cookieConsentBanner" role="region" aria-label="Cookie and Privacy Consent" class="no-print fixed bottom-14 md:bottom-0 inset-x-0 z-50 bg-[#143325] text-amber-100 border-t-2 border-amber-400 shadow-2xl px-4 py-3.5">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
       <div class="text-xs leading-relaxed max-w-4xl">
-        <strong class="text-amber-300 font-extrabold uppercase tracking-wide">🍪 Cookie &amp; AdSense Privacy Notice:</strong> We use cookies and standard web technologies to serve policy-compliant ads (Google AdSense &amp; partner networks) and measure anonymous site traffic. <strong class="text-white">100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.</strong>
+        <strong class="text-amber-300 font-extrabold uppercase tracking-wide">🍪 Cookie &amp; Privacy Notice:</strong> We use cookies and anonymous Google Analytics 4 traffic measurement to improve our senior retirement tools. <strong class="text-white">100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.</strong>
       </div>
       <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
         <button id="cookiePrivacyPolicyBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs border border-amber-400/40 transition-colors cursor-pointer whitespace-nowrap">Privacy Policy</button>
@@ -1163,215 +1015,13 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
     </div>
   </nav>
 
-  <!-- Baked Owner Ad & SEO Configuration -->
-  <script id="bakedOwnerConfigScript">
-    window.DEFAULT_AD_CONFIG = ${serializedConfig};
-    window.DEFAULT_CHANNEL_CONFIG = window.DEFAULT_AD_CONFIG;
-    window.__BAKED_AD_CONFIG__ = window.DEFAULT_AD_CONFIG;
-  </script>
-
   <script>
     (function () {
-      const STORAGE_KEY = 'nosuit_ad_config_v5';
-      const OWNER_PIN = '2027';
-      let isOwnerUnlocked = new URLSearchParams(window.location.search).get('admin') === 'nosuit';
-
-      const DEFAULT_AD_CONFIG = Object.assign({}, window.DEFAULT_AD_CONFIG || window.__BAKED_AD_CONFIG__);
-      const DEFAULT_CHANNEL_CONFIG = DEFAULT_AD_CONFIG;
-
-      let adConfig = Object.assign({}, DEFAULT_CHANNEL_CONFIG);
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const rawGa = (parsed.gaMeasurementId || '').trim().toUpperCase();
-          adConfig = Object.assign({}, DEFAULT_CHANNEL_CONFIG, parsed, {
-            gaMeasurementId: (!rawGa || rawGa === 'G-XXXXXXXXXX') ? 'G-66NLH28JBQ' : rawGa,
-            topLeaderboardCode: (parsed.topLeaderboardCode && parsed.topLeaderboardCode.trim()) ? parsed.topLeaderboardCode : DEFAULT_CHANNEL_CONFIG.topLeaderboardCode,
-            sidebarRectCode: (parsed.sidebarRectCode && parsed.sidebarRectCode.trim()) ? parsed.sidebarRectCode : DEFAULT_CHANNEL_CONFIG.sidebarRectCode,
-            sidebarSkyscraperCode: (parsed.sidebarSkyscraperCode && parsed.sidebarSkyscraperCode.trim()) ? parsed.sidebarSkyscraperCode : DEFAULT_CHANNEL_CONFIG.sidebarSkyscraperCode,
-            inContentBannerCode: (parsed.inContentBannerCode && parsed.inContentBannerCode.trim()) ? parsed.inContentBannerCode : DEFAULT_CHANNEL_CONFIG.inContentBannerCode
-          });
-        }
+        localStorage.removeItem('nosuit_channel_config_v1');
+        localStorage.removeItem('nosuit_ad_config_v1');
+        localStorage.removeItem('nosuit_ad_config_v5');
       } catch (e) {}
-
-      const slots = [
-        { num: 1, wrapId: 'adSlotTopBanner', bodyId: 'adSlotTopBannerBody', enabledKey: 'topLeaderboardEnabled', codeKey: 'topLeaderboardCode', toggleId: 'toggleTopLeaderboard', labelId: 'labelEnableAd1', inputId: 'adCodeTopLeaderboard' },
-        { num: 2, wrapId: 'adSlotSidebarRect', bodyId: 'adSlotSidebarRectBody', enabledKey: 'sidebarRectEnabled', codeKey: 'sidebarRectCode', toggleId: 'toggleSidebarRect', labelId: 'labelEnableAd2', inputId: 'adCodeSidebarRect' },
-        { num: 3, wrapId: 'adSlotSidebarSky', bodyId: 'adSlotSidebarSkyBody', enabledKey: 'sidebarSkyscraperEnabled', codeKey: 'sidebarSkyscraperCode', toggleId: 'toggleSidebarSkyscraper', labelId: 'labelEnableAd3', inputId: 'adCodeSidebarSkyscraper' },
-        { num: 4, wrapId: 'adSlotInContent', bodyId: 'adSlotInContentBody', enabledKey: 'inContentBannerEnabled', codeKey: 'inContentBannerCode', toggleId: 'toggleInContentBanner', labelId: 'labelEnableAd4', inputId: 'adCodeInContentBanner' }
-      ];
-
-      // Dedicated AdSlotRenderer:
-      // - For Ad Slots #2 (300x250), #3 (160x600), and #4 (728x90) (atOptions scripts), renders an isolated borderless srcdoc iframe
-      // - For Ad Slot #1 (Native Banner container-689ae6c1012387fe1c48d819d275f89a), mounts the container div and appends <script> via document.createElement('script')
-      function AdSlotRenderer(container, rawHtml, slotNum) {
-        container.innerHTML = '';
-        const trimmed = (rawHtml || '').trim();
-        if (!trimmed) return;
-
-        if (/atOptions\s*=/.test(trimmed)) {
-          const wMatch = trimmed.match(/['"]?width['"]?\s*:\s*(\d+)/i);
-          const hMatch = trimmed.match(/['"]?height['"]?\s*:\s*(\d+)/i);
-          const defaultW = slotNum === 2 ? 300 : slotNum === 3 ? 160 : 728;
-          const defaultH = slotNum === 2 ? 250 : slotNum === 3 ? 600 : 90;
-          const w = wMatch ? parseInt(wMatch[1], 10) : defaultW;
-          const h = hMatch ? parseInt(hMatch[1], 10) : defaultH;
-          const iframe = document.createElement('iframe');
-          iframe.title = 'Ad Slot #' + slotNum;
-          iframe.width = String(w);
-          iframe.height = String(h);
-          iframe.scrolling = 'no';
-          iframe.frameBorder = '0';
-          iframe.className = 'border-0 overflow-hidden mx-auto shrink-0';
-          iframe.srcdoc = '<!DOCTYPE html><html><body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:transparent;">' + trimmed + '</body></html>';
-          container.appendChild(iframe);
-          return;
-        }
-
-        if (trimmed.indexOf('689ae6c1012387fe1c48d819d275f89a') !== -1) {
-          const targetDiv = document.createElement('div');
-          targetDiv.id = 'container-689ae6c1012387fe1c48d819d275f89a';
-          targetDiv.className = 'w-full';
-          container.appendChild(targetDiv);
-          const script = document.createElement('script');
-          script.async = true;
-          script.dataset.cfasync = 'false';
-          script.src = 'https://bauval.org/21/689ae6c1012387fe1c48d819d275f89a';
-          container.appendChild(script);
-          return;
-        }
-
-        const temp = document.createElement('div');
-        temp.innerHTML = trimmed;
-        Array.from(temp.childNodes).forEach((node) => {
-          if (node.nodeName.toLowerCase() === 'script') {
-            const s = document.createElement('script');
-            s.async = true;
-            Array.from(node.attributes).forEach((attr) => s.setAttribute(attr.name, attr.value));
-            if (node.textContent) s.textContent = node.textContent;
-            container.appendChild(s);
-          } else {
-            container.appendChild(node.cloneNode(true));
-          }
-        });
-      }
-
-      function applyAdLayout() {
-        slots.forEach((slot) => {
-          const wrap = document.getElementById(slot.wrapId);
-          const body = document.getElementById(slot.bodyId);
-          if (!wrap || !body) return;
-          const enabled = Boolean(adConfig[slot.enabledKey]);
-          const code = (adConfig[slot.codeKey] || DEFAULT_CHANNEL_CONFIG[slot.codeKey] || '').trim();
-
-          if (!enabled) {
-            wrap.classList.add('hidden');
-            body.innerHTML = '';
-          } else {
-            wrap.classList.remove('hidden');
-            AdSlotRenderer(body, code, slot.num);
-          }
-        });
-
-        const hasSidebar = Boolean(adConfig.sidebarRectEnabled || adConfig.sidebarSkyscraperEnabled);
-        const calcCol = document.getElementById('calculatorMainColumn');
-        const rightSidebar = document.getElementById('rightAdSidebar');
-        if (calcCol) {
-          calcCol.classList.toggle('lg:col-span-8', hasSidebar);
-          calcCol.classList.toggle('lg:col-span-12', !hasSidebar);
-        }
-        if (rightSidebar) {
-          rightSidebar.classList.toggle('hidden', !hasSidebar);
-        }
-      }
-
-      function openOwnerStudio() {
-        document.getElementById('ownerTopBarBtn')?.classList.remove('hidden');
-        slots.forEach((s) => {
-          const toggle = document.getElementById(s.toggleId);
-          const label = document.getElementById(s.labelId);
-          const input = document.getElementById(s.inputId);
-          const isOn = Boolean(adConfig[s.enabledKey]);
-          if (toggle) toggle.checked = isOn;
-          if (label) label.textContent = 'Enable Ad #' + s.num + ' (' + (isOn ? 'ON' : 'OFF') + ')';
-          if (input) {
-            input.value = adConfig[s.codeKey] || '';
-            input.disabled = !isOn;
-          }
-        });
-        const gscInput = document.getElementById('gscVerificationInput');
-        if (gscInput) gscInput.value = adConfig.gscVerificationCode || 'YOUR_GSC_CODE';
-        const gaInput = document.getElementById('gaMeasurementIdInput');
-        if (gaInput) gaInput.value = adConfig.gaMeasurementId || 'G-66NLH28JBQ';
-        document.getElementById('channelStudioModal')?.classList.remove('hidden');
-      }
-
-      if (isOwnerUnlocked) openOwnerStudio();
-
-      window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
-          e.preventDefault();
-          if (isOwnerUnlocked) openOwnerStudio();
-          else document.getElementById('ownerPinModal')?.classList.remove('hidden');
-        }
-      });
-
-      let tapCount = 0;
-      let tapTimer = null;
-      document.getElementById('footerVersionTapTarget')?.addEventListener('click', () => {
-        tapCount++;
-        clearTimeout(tapTimer);
-        if (tapCount >= 5) {
-          tapCount = 0;
-          if (isOwnerUnlocked) openOwnerStudio();
-          else document.getElementById('ownerPinModal')?.classList.remove('hidden');
-          return;
-        }
-        tapTimer = setTimeout(() => { tapCount = 0; }, 2500);
-      });
-
-      document.getElementById('ownerTopBarBtn')?.addEventListener('click', openOwnerStudio);
-      document.getElementById('closeChannelStudioBtn')?.addEventListener('click', () => document.getElementById('channelStudioModal')?.classList.add('hidden'));
-      document.getElementById('closeOwnerPinBtn')?.addEventListener('click', () => document.getElementById('ownerPinModal')?.classList.add('hidden'));
-      document.getElementById('cancelOwnerPinBtn')?.addEventListener('click', () => document.getElementById('ownerPinModal')?.classList.add('hidden'));
-
-      document.getElementById('ownerPinForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const val = (document.getElementById('ownerPinInput')?.value || '').trim();
-        if (val === OWNER_PIN) {
-          isOwnerUnlocked = true;
-          document.getElementById('ownerPinModal')?.classList.add('hidden');
-          openOwnerStudio();
-        } else {
-          document.getElementById('ownerPinError')?.classList.remove('hidden');
-        }
-      });
-
-      slots.forEach((s) => {
-        document.getElementById(s.toggleId)?.addEventListener('change', (e) => {
-          const isOn = e.target.checked;
-          const label = document.getElementById(s.labelId);
-          const input = document.getElementById(s.inputId);
-          if (label) label.textContent = 'Enable Ad #' + s.num + ' (' + (isOn ? 'ON' : 'OFF') + ')';
-          if (input) input.disabled = !isOn;
-        });
-      });
-
-      function syncGa4Config(gaId) {
-        const raw = (gaId || 'G-66NLH28JBQ').trim().toUpperCase();
-        const cleanGa = (!raw || raw === 'G-XXXXXXXXXX') ? 'G-66NLH28JBQ' : raw;
-        adConfig.gaMeasurementId = cleanGa;
-        window.channelConfig = Object.assign({}, window.channelConfig || {}, adConfig, { gaMeasurementId: cleanGa });
-        const gaScript = document.getElementById('ga4GtagScript');
-        if (gaScript) {
-          gaScript.setAttribute('data-ga-measurement-id', cleanGa);
-          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(cleanGa);
-        }
-        if (typeof window.gtag === 'function') {
-          window.gtag('config', cleanGa, { send_page_view: true });
-        }
-      }
 
       // Automatic GA4 Custom Event Tracking helper
       function trackGa4Event(eventName, params) {
@@ -1379,11 +1029,9 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         if (typeof window.gtag !== 'function') {
           window.gtag = function () { window.dataLayer.push(arguments); };
         }
-        const gaId = (window.channelConfig && window.channelConfig.gaMeasurementId) || adConfig.gaMeasurementId || 'G-66NLH28JBQ';
-        window.gtag('event', eventName, Object.assign({ send_to: gaId }, params || {}));
+        window.gtag('event', eventName, Object.assign({ send_to: '${cleanGaId}' }, params || {}));
       }
 
-      // Delegated GA4 tracking for Calculator Tab switches, $5 Gumroad button, YouTube videos, and Affiliate links
       document.addEventListener('click', (e) => {
         const target = e.target;
         if (!target || typeof target.closest !== 'function') return;
@@ -1395,18 +1043,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
             event_category: 'calculator_navigation',
             tab_id: tabId,
             tab_name: (tabBtn.textContent || '').trim()
-          });
-          return;
-        }
-
-        const gumroadEl = target.closest('[data-ga-event="gumroad_click"], #gumroadCtaBtn, a[href*="gumroad.com"]');
-        if (gumroadEl) {
-          trackGa4Event('gumroad_click', {
-            event_category: 'monetization',
-            item_name: gumroadEl.getAttribute('data-item-name') || '$5 Printable Retirement Workbook',
-            value: 5,
-            currency: 'USD',
-            link_url: gumroadEl.href || 'https://nosuitretirement.gumroad.com/'
           });
           return;
         }
@@ -1429,72 +1065,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
             link_url: ytEl.href || 'https://www.youtube.com/@NoSuitRetirement'
           });
         }
-      });
-
-      function saveStudioValues() {
-        slots.forEach((s) => {
-          adConfig[s.enabledKey] = Boolean(document.getElementById(s.toggleId)?.checked);
-          adConfig[s.codeKey] = document.getElementById(s.inputId)?.value || '';
-        });
-        const gscVal = (document.getElementById('gscVerificationInput')?.value || '').trim() || 'YOUR_GSC_CODE';
-        adConfig.gscVerificationCode = gscVal;
-        const meta = document.getElementById('gscVerificationMeta');
-        if (meta) meta.setAttribute('content', gscVal);
-        const gaVal = (document.getElementById('gaMeasurementIdInput')?.value || '').trim() || 'G-XXXXXXXXXX';
-        syncGa4Config(gaVal);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(adConfig));
-        applyAdLayout();
-      }
-
-      document.getElementById('saveAdConfigBtn')?.addEventListener('click', () => {
-        saveStudioValues();
-        document.getElementById('channelStudioModal')?.classList.add('hidden');
-      });
-
-      document.getElementById('downloadUpdatedHtmlBtn')?.addEventListener('click', () => {
-        saveStudioValues();
-        document.getElementById('channelStudioModal')?.classList.add('hidden');
-        const cloneDoc = document.documentElement.cloneNode(true);
-        const bakedScript = cloneDoc.querySelector('#bakedOwnerConfigScript');
-        if (bakedScript) {
-          bakedScript.textContent = '\\n    window.DEFAULT_AD_CONFIG = ' + JSON.stringify(adConfig, null, 2) + ';\\n    window.DEFAULT_CHANNEL_CONFIG = window.DEFAULT_AD_CONFIG;\\n    window.__BAKED_AD_CONFIG__ = window.DEFAULT_AD_CONFIG;\\n  ';
-        }
-        const blob = new Blob(['<!DOCTYPE html>\\n' + cloneDoc.outerHTML], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
-
-      document.getElementById('downloadSitemapBtn')?.addEventListener('click', () => {
-        const today = new Date().toISOString().split('T')[0];
-        const xml = '<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n  <url>\\n    <loc>https://nosuitretirement.com/</loc>\\n    <lastmod>' + today + '</lastmod>\\n    <changefreq>weekly</changefreq>\\n    <priority>1.0</priority>\\n  </url>\\n</urlset>';
-        const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'sitemap.xml';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
-
-      document.getElementById('downloadRobotsBtn')?.addEventListener('click', () => {
-        const txt = 'User-agent: *\\nAllow: /\\n\\nSitemap: https://nosuitretirement.com/sitemap.xml\\n';
-        const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'robots.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
       });
 
       // Calculator, Tabs, Presets, Checklists, and Modals
@@ -1819,7 +1389,6 @@ export function buildFullStandaloneHtml(inputConfig: AdConfig = DEFAULT_AD_CONFI
         showToast('Plan summary copied to clipboard!');
       });
 
-      applyAdLayout();
       updateAllCalculations();
       updateSpouseShareLinks();
     })();

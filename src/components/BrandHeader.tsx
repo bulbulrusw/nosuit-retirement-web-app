@@ -9,8 +9,7 @@ interface BrandHeaderProps {
   onToggleGuide: () => void;
   onOpenGlossary: () => void;
   onOpenPrivacy: () => void;
-  onOpenChannelStudio: () => void;
-  isOwnerUnlocked?: boolean;
+  onWatchLatestVideo: () => void;
   onReadAloud: () => void;
   isReadingAloud: boolean;
   activePreset: PresetKey;
@@ -23,8 +22,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
   onToggleGuide,
   onOpenGlossary,
   onOpenPrivacy,
-  onOpenChannelStudio,
-  isOwnerUnlocked = false,
+  onWatchLatestVideo,
   onReadAloud,
   isReadingAloud,
   activePreset,
@@ -113,16 +111,6 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             >
               Privacy &amp; Policy
             </button>
-            {isOwnerUnlocked && (
-              <button
-                id="openChannelStudioBtn"
-                type="button"
-                onClick={onOpenChannelStudio}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-400/40 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                🔒 Owner Ad Manager
-              </button>
-            )}
             <button
               id="readAloudBtn"
               type="button"
@@ -207,9 +195,23 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Prominent YouTube Channel CTA + Sample Household Presets */}
-          <div className="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-3 shrink-0">
-            <YouTubeButton variant="hero" className="w-full sm:w-auto" />
+          {/* Right Column: Prominent YouTube Channel CTA + Hero Watch Latest Video + Sample Household Presets */}
+          <div className="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-2.5 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <YouTubeButton variant="hero" className="w-full sm:w-auto" />
+              <button
+                id="heroWatchLatestVideoBtn"
+                type="button"
+                onClick={onWatchLatestVideo}
+                data-ga-event="youtube_video_play"
+                data-video-id="XHIm3Q1OvK8"
+                data-video-url="https://youtu.be/XHIm3Q1OvK8"
+                data-video-title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.99] text-slate-950 font-extrabold text-xs sm:text-sm border border-amber-500 shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <span>▶️ Watch Latest Video</span>
+              </button>
+            </div>
 
             {/* Working Preset Buttons */}
             <div className="bg-[#0f291e]/90 border border-amber-400/35 rounded-xl p-2.5 w-full sm:w-auto flex flex-col gap-1.5">

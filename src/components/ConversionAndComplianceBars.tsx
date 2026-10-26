@@ -156,9 +156,9 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div className="text-xs leading-relaxed max-w-4xl">
           <strong className="text-amber-300 font-extrabold uppercase tracking-wide">
-            🍪 Cookie &amp; AdSense Privacy Notice:
+            🍪 Cookie &amp; Privacy Notice:
           </strong>{' '}
-          We use cookies and standard web technologies to serve policy-compliant ads (Google AdSense &amp; partner networks) and measure anonymous site traffic.{' '}
+          We use cookies and anonymous Google Analytics 4 traffic measurement to improve our senior retirement tools.{' '}
           <strong className="text-white">
             100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.
           </strong>

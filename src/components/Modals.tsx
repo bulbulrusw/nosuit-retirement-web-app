@@ -98,18 +98,9 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
-            <div className="font-extrabold text-amber-950">2. Google AdSense, Partner Ads &amp; Cookie Consent Disclosure</div>
+            <div className="font-extrabold text-amber-950">2. Cookie Consent &amp; Anonymous Google Analytics 4 Disclosure</div>
             <p className="mt-1">
-              To keep this senior retirement calculator 100% free, this website displays clearly labeled sponsored advertisements (including Google AdSense and partner display networks) and uses anonymous Google Analytics 4 traffic measurement. Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to this or other websites. You may opt out of personalized advertising by visiting{' '}
-              <a
-                href="https://www.google.com/settings/ads"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline font-semibold text-amber-950"
-              >
-                Google Ads Settings
-              </a>
-              . Your cookie consent choice is stored locally in your browser&apos;s <code className="font-mono">localStorage</code>.
+              To keep this senior retirement calculator 100% free and improve our plain-English retirement guides, this website uses anonymous Google Analytics 4 traffic measurement (<code className="font-mono">G-66NLH28JBQ</code>) and standard browser cookies. Your cookie consent choice is stored locally in your browser&apos;s <code className="font-mono">localStorage</code>.
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-300">
