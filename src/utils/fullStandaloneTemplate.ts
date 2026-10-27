@@ -342,7 +342,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="p-3.5 rounded-xl bg-[#f7f4eb] border border-[#b07d4b]/50 flex flex-col justify-between gap-2">
             <div>
               <div class="text-xs font-extrabold uppercase text-amber-900">Tab 2 • Age 62 vs 67 &amp; Work</div>
-              <p class="text-xs text-slate-700 mt-1">See your exact claiming break-even age and check the $24,480 early-retirement work limit.</p>
+              <p class="text-xs text-slate-700 mt-1">See your exact claiming break-even age and check the $25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026) early-retirement work limit.</p>
             </div>
             <button type="button" data-goto-tab="tab-claiming" class="guide-tab-link py-1.5 px-2.5 rounded-lg bg-[#1b4332] text-amber-300 font-bold text-xs">Open Tab 2 →</button>
           </div>
@@ -442,7 +442,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                   <input id="ssSpouseCheck" type="number" value="1160" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
                 </div>
                 <div>
-                  <label for="colaPctInput" class="block text-xs font-bold text-slate-800">Projected 2027 COLA % (<span id="colaPctVal">3.6</span>%)</label>
+                  <label for="colaPctInput" class="block text-xs font-bold text-slate-800">Official 2027 COLA % (<span id="colaPctVal">3.6</span>% SSA Official)</label>
                   <input id="colaPctInput" type="range" min="1.5" max="6.0" step="0.1" value="3.6" class="mt-2 w-full" />
                 </div>
                 <div>
@@ -582,7 +582,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
-              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Part-Time / Side-Gig Penalty ($24,480 Limit)</h2>
+              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Part-Time / Side-Gig Penalty ($25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026))</h2>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label for="sideGigIncome" class="block text-xs font-bold text-slate-800">Annual Part-Time Pay ($)</label>
@@ -662,14 +662,14 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             </div>
             <div id="rothSweetSpotBox" class="p-4 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-xs md:text-sm text-slate-800 space-y-1"></div>
             <div class="bg-amber-50 rounded-xl p-4 border-2 border-amber-400 space-y-2">
-              <div class="text-xs font-bold uppercase text-amber-900">2026 SECURE 2.0 Super Catch-Up (Ages 60–63)</div>
+              <div class="text-xs font-bold uppercase text-amber-900">Enacted 2026 IRS SECURE 2.0 Super Catch-Up (Ages 60–63 · 2027+ COLA Indexed)</div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <select id="workerAgeSelect" class="rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold text-sm bg-white">
-                  <option value="55">Age 50–59 ($8,000 Catch-Up)</option>
-                  <option value="61" selected>Age 60–63 ($11,250 Super Catch-Up)</option>
-                  <option value="65">Age 64+ ($8,000 Catch-Up)</option>
+                  <option value="55">Age 50–59 ($8,000 Catch-Up · $32,500 Total)</option>
+                  <option value="61" selected>Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
+                  <option value="65">Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
                 </select>
-                <div id="superCatchupOutput" class="text-xs text-slate-800 font-semibold"></div>
+                <div id="superCatchupOutput" class="text-xs text-slate-800 font-semibold">🎉 Age 60–63 Super Catch-Up: $35,750 ($24,500 base + $11,250 catch-up) enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory Roth catch-up if prior-year FICA wages exceed $150,000.</div>
               </div>
             </div>
           </div>

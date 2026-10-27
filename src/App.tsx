@@ -525,11 +525,11 @@ export default function App() {
                     </div>
                     <div>
                       <label htmlFor="colaPctInput" className="block text-xs font-bold text-slate-800">
-                        Projected 2027 COLA % (
+                        Official 2027 COLA % (
                         <span id="colaPctVal" className="font-num text-emerald-800">
                           {inputs.colaPct.toFixed(1)}
                         </span>
-                        %)
+                        % SSA Official)
                       </label>
                       <input
                         id="colaPctInput"
@@ -864,10 +864,10 @@ export default function App() {
                 {/* Side-Gig Penalty Checker */}
                 <div className="surface-card rounded-2xl p-5 space-y-4">
                   <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
-                    Part-Time / Side-Gig Penalty Checker ($24,480 Limit)
+                    Part-Time / Side-Gig Penalty Checker ($25,560/yr 2027 Limit)
                   </h2>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    If you claim Social Security before age 67 and work part-time, SSA withholds $1 for every $2 earned above <strong>$24,480/yr</strong> in 2026.
+                    If you claim Social Security before age 67 and work part-time, SSA withholds $1 for every $2 earned above <strong>$25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026)</strong>, or <strong>$67,920/yr</strong> in the year you reach Full Retirement Age 67.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -906,8 +906,8 @@ export default function App() {
                         ⚠️ Penalty Alert: {formatUSD(metrics.sideGigPenalty)}/yr Withheld!
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
-                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above $24,480. Cap work at{' '}
-                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ($2,040/mo) to avoid early Social Security clawbacks.
+                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above the $25,560/yr ($2,130/mo) 2027 limit (up from $24,480/yr in 2026). Cap work at{' '}
+                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ($2,130/mo) to avoid early Social Security clawbacks.
                       </p>
                     </div>
                   ) : (
@@ -919,7 +919,7 @@ export default function App() {
                         ✅ $0 Penalty (You Keep 100% of Your Check!)
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
-                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the limit. You can work up to{' '}
+                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the $25,560/yr ($2,130/mo) 2027 limit. You can work up to{' '}
                         <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> penalty-free.
                       </p>
                     </div>
@@ -1138,7 +1138,7 @@ export default function App() {
 
                 <div className="bg-amber-50/90 rounded-xl p-4 border border-amber-400 space-y-2">
                   <div className="text-xs font-bold uppercase text-amber-900">
-                    2026 SECURE 2.0 Super Catch-Up (Ages 60–63)
+                    Enacted 2026 IRS SECURE 2.0 Super Catch-Up (Ages 60–63 · 2027+ COLA Indexed)
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                     <select
@@ -1148,18 +1148,18 @@ export default function App() {
                       onChange={(e) => updateInput('workerAgeGroup', e.target.value as '55' | '61' | '65')}
                       className="rounded-lg border border-slate-300 px-2.5 py-2 font-bold text-sm bg-white"
                     >
-                      <option value="55">Age 50–59 ($8,000 Catch-Up)</option>
-                      <option value="61">Age 60–63 ($11,250 Super Catch-Up)</option>
-                      <option value="65">Age 64+ ($8,000 Catch-Up)</option>
+                      <option value="55">Age 50–59 ($8,000 Catch-Up · $32,500 Total)</option>
+                      <option value="61">Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
+                      <option value="65">Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
                     </select>
                     <div id="superCatchupOutput" className="text-xs text-slate-800 font-semibold leading-relaxed">
                       {inputs.workerAgeGroup === '61' ? (
                         <>
-                          🎉 <strong>Age 60–63 Super Catch-Up:</strong> Up to <strong className="font-num">$35,750</strong> total 401(k) limit ($11,250 catch-up)!
+                          🎉 <strong>Age 60–63 Super Catch-Up:</strong> Up to <strong className="font-num">$35,750 ($24,500 base + $11,250 catch-up)</strong> enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">$150,000</strong>.
                         </>
                       ) : (
                         <>
-                          📌 <strong>Age 50+ Standard Catch-Up:</strong> Up to <strong className="font-num">$32,500</strong> total 401(k) limit.
+                          📌 <strong>Age 50+ Standard Catch-Up:</strong> Up to <strong className="font-num">$32,500 ($24,500 base + $8,000 catch-up)</strong> enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">$150,000</strong>.
                         </>
                       )}
                     </div>

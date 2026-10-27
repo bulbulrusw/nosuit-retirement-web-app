@@ -135,8 +135,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const currentGrossSS = ssYou + ssSpouse;
   const grossColaRaise = currentGrossSS * (colaPct / 100);
   const newGrossSS = currentGrossSS + grossColaRaise;
-  const totalMedicareHike = partBHike * householdPeople;
-  const netRaise = grossColaRaise - totalMedicareHike;
+  const rawMedicareHike = partBHike * householdPeople;
+  const totalMedicareHike = currentGrossSS > 0 ? Math.min(rawMedicareHike, grossColaRaise) : rawMedicareHike;
+  const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
   const standardPartBTotal = 202.9 * householdPeople;
   const newNetSS = Math.max(0, newGrossSS - (standardPartBTotal + totalMedicareHike));
   const bitePct = grossColaRaise > 0 ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100)) : 0;
@@ -186,8 +187,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     claim70: Math.round(Math.max(0, age - 70) * 12 * mo70),
   }));
 
-  // Side-Gig Earnings Test ($24,480 limit)
-  const sideGigLimit = 24480;
+  // Official 2027 Side-Gig Earnings Test ($25,560/yr limit under FRA; $67,920/yr in year reaching FRA 67)
+  const sideGigLimit = 25560;
+  const sideGigFraYearLimit = 67920;
   const sideGigEarned = Math.max(0, Number(inputs.sideGigIncome) || 0);
   const hourlyWage = Math.max(1, Number(inputs.sideGigHourly) || 25);
   const safeHoursPerMonth = Math.floor(sideGigLimit / 12 / hourlyWage);
@@ -202,7 +204,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const keepCashAdvantage = hysaRate >= mortRate;
   const mortAnnualDiff = Math.abs(mortBalance * ((hysaRate - mortRate) / 100));
 
-  // 1984 Ghost Tax & Roth Sweet Spot
+  // 1984 Ghost Tax & Roth Sweet Spot (IRS Pub 915 Two-Tier 50% / 85% Formula)
   const preTaxDraw = Math.max(0, Number(inputs.taxPreTaxDraw) || 0);
   const rothDraw = Math.max(0, Number(inputs.taxRothDraw) || 0);
   const interestInc = Math.max(0, Number(inputs.taxInterest) || 0);
@@ -228,10 +230,16 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
 
   const standardDed = inputs.taxFilingStatus === 'married' ? 33200 : 16600;
   const bracket12Top = inputs.taxFilingStatus === 'married' ? 96950 : 48475;
-  const currentTaxable = Math.max(
-    0,
-    preTaxDraw + interestInc + (combinedIncome > line50 ? 0.5 * annualGrossSS : 0) - standardDed
-  );
+  let taxableSS = 0;
+  if (combinedIncome > line85) {
+    taxableSS = Math.min(
+      0.85 * annualGrossSS,
+      0.85 * (combinedIncome - line85) + Math.min(0.5 * annualGrossSS, 0.5 * (line85 - line50))
+    );
+  } else if (combinedIncome > line50) {
+    taxableSS = Math.min(0.5 * annualGrossSS, 0.5 * (combinedIncome - line50));
+  }
+  const currentTaxable = Math.max(0, preTaxDraw + interestInc + taxableSS - standardDed);
   const rothSweetSpotRoom = Math.max(0, bracket12Top - currentTaxable);
 
   // SECURE 2.0 Catch-Up Limits (2026-2027)
@@ -257,6 +265,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     currentGrossSS,
     grossColaRaise,
     newGrossSS,
+    rawMedicareHike,
     totalMedicareHike,
     netRaise,
     newNetSS,
@@ -288,6 +297,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     total70AtTarget,
     breakevenSeries,
     sideGigLimit,
+    sideGigFraYearLimit,
     sideGigEarned,
     hourlyWage,
     safeHoursPerMonth,
@@ -309,6 +319,8 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     meterPct,
     taxZone,
     shiftToRothNeeded,
+    taxableSS,
+    currentTaxable,
     rothSweetSpotRoom,
     base401kLimit,
     catchupLimit,

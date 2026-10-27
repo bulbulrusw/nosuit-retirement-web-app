@@ -19,7 +19,7 @@ import {
 } from '../components/ConversionAndComplianceBars';
 import { buildFullStandaloneHtml } from './fullStandaloneTemplate';
 
-test('default couple400k profile computes accurate Net SS, 3-Bucket allocations, and paycheck', () => {
+test('default couple400k profile computes accurate Net SS, Hold Harmless protection, 3-Bucket allocations, and paycheck', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
 
   // $1,940 + $1,160 = $3,100 gross SS
@@ -31,6 +31,19 @@ test('default couple400k profile computes accurate Net SS, 3-Bucket allocations,
   // Net SS = ($3,100 + $111.60) - ($405.80 + $36) = $2,769.80 -> $2,770/mo
   assert.equal(formatUSD(res.newNetSS), '$2,770');
 
+  // Check 1: Federal Hold Harmless rule caps totalMedicareHike at grossColaRaise so netRaise >= 0
+  const resHoldHarmless = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ssYourCheck: 900,
+    ssSpouseCheck: 0,
+    colaPct: 2.0, // $18.00 gross COLA raise
+    partBIncrease: 45, // $45.00 raw Part B hike exceeds $18.00 gross COLA raise
+  });
+  assert.equal(resHoldHarmless.grossColaRaise, 18);
+  assert.equal(resHoldHarmless.rawMedicareHike, 45);
+  assert.equal(resHoldHarmless.totalMedicareHike, 18);
+  assert.equal(resHoldHarmless.netRaise, 0);
+
   // $400,000 * 4.5% = $18,000/yr ($1,500/mo)
   assert.equal(res.monthlyPortDraw, 1500);
   // Bucket 1 (2 yrs) = $36,000, Bucket 2 (6 yrs) = $108,000, Bucket 3 = $256,000
@@ -40,12 +53,31 @@ test('default couple400k profile computes accurate Net SS, 3-Bucket allocations,
   assert.equal(res.yearsProtected, 8);
 });
 
-test('1984 Ghost Tax speedometer accurately identifies 85% and 0% zones ($25K/$34K Single, $32K/$44K Married)', () => {
+test('1984 Ghost Tax speedometer & IRS Pub 915 two-tier (50% / 85%) taxable SS formula', () => {
   const resDefault = calculateRetirementMetrics(DEFAULT_INPUTS);
   assert.equal(resDefault.line50, 32000);
   assert.equal(resDefault.line85, 44000);
   assert.equal(resDefault.taxZone, '85% Zone');
   assert.equal(formatUSD(resDefault.combinedIncome), '$46,770');
+
+  // Check 4: Verify exact two-tier IRS Pub 915 formula when combinedIncome ($46,769.60) > line85 ($44,000)
+  // 0.5 * ($44,000 - $32,000) = $6,000 + 0.85 * ($46,769.60 - $44,000) = $6,000 + $2,354.16 = $8,354.16
+  const expectedTaxableSS = 0.5 * (44000 - 32000) + 0.85 * (resDefault.combinedIncome - 44000);
+  assert.ok(Math.abs(resDefault.taxableSS - expectedTaxableSS) < 0.01);
+  assert.equal(
+    Math.round(resDefault.currentTaxable),
+    Math.round(resDefault.preTaxDraw + resDefault.interestInc + expectedTaxableSS - 33200)
+  );
+
+  // Also verify 50% tier (between $32,000 and $44,000 Married)
+  const resTier50 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    taxPreTaxDraw: 15000,
+    taxInterest: 1000,
+  });
+  assert.equal(resTier50.taxZone, '50% Zone');
+  const expectedTier50SS = Math.min(0.5 * resTier50.annualGrossSS, 0.5 * (resTier50.combinedIncome - 32000));
+  assert.ok(Math.abs(resTier50.taxableSS - expectedTier50SS) < 0.01);
 
   const resSingle = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
@@ -59,22 +91,26 @@ test('1984 Ghost Tax speedometer accurately identifies 85% and 0% zones ($25K/$3
     ...PRESET_PROFILES.latesaver.values,
   });
   assert.equal(resLowTax.taxZone, '0% Zone');
+  assert.equal(resLowTax.taxableSS, 0);
   assert.equal(resLowTax.shiftToRothNeeded, 0);
 });
 
-test('side-gig $24,480 earnings penalty and safe hours calculation', () => {
+test('Official 2027 side-gig $25,560/yr ($2,130/mo) earnings penalty and safe hours calculation', () => {
   const resOver = calculateRetirementMetrics(DEFAULT_INPUTS);
-  // $30,000 - $24,480 = $5,520 excess -> $2,760 penalty
-  assert.equal(resOver.sideGigExcess, 5520);
-  assert.equal(resOver.sideGigPenalty, 2760);
-  assert.equal(resOver.safeHoursPerMonth, 81);
+  assert.equal(resOver.sideGigLimit, 25560);
+  assert.equal(resOver.sideGigFraYearLimit, 67920);
+  // $30,000 - $25,560 = $4,440 excess -> $2,220 penalty
+  assert.equal(resOver.sideGigExcess, 4440);
+  assert.equal(resOver.sideGigPenalty, 2220);
+  // $25,560 / 12 = $2,130/mo; $2,130 / $25/hr = 85.2 -> 85 safe hours/mo
+  assert.equal(resOver.safeHoursPerMonth, 85);
 
   const resUnder = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     sideGigIncome: 20000,
   });
   assert.equal(resUnder.sideGigPenalty, 0);
-  assert.equal(resUnder.sideGigBuffer, 4480);
+  assert.equal(resUnder.sideGigBuffer, 5560);
 });
 
 test('claiming age break-even (70% at 62, 100% FRA at 67, 124% at 70), SECURE 2.0 $11,250 Super Catch-Up, and IRMAA SSA-44 appeal logic', () => {
@@ -82,9 +118,17 @@ test('claiming age break-even (70% at 62, 100% FRA at 67, 124% at 70), SECURE 2.
   assert.equal(res.mo62, 1540); // 70% of $2,200
   assert.equal(res.mo67, 2200); // 100% FRA (67)
   assert.equal(res.mo70, 2728); // 124% of $2,200
+  assert.equal(res.base401kLimit, 24500);
   assert.equal(res.catchupLimit, 11250);
   assert.equal(res.total401kLimit, 35750);
   assert.equal(res.irmaaCanAppealWithSSA44, true);
+
+  const resAge55 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    workerAgeGroup: '55',
+  });
+  assert.equal(resAge55.catchupLimit, 8000);
+  assert.equal(resAge55.total401kLimit, 32500);
 });
 
 test('3 Featured YouTube Videos and GA4 Measurement ID G-66NLH28JBQ are hardcoded with zero Adsterra ads or admin studio', () => {

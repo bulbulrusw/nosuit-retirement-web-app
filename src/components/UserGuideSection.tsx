@@ -31,7 +31,7 @@ export const UserGuideSection: React.FC<UserGuideSectionProps> = ({
       tab: 'tab-claiming',
       kicker: 'Tab 2 · Age 62 vs 67 & Side-Gig',
       title: 'Step 2: Check Claiming Age & Work Rules',
-      desc: 'Enter your Full Retirement Age (67) benefit and slide the age bar to see where waiting until 67 or 70 beats claiming early at 62. Check how many part-time hours you can work without triggering the $24,480 annual earnings penalty, and compare paying off your mortgage vs keeping safe CDs.',
+      desc: 'Enter your Full Retirement Age (67) benefit and slide the age bar to see where waiting until 67 or 70 beats claiming early at 62. Check how many part-time hours you can work without triggering the $25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026) early-retirement earnings limit, and compare paying off your mortgage vs keeping safe CDs.',
       btnLabel: 'Open Tab 2 →',
     },
     {
