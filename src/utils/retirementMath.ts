@@ -1,5 +1,7 @@
 export type FilingStatus = 'married' | 'single';
+export type SaversFilingStatus = 'single' | 'married' | 'hoh';
 export type PresetKey = 'single' | 'couple400k' | 'latesaver';
+export type QuickScenarioKey = 'avgSenior' | 'bucket400k' | 'saversMatch2027';
 
 export interface RetirementInputs {
   // Tool 1A: Social Security & Medicare
@@ -7,10 +9,12 @@ export interface RetirementInputs {
   ssSpouseCheck: number;
   colaPct: number;
   partBIncrease: number;
+  partBBasePremium?: number;
 
   // Tool 1B: Nest Egg & Monthly Living Budget
   nestEgg: number;
   withdrawalRate: number;
+  bucketPresetMode?: 'standard' | 'preset3bucket400k';
   expHousing: number;
   expGroceries: number;
   expHealthcare: number;
@@ -35,6 +39,11 @@ export interface RetirementInputs {
   irmaaRetiredEvent: 'yes' | 'no';
   acaCurrentAge: number;
   acaMagi: number;
+
+  // 2027 IRS Federal Saver's Match (SECURE 2.0 / IRC § 6433)
+  saversContribution: number;
+  saversFilingStatus: SaversFilingStatus;
+  saversAgi: number;
 }
 
 export const DEFAULT_INPUTS: RetirementInputs = {
@@ -42,8 +51,10 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   ssSpouseCheck: 1160,
   colaPct: 3.6,
   partBIncrease: 18,
+  partBBasePremium: 202.9,
   nestEgg: 400000,
   withdrawalRate: 4.5,
+  bucketPresetMode: 'standard',
   expHousing: 1350,
   expGroceries: 750,
   expHealthcare: 650,
@@ -64,6 +75,57 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   irmaaRetiredEvent: 'yes',
   acaCurrentAge: 62,
   acaMagi: 52000,
+  saversContribution: 2000,
+  saversFilingStatus: 'married',
+  saversAgi: 38000,
+};
+
+export const QUICK_SCENARIO_PRESETS: Record<
+  QuickScenarioKey,
+  {
+    id: QuickScenarioKey;
+    label: string;
+    toast: string;
+    targetSectionId: string;
+    values: Partial<RetirementInputs>;
+  }
+> = {
+  avgSenior: {
+    id: 'avgSenior',
+    label: '👤 Average Senior ($2,000/mo SS Benefit, $185 Part B)',
+    toast: 'Loaded Average Senior Scenario ($2,000/mo SS Benefit, $185 Part B, 3.6% Official 2027 COLA)',
+    targetSectionId: 'tab-paycheck',
+    values: {
+      ssYourCheck: 2000,
+      ssSpouseCheck: 0,
+      colaPct: 3.6,
+      partBBasePremium: 185,
+      partBIncrease: 18,
+      bucketPresetMode: 'standard',
+    },
+  },
+  bucket400k: {
+    id: 'bucket400k',
+    label: '💼 3-Bucket Plan ($400,000 Nest Egg: $40K Cash, $160K Income, $200K Growth)',
+    toast: 'Loaded $400,000 3-Bucket Plan: $40K Cash, $160K Income, $200K Growth',
+    targetSectionId: 'tab-paycheck',
+    values: {
+      nestEgg: 400000,
+      withdrawalRate: 4.5,
+      bucketPresetMode: 'preset3bucket400k',
+    },
+  },
+  saversMatch2027: {
+    id: 'saversMatch2027',
+    label: "🎁 2027 Saver's Match ($2,000 Saved = $1,000 Free Federal Match)",
+    toast: "Loaded 2027 Federal Saver's Match: $2,000 Saved + $1,000 Free Government Match ($3,000 Total)",
+    targetSectionId: 'saversMatchSection',
+    values: {
+      saversContribution: 2000,
+      saversFilingStatus: 'married',
+      saversAgi: 38000,
+    },
+  },
 };
 
 export const PRESET_PROFILES: Record<PresetKey, { label: string; toast: string; values: Partial<RetirementInputs> }> = {
@@ -73,8 +135,10 @@ export const PRESET_PROFILES: Record<PresetKey, { label: string; toast: string; 
     values: {
       ssYourCheck: 2050,
       ssSpouseCheck: 0,
+      partBBasePremium: 202.9,
       nestEgg: 380000,
       withdrawalRate: 4.4,
+      bucketPresetMode: 'standard',
       expHousing: 1150,
       expGroceries: 520,
       expHealthcare: 420,
@@ -90,8 +154,10 @@ export const PRESET_PROFILES: Record<PresetKey, { label: string; toast: string; 
     values: {
       ssYourCheck: 1940,
       ssSpouseCheck: 1160,
+      partBBasePremium: 202.9,
       nestEgg: 400000,
       withdrawalRate: 4.5,
+      bucketPresetMode: 'standard',
       expHousing: 1350,
       expGroceries: 750,
       expHealthcare: 650,
@@ -107,8 +173,10 @@ export const PRESET_PROFILES: Record<PresetKey, { label: string; toast: string; 
     values: {
       ssYourCheck: 1780,
       ssSpouseCheck: 950,
+      partBBasePremium: 202.9,
       nestEgg: 120000,
       withdrawalRate: 4.0,
+      bucketPresetMode: 'standard',
       expHousing: 980,
       expGroceries: 600,
       expHealthcare: 480,
@@ -130,6 +198,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const ssSpouse = Math.max(0, Number(inputs.ssSpouseCheck) || 0);
   const colaPct = Number(inputs.colaPct) || 0;
   const partBHike = Math.max(0, Number(inputs.partBIncrease) || 0);
+  const partBBase = inputs.partBBasePremium !== undefined ? Math.max(0, Number(inputs.partBBasePremium)) : 202.9;
 
   const householdPeople = ssSpouse > 0 ? 2 : 1;
   const currentGrossSS = ssYou + ssSpouse;
@@ -138,7 +207,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const rawMedicareHike = partBHike * householdPeople;
   const totalMedicareHike = currentGrossSS > 0 ? Math.min(rawMedicareHike, grossColaRaise) : rawMedicareHike;
   const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
-  const standardPartBTotal = 202.9 * householdPeople;
+  const standardPartBTotal = partBBase * householdPeople;
   const newNetSS = Math.max(0, newGrossSS - (standardPartBTotal + totalMedicareHike));
   const bitePct = grossColaRaise > 0 ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100)) : 0;
   const buyingPowerLoss = currentGrossSS * 0.14;
@@ -160,8 +229,11 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const annualTotalRetire = totalMonthlyPaycheck * 12;
   const equivWorkingSalary = annualTotalRetire / 0.72;
 
-  const bucket1 = Math.min(nestEgg, annualPortDraw * 2);
-  const bucket2 = Math.min(Math.max(0, nestEgg - bucket1), annualPortDraw * 6);
+  const isPreset3Bucket = inputs.bucketPresetMode === 'preset3bucket400k';
+  const bucket1 = isPreset3Bucket ? Math.round(nestEgg * 0.1) : Math.min(nestEgg, annualPortDraw * 2);
+  const bucket2 = isPreset3Bucket
+    ? Math.round(nestEgg * 0.4)
+    : Math.min(Math.max(0, nestEgg - bucket1), annualPortDraw * 6);
   const bucket3 = Math.max(0, nestEgg - bucket1 - bucket2);
   const yearsProtected = annualPortDraw > 0 ? Math.round((bucket1 + bucket2) / annualPortDraw) : 8;
 
@@ -260,8 +332,43 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
   const acaMagi = Math.max(0, Number(inputs.acaMagi) || 0);
   const acaEstimatedMonthlyPremium = (acaMagi * 0.068) / 12;
 
+  // 2027 IRS Federal Saver's Match (SECURE 2.0 / IRC § 6433)
+  const saversContribution = Math.max(0, Number(inputs.saversContribution) || 0);
+  const saversEligibleContribution = Math.min(2000, saversContribution);
+  const saversFilingStatus: SaversFilingStatus = inputs.saversFilingStatus || 'married';
+  const saversAgi = Math.max(0, Number(inputs.saversAgi) || 0);
+
+  const saversThresholds =
+    saversFilingStatus === 'married'
+      ? { tier50: 41000, tier20: 55000, tier10: 71000 }
+      : saversFilingStatus === 'hoh'
+      ? { tier50: 30750, tier20: 41250, tier10: 53250 }
+      : { tier50: 20500, tier20: 27500, tier10: 35500 };
+
+  let saversMatchRatePct: 50 | 20 | 10 | 0 = 50;
+  let saversMatchTierLabel = '50% Full Federal Match';
+  if (saversAgi <= saversThresholds.tier50) {
+    saversMatchRatePct = 50;
+    saversMatchTierLabel = '50% Full Federal Match';
+  } else if (saversAgi <= saversThresholds.tier20) {
+    saversMatchRatePct = 20;
+    saversMatchTierLabel = '20% Phaseout Match Tier';
+  } else if (saversAgi <= saversThresholds.tier10) {
+    saversMatchRatePct = 10;
+    saversMatchTierLabel = '10% Phaseout Match Tier';
+  } else {
+    saversMatchRatePct = 0;
+    saversMatchTierLabel = '0% Phaseout (Above Income Limit)';
+  }
+
+  const saversMatchDeposit = Math.round(saversEligibleContribution * (saversMatchRatePct / 100));
+  const saversTotalAdded = Math.round(saversContribution + saversMatchDeposit);
+
   return {
     householdPeople,
+    partBBase,
+    standardPartBTotal,
+    baseMedicareCurrent: standardPartBTotal,
     currentGrossSS,
     grossColaRaise,
     newGrossSS,
@@ -334,5 +441,14 @@ export function calculateRetirementMetrics(inputs: RetirementInputs) {
     acaYearsToMedicare,
     acaMagi,
     acaEstimatedMonthlyPremium,
+    saversContribution,
+    saversEligibleContribution,
+    saversFilingStatus,
+    saversAgi,
+    saversThresholds,
+    saversMatchRatePct,
+    saversMatchTierLabel,
+    saversMatchDeposit,
+    saversTotalAdded,
   };
 }

@@ -14,9 +14,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>No-Suit Retirement — Complete 60–65+ Retirement Math &amp; Protection App</title>
-  <meta name="description" content="Free 100% private 60–65+ retirement math calculator for 2027 Social Security COLA vs. Medicare Part B, $300K–$500K 3-Bucket plans, 1984 Ghost Tax, IRMAA SSA-44 appeals, and Senior Scam Protection." />
-  <meta name="keywords" content="No-Suit Retirement, NoSuitRetirement, 2027 Social Security COLA calculator, Medicare Part B hike, $400K retirement budget, 3-Bucket retirement strategy, 1984 Social Security Ghost Tax, IRMAA Form SSA-44 appeal, Social Security age 62 vs 67 break-even" />
+  <title>No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator</title>
+  <meta name="description" content="Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals." />
+  <meta name="keywords" content="No-Suit Retirement, NoSuitRetirement, 2027 Social Security 3.6% COLA calculator, Medicare Part B Hold Harmless, 2027 IRS Saver's Match calculator, $400K 3-Bucket retirement strategy, 1984 Social Security Ghost Tax, IRMAA Form SSA-44 appeal, Social Security age 62 vs 67 break-even" />
   <meta name="author" content="No-Suit Retirement (@NoSuitRetirement)" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://nosuitretirement.com/" />
@@ -39,13 +39,13 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://nosuitretirement.com/" />
   <meta property="og:site_name" content="No-Suit Retirement" />
-  <meta property="og:title" content="No-Suit Retirement — Complete 60–65+ Retirement Math &amp; Protection App" />
-  <meta property="og:description" content="Plain-English 60–65+ retirement math calculator for 2027 Social Security COLA, Medicare Part B traps, 3-Bucket nest egg plans, Roth Sweet Spots, and Scam Protection." />
+  <meta property="og:title" content="No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator" />
+  <meta property="og:description" content="Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals." />
 
   <!-- Twitter / X Cards -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="No-Suit Retirement — Complete 60–65+ Retirement Math &amp; Protection App" />
-  <meta name="twitter:description" content="Plain-English 60–65+ retirement math calculator for 2027 Social Security COLA, Medicare Part B traps, 3-Bucket nest egg plans, Roth Sweet Spots, and Scam Protection." />
+  <meta name="twitter:title" content="No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator" />
+  <meta name="twitter:description" content="Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals." />
 
   <!-- Enhanced Schema.org JSON-LD Structured Data: WebApplication, Organization, FAQPage & VideoObject -->
   <script id="seoJsonLdSchema" type="application/ld+json">
@@ -55,13 +55,13 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       {
         "@type": "WebApplication",
         "@id": "https://nosuitretirement.com/#webapp",
-        "name": "No-Suit Retirement — Complete 60–65+ Retirement Math & Protection App",
+        "name": "No-Suit Retirement — 2027 Social Security COLA, IRMAA & Saver's Match Calculator",
         "alternateName": "NoSuitRetirement Calculator",
         "url": "https://nosuitretirement.com/",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": "All",
         "browserRequirements": "Requires JavaScript. Runs 100% privately in the browser with zero bank logins.",
-        "description": "Plain-English 60–65+ retirement calculator covering the 2027 Social Security COLA vs. Medicare Part B Two-Envelope Test, $300K–$500K 3-Bucket Crash Shield, Age 62 vs. 67 Claiming Break-Even, 2026 $24,480 Work Penalty, 1984 IRS Ghost Tax, Medicare IRMAA Form SSA-44 Appeals, and Senior Scam Protection.",
+        "description": "Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals.",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -88,26 +88,34 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "How much of my 2027 Social Security COLA raise will Medicare Part B take?",
+            "name": "What is the official 2027 Social Security COLA and how does the Medicare Part B Hold Harmless rule work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Because Medicare Part B premiums are automatically deducted from Social Security checks before deposit, a monthly Part B hike can consume 25% to 40%+ of a modest COLA increase. The Two-Envelope Test subtracts your projected Part B and Part D increases from your gross COLA raise to show your true net monthly deposit."
+              "text": "The official 2027 Social Security Cost-of-Living Adjustment (COLA) is 3.6%, announced by the Social Security Administration on October 14, 2026 and payable starting January 2027. Under the federal Hold Harmless provision (Social Security Act Section 1839(f)), if your Medicare Part B premium is deducted directly from your Social Security check and your income is below IRMAA thresholds, your Medicare Part B dollar increase cannot exceed your gross COLA dollar increase—preventing your net Social Security check from decreasing."
             }
           },
           {
             "@type": "Question",
-            "name": "How does the 3-Bucket Crash Shield protect a $350K to $450K retirement nest egg?",
+            "name": "How does the 2027 IRS Federal Saver's Match (SECURE 2.0) work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "The 3-Bucket strategy divides your savings into Bucket 1 (24 months of safe cash/HYSA for immediate monthly draws), Bucket 2 (Years 3–8 in Treasury bills, CDs, and short-term bonds), and Bucket 3 (Years 9+ in low-cost stock index funds), giving you 8 full years of protected income runway so you never have to sell stocks during a bear market."
+              "text": "Starting in 2027 under the SECURE 2.0 Act (IRC Section 6433), the non-refundable Saver's Credit is replaced by the Federal Saver's Match—a direct 50% federal matching deposit of up to $1,000 on up to $2,000 of eligible retirement contributions per person, deposited directly into your IRA or 401(k). The full 50% match applies to Married Filing Jointly filers with Modified AGI up to $41,000 (phasing out at $71,000), Single filers up to $20,500 (phasing out at $35,500), and Head of Household filers up to $30,750 (phasing out at $53,250)."
             }
           },
           {
             "@type": "Question",
-            "name": "What is the 1984 IRS Social Security Ghost Tax and how do Roth withdrawals help?",
+            "name": "How do I file Form SSA-44 to appeal a Medicare IRMAA surcharge after retirement?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "The IRS taxes up to 50% or 85% of your Social Security benefits based on Provisional (Combined) Income thresholds ($25,000/$34,000 for Single filers and $32,000/$44,000 for Married Filing Jointly) that have never been indexed for inflation since 1984. Qualified Roth IRA withdrawals do not count toward Provisional Income."
+              "text": "Medicare IRMAA surcharges are based on your tax return from 2 years ago. If your income dropped due to one of the 8 official SSA Life-Changing Events—such as Work Stoppage (Retirement), Work Reduction, Marriage, Divorce, Death of a Spouse, Loss of Income-Producing Property, Loss of Pension Income, or Employer Settlement Payment—you can submit Form SSA-44 (Medicare Income-Related Monthly Adjustment Amount Life-Changing Event) with proof of retirement to have the Social Security Administration recalculate your Part B and Part D premiums using your current lower retirement income."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does the 3-Bucket Crash Shield protect a $400,000 retirement nest egg?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The 3-Bucket strategy divides a $400,000 retirement nest egg into Bucket 1 (safe cash/HYSA for immediate monthly draws), Bucket 2 (Treasury bills, CDs, and short-term bonds for intermediate years), and Bucket 3 (long-term stock index funds), giving you years of protected income runway so you never have to sell stocks during a bear market."
             }
           }
         ]
@@ -380,6 +388,31 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
     <div id="calculatorSectionAnchor" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- FULL 12 COLUMNS: 5-Tab Interactive Calculator -->
       <div id="calculatorMainColumn" class="lg:col-span-12 space-y-6">
+        <!-- 1-Touch Scenario Presets Bar -->
+        <section id="quickScenarioPresetsBar" aria-label="1-Touch Retirement Scenario Presets" class="no-print bg-white rounded-2xl p-4 md:p-5 border-2 border-[#b07d4b] shadow-sm space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">⚡ 1-Touch Quick-Start Scenarios</span>
+              <h2 class="text-sm md:text-base font-extrabold text-slate-900 mt-1">Click Any Real U.S. Retirement Scenario Below to Auto-Populate the Math:</h2>
+            </div>
+            <span class="text-xs font-semibold text-slate-600">Instant 1-Click Calculation • 100% Private</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <button id="presetAvgSeniorBtn" type="button" data-quick-scenario="avgSenior" class="quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 bg-[#f7f4eb] hover:bg-amber-50 text-slate-900 border-[#b07d4b]/60">
+              <span class="text-xs sm:text-sm font-extrabold leading-snug">👤 Average Senior ($2,000/mo SS Benefit, $185 Part B)</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded shrink-0 bg-emerald-900 text-amber-200">Load →</span>
+            </button>
+            <button id="preset3BucketBtn" type="button" data-quick-scenario="bucket400k" class="quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 bg-[#f7f4eb] hover:bg-amber-50 text-slate-900 border-[#b07d4b]/60">
+              <span class="text-xs sm:text-sm font-extrabold leading-snug">💼 3-Bucket Plan ($400,000 Nest Egg: $40K Cash, $160K Income, $200K Growth)</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded shrink-0 bg-emerald-900 text-amber-200">Load →</span>
+            </button>
+            <button id="presetSaversMatchBtn" type="button" data-quick-scenario="saversMatch2027" class="quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 bg-[#f7f4eb] hover:bg-amber-50 text-slate-900 border-[#b07d4b]/60">
+              <span class="text-xs sm:text-sm font-extrabold leading-snug">🎁 2027 Saver's Match ($2,000 Saved = $1,000 Free Federal Match)</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded shrink-0 bg-emerald-900 text-amber-200">Load →</span>
+            </button>
+          </div>
+        </section>
+
         <!-- 5 Navigation Tabs -->
         <nav class="no-print" aria-label="Main Modules">
           <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 bg-[#e9e2d0] p-2 rounded-xl border-2 border-[#b07d4b]">
@@ -825,6 +858,107 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       </div>
     </div>
 
+    <!-- 2027 IRS SAVER'S MATCH CALCULATOR SECTION (#saversMatchSection) -->
+    <section id="saversMatchSection" aria-label="2027 Federal Saver's Match Calculator" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm space-y-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b-2 border-[#b07d4b]/40 pb-4">
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-950 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-400">
+            <span>🎁 SECURE 2.0 Act (Section 103) • Effective Tax Year 2027</span>
+          </div>
+          <h2 class="text-lg md:text-2xl font-extrabold text-slate-900">2027 Federal Saver's Match Calculator (Up to $1,000 Free Government Match)</h2>
+          <p class="text-xs md:text-sm text-slate-700 max-w-4xl leading-relaxed">
+            Under SECURE 2.0, the old non-refundable Saver's Credit is replaced by a direct 50% federal matching deposit (up to $1,000 on $2,000 of contributions) paid directly into your IRA or 401(k).
+          </p>
+        </div>
+        <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs border border-amber-400/50 shadow-sm shrink-0 self-start lg:self-center">
+          <span>🏛️ Official IRS Saver's Match Guide (IRS.gov) →</span>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div class="lg:col-span-6 bg-[#f7f4eb] rounded-xl p-4 md:p-5 border border-[#b07d4b]/60 space-y-4">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-950 border-b border-[#b07d4b]/30 pb-2">Step 1 • Enter Your 2027 Contribution &amp; Income</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="saversContributionInput" class="block text-xs font-bold text-slate-800">Annual Retirement Contribution ($)</label>
+              <input id="saversContributionInput" type="number" min="0" step="250" value="2000" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
+              <span class="block text-[11px] text-slate-600 mt-1">First $2,000/yr per person qualifies for the 50% federal match.</span>
+            </div>
+            <div>
+              <label for="saversFilingStatus" class="block text-xs font-bold text-slate-800">Tax Filing Status</label>
+              <select id="saversFilingStatus" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm">
+                <option value="single">Single ($20,500–$35,500 AGI)</option>
+                <option value="married" selected>Married Filing Jointly ($41,000–$71,000 AGI)</option>
+                <option value="hoh">Head of Household ($30,750–$53,250 AGI)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="saversAgiInput" class="block text-xs font-bold text-slate-800">Estimated Adjusted Gross Income (AGI) ($/yr)</label>
+            <input id="saversAgiInput" type="number" min="0" step="1000" value="38000" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
+          </div>
+        </div>
+        <div class="lg:col-span-6 chalkboard-bg rounded-xl p-4 md:p-5 text-white flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between gap-2 border-b border-amber-400/30 pb-2.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Step 2 • Your 2027 Federal Match Deposit</span>
+              <span id="saversTierBadge" class="px-2.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs">50% Full Federal Match</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <div class="chalk-card rounded-xl p-3.5">
+                <div class="text-[11px] font-bold uppercase text-amber-200">Federal Match Rate</div>
+                <div id="saversMatchRateResult" class="text-2xl font-extrabold text-amber-300 mt-1">50%</div>
+              </div>
+              <div class="chalk-card rounded-xl p-3.5">
+                <div class="text-[11px] font-bold uppercase text-emerald-200">Gov't Match Deposit</div>
+                <div id="saversMatchDepositResult" class="text-2xl font-extrabold text-white mt-1">+$1,000</div>
+              </div>
+              <div class="chalk-card rounded-xl p-3.5">
+                <div class="text-[11px] font-bold uppercase text-sky-200">Total Added to Retirement</div>
+                <div id="saversTotalAddedResult" class="text-2xl font-extrabold text-amber-300 mt-1">$3,000</div>
+              </div>
+            </div>
+          </div>
+          <div class="text-[11px] text-amber-200 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-400/25">
+            <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
+            <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="underline font-extrabold text-amber-300 hover:text-white">Verify at IRS.gov/credits-deductions/savers-match →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HIGH-INTENT SEO GUIDES SECTION (#seoRetirementGuidesSection) -->
+    <section id="seoRetirementGuidesSection" aria-label="2027 Official Retirement Step-by-Step Guides" class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <article id="guideColaHoldHarmlessCard" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="px-2.5 py-1 rounded-md bg-emerald-900 text-amber-300 font-extrabold text-xs uppercase tracking-wider">Official SSA Guide #1 • 2027 COLA &amp; Medicare Part B</span>
+            <h3 class="text-lg md:text-xl font-extrabold text-slate-900">2027 Social Security 3.6% COLA &amp; Medicare Part B Hold Harmless Guide</h3>
+            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 benefits. Under the federal <strong>Hold Harmless provision (Social Security Act § 1839(f))</strong>, your Medicare Part B hike is legally capped at your gross COLA dollar raise so your net check cannot decrease.</p>
+          </div>
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-slate-500">Authority Source: Social Security Administration</span>
+            <a href="https://www.ssa.gov/news/en/cola/factsheets/2027.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs shadow-sm">
+              <span>📄 Official 2027 SSA COLA Fact Sheet (SSA.gov) →</span>
+            </a>
+          </div>
+        </article>
+        <article id="guideSsa44IrmaaCard" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider">Official Medicare Appeal Guide #2 • Form SSA-44</span>
+            <h3 class="text-lg md:text-xl font-extrabold text-slate-900">Form SSA-44 IRMAA Appeal: 8 Life-Changing Events Retirement Checklist</h3>
+            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">Medicare IRMAA surcharges use a 2-year tax lookback. If you experienced one of the 8 official Life-Changing Events—<strong>1. Marriage, 2. Divorce/Annulment, 3. Death of Your Spouse, 4. Work Stoppage (Retirement), 5. Work Reduction, 6. Loss of Income-Producing Property, 7. Loss of Pension Income, or 8. Employer Settlement Payment</strong>—file Form SSA-44 to remove the surcharge.</p>
+          </div>
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-slate-500">Authority Source: Official SSA Form SSA-44 PDF</span>
+            <a href="https://www.ssa.gov/forms/ssa-44.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm">
+              <span>📥 Download Official Form SSA-44 (SSA.gov PDF) →</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <!-- SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator -->
     <section id="spouseShareBar" aria-label="Share With Your Spouse or Retirement Friend" class="no-print bg-white rounded-2xl p-4 md:p-5 border-2 border-[#b07d4b] shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
       <div class="space-y-1">
@@ -872,21 +1006,21 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
             <div class="space-y-2">
               <div class="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-amber-400/40">
-                <iframe src="https://www.youtube.com/embed/XHIm3Q1OvK8" title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)" loading="lazy" allowfullscreen class="w-full h-full border-0"></iframe>
+                <img src="https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg" alt="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)" width="480" height="270" loading="lazy" decoding="async" class="w-full h-full object-cover" />
               </div>
               <div class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Episode #1 · 2027 COLA &amp; Medicare Math</div>
               <a href="https://youtu.be/XHIm3Q1OvK8" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)" class="block text-sm font-extrabold text-white">Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)</a>
             </div>
             <div class="flex flex-col gap-1.5">
               <a href="https://youtu.be/XHIm3Q1OvK8" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
-              <button type="button" data-preset="couple400k" data-goto-tab="tab-paycheck" class="preset-btn guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">🧮 Load $400K Couple Math in Tab 1</button>
+              <button type="button" data-goto-tab="tab-paycheck" class="guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">📑 Load 2027 COLA Math (Tab 0)</button>
             </div>
           </div>
 
           <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
             <div class="space-y-2">
               <div class="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-amber-400/40">
-                <iframe src="https://www.youtube.com/embed/alUfXINV93Y" title="How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)" loading="lazy" allowfullscreen class="w-full h-full border-0"></iframe>
+                <img src="https://i.ytimg.com/vi/alUfXINV93Y/hqdefault.jpg" alt="How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)" width="480" height="270" loading="lazy" decoding="async" class="w-full h-full object-cover" />
               </div>
               <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Episode #2 · Retire at 62 on $400K</div>
               <a href="https://youtu.be/alUfXINV93Y" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)" class="block text-sm font-extrabold text-white">How to Retire Comfortably at 62 With $400,000 and Social Security (Real Monthly Budget)</a>
@@ -899,6 +1033,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 
           <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
             <div class="space-y-2">
+              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" class="block relative aspect-video w-full rounded-lg overflow-hidden bg-[#143325] border border-amber-400/40">
+                <img src="https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg" alt="Turning 60 in 2026? The $11,250 Super Catch-Up Window Closing on Dec 31" width="480" height="270" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-85" />
+              </a>
               <div class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Episode #3 · Age 60–63 Super Catch-Up</div>
               <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Turning 60 in 2026? The $11,250 &quot;Super Catch-Up&quot; Window Closing on Dec 31" class="block text-sm font-extrabold text-white">Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31</a>
               <p class="text-xs text-emerald-100/90 leading-relaxed">How workers aged 60–63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 ($35,750 total 401k limit).</p>

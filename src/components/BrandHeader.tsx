@@ -138,6 +138,9 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                 id="brandLogoImg"
                 src={BRAND_LOGO_BASE64}
                 alt="No-Suit Retirement Official Logo"
+                width="112"
+                height="112"
+                decoding="async"
                 className="w-full h-full max-w-full h-auto object-contain rounded-xl"
               />
               <svg id="brandLogoSvg" viewBox="0 0 200 200" className="w-full h-full hidden" role="img" aria-label="No-Suit Retirement Official Logo">

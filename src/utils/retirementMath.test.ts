@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_INPUTS,
   PRESET_PROFILES,
+  QUICK_SCENARIO_PRESETS,
   calculateRetirementMetrics,
   formatUSD,
 } from './retirementMath.ts';
@@ -131,6 +132,66 @@ test('claiming age break-even (70% at 62, 100% FRA at 67, 124% at 70), SECURE 2.
   assert.equal(resAge55.total401kLimit, 32500);
 });
 
+test('1-Touch Scenario Presets and 2027 IRS Saver\'s Match (50%, 20%, 10%, 0% phaseout tiers)', () => {
+  // Preset 1: Average Senior ($2,000/mo SS Benefit, $185 Part B)
+  const avgSeniorRes = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ...QUICK_SCENARIO_PRESETS.avgSenior.values,
+  });
+  assert.equal(avgSeniorRes.currentGrossSS, 2000);
+  assert.equal(avgSeniorRes.baseMedicareCurrent, 185);
+  assert.equal(Math.round(avgSeniorRes.grossColaRaise), 72); // 3.6% of $2,000 = $72
+
+  // Preset 2: 3-Bucket Plan ($400,000 Nest Egg: $40K Cash, $160K Income, $200K Growth)
+  const bucket400kRes = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ...QUICK_SCENARIO_PRESETS.bucket400k.values,
+  });
+  assert.equal(bucket400kRes.bucket1, 40000);
+  assert.equal(bucket400kRes.bucket2, 160000);
+  assert.equal(bucket400kRes.bucket3, 200000);
+
+  // Preset 3: 2027 Saver's Match ($2,000 Saved = $1,000 Free Federal Match)
+  const saversRes = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ...QUICK_SCENARIO_PRESETS.saversMatch2027.values,
+  });
+  assert.equal(saversRes.saversMatchRatePct, 50);
+  assert.equal(saversRes.saversMatchDeposit, 1000);
+  assert.equal(saversRes.saversTotalAdded, 3000);
+
+  // Verify 20%, 10%, and 0% phaseout tiers for Single filer ($20,500 full / $35,500 phaseout)
+  const single20 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    saversContribution: 2000,
+    saversFilingStatus: 'single',
+    saversAgi: 25000,
+  });
+  assert.equal(single20.saversMatchRatePct, 20);
+  assert.equal(single20.saversMatchDeposit, 400);
+  assert.equal(single20.saversTotalAdded, 2400);
+
+  const single10 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    saversContribution: 2000,
+    saversFilingStatus: 'single',
+    saversAgi: 32000,
+  });
+  assert.equal(single10.saversMatchRatePct, 10);
+  assert.equal(single10.saversMatchDeposit, 200);
+  assert.equal(single10.saversTotalAdded, 2200);
+
+  const single0 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    saversContribution: 2000,
+    saversFilingStatus: 'single',
+    saversAgi: 45000,
+  });
+  assert.equal(single0.saversMatchRatePct, 0);
+  assert.equal(single0.saversMatchDeposit, 0);
+  assert.equal(single0.saversTotalAdded, 2000);
+});
+
 test('3 Featured YouTube Videos and GA4 Measurement ID G-66NLH28JBQ are hardcoded with zero Adsterra ads or admin studio', () => {
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
@@ -144,7 +205,7 @@ test('3 Featured YouTube Videos and GA4 Measurement ID G-66NLH28JBQ are hardcode
   );
   assert.equal(FEATURED_YOUTUBE_VIDEOS[0].videoUrl, 'https://youtu.be/XHIm3Q1OvK8');
   assert.equal(FEATURED_YOUTUBE_VIDEOS[0].embedUrl, 'https://www.youtube.com/embed/XHIm3Q1OvK8');
-  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorPreset, 'couple400k');
+  assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorActionLabel, '📑 Load 2027 COLA Math (Tab 0)');
   assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorTab, 'tab-paycheck');
 
   assert.equal(
@@ -166,7 +227,7 @@ test('3 Featured YouTube Videos and GA4 Measurement ID G-66NLH28JBQ are hardcode
   assert.equal(FEATURED_YOUTUBE_VIDEOS[2].workerAgeGroup, '61');
 });
 
-test('Standalone HTML contains 3 featured videos, G-66NLH28JBQ, full 12-col calculator, and zero Adsterra or Owner Studio elements', () => {
+test('Standalone HTML contains 3 featured videos, G-66NLH28JBQ, Saver\'s Match, SEO guides, and zero Adsterra or Owner Studio elements', () => {
   assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'nosuit_cookie_consent_v1');
   assert.equal(SITE_CANONICAL_URL, 'https://nosuitretirement.com/');
 
@@ -183,13 +244,16 @@ test('Standalone HTML contains 3 featured videos, G-66NLH28JBQ, full 12-col calc
   assert.equal(links.copyUrl, 'https://nosuitretirement.com/');
 
   const html = buildFullStandaloneHtml(DEFAULT_CHANNEL_CONFIG);
+  assert.ok(html.includes("No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator"));
   assert.ok(html.includes('https://www.googletagmanager.com/gtag/js?id=G-66NLH28JBQ'));
   assert.ok(html.includes("gtag('config', 'G-66NLH28JBQ');"));
   assert.ok(html.includes('https://youtu.be/XHIm3Q1OvK8'));
-  assert.ok(html.includes('https://www.youtube.com/embed/XHIm3Q1OvK8'));
   assert.ok(html.includes('https://youtu.be/alUfXINV93Y'));
-  assert.ok(html.includes('https://www.youtube.com/embed/alUfXINV93Y'));
   assert.ok(html.includes('Turning 60 in 2026? The $11,250'));
+  assert.ok(html.includes('https://www.irs.gov/credits-deductions/savers-match'));
+  assert.ok(html.includes('https://www.ssa.gov/news/en/cola/factsheets/2027.html'));
+  assert.ok(html.includes('https://www.ssa.gov/forms/ssa-44.pdf'));
+  assert.ok(html.includes('loading="lazy" decoding="async"'));
 
   // Verify zero Adsterra scripts, ad containers, or Owner Studio elements
   assert.equal(html.includes('bauval.org'), false);
@@ -205,3 +269,4 @@ test('Standalone HTML contains 3 featured videos, G-66NLH28JBQ, full 12-col calc
   assert.ok(html.includes('id="calculatorMainColumn" class="lg:col-span-12 space-y-6"'));
   assert.ok(html.includes('WATCH RETIREMENT MATH IN PLAIN ENGLISH'));
 });
+

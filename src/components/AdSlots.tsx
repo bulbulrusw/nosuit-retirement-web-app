@@ -29,6 +29,7 @@ export interface FeaturedVideoEpisode {
   videoUrl: string;
   embedUrl: string | null;
   videoId: string | null;
+  thumbnailUrl: string;
   isChannelLinkOnly?: boolean;
   calculatorActionLabel: string;
   calculatorTab: 'tab-paycheck' | 'tab-taxshield';
@@ -47,9 +48,9 @@ export const FEATURED_YOUTUBE_VIDEOS: FeaturedVideoEpisode[] = [
     videoUrl: 'https://youtu.be/XHIm3Q1OvK8',
     embedUrl: 'https://www.youtube.com/embed/XHIm3Q1OvK8',
     videoId: 'XHIm3Q1OvK8',
-    calculatorActionLabel: '🧮 Load $400K Couple Math in Tab 1',
+    thumbnailUrl: 'https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg',
+    calculatorActionLabel: '📑 Load 2027 COLA Math (Tab 0)',
     calculatorTab: 'tab-paycheck',
-    calculatorPreset: 'couple400k',
   },
   {
     id: 'video-2',
@@ -61,6 +62,7 @@ export const FEATURED_YOUTUBE_VIDEOS: FeaturedVideoEpisode[] = [
     videoUrl: 'https://youtu.be/alUfXINV93Y',
     embedUrl: 'https://www.youtube.com/embed/alUfXINV93Y',
     videoId: 'alUfXINV93Y',
+    thumbnailUrl: 'https://i.ytimg.com/vi/alUfXINV93Y/hqdefault.jpg',
     calculatorActionLabel: '🧮 Load $400K Couple Math in Tab 1',
     calculatorTab: 'tab-paycheck',
     calculatorPreset: 'couple400k',
@@ -75,6 +77,7 @@ export const FEATURED_YOUTUBE_VIDEOS: FeaturedVideoEpisode[] = [
     videoUrl: 'https://www.youtube.com/@NoSuitRetirement',
     embedUrl: null,
     videoId: null,
+    thumbnailUrl: 'https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg',
     isChannelLinkOnly: true,
     calculatorActionLabel: '🧮 Open $11,250 Super Catch-Up Tool (Tab 3)',
     calculatorTab: 'tab-taxshield',

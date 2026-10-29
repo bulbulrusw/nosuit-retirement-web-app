@@ -3,6 +3,8 @@ import {
   DEFAULT_INPUTS,
   PRESET_PROFILES,
   PresetKey,
+  QUICK_SCENARIO_PRESETS,
+  QuickScenarioKey,
   RetirementInputs,
   calculateRetirementMetrics,
   formatUSD,
@@ -26,6 +28,11 @@ import {
   MobileBottomNavBar,
   SpouseShareBar,
 } from './components/ConversionAndComplianceBars';
+import {
+  HighIntentSeoGuidesSection,
+  QuickScenarioBar,
+  SaversMatchCalculatorSection,
+} from './components/SaversMatchAndSeoGuides';
 
 const SCAM_ITEMS = [
   {
@@ -81,6 +88,7 @@ const AUDIT_ITEMS = [
 export default function App() {
   const [inputs, setInputs] = useState<RetirementInputs>(DEFAULT_INPUTS);
   const [activePreset, setActivePreset] = useState<PresetKey>('couple400k');
+  const [activeQuickScenario, setActiveQuickScenario] = useState<QuickScenarioKey | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('tab-paycheck');
   const [fontSizeScale, setFontSizeScale] = useState<'normal' | 'large' | 'xlarge'>('normal');
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
@@ -190,6 +198,22 @@ export default function App() {
   };
 
   const handleVideoCalculatorAction = (video: FeaturedVideoEpisode) => {
+    if (video.id === 'video-1') {
+      setActiveTab('tab-paycheck');
+      setActiveVideoModal(null);
+      trackGa4Event('calculator_tab_switch', {
+        event_category: 'video_card_calculator_action',
+        tab_id: 'tab-paycheck',
+        tab_index: 0,
+        video_title: video.title,
+      });
+      showToast('Opened 2027 Social Security COLA & Medicare Calculator (Tab 0).');
+      window.setTimeout(() => {
+        document.getElementById('calculatorSectionAnchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+      return;
+    }
+
     if (video.calculatorPreset) {
       const profile = PRESET_PROFILES[video.calculatorPreset];
       setActivePreset(video.calculatorPreset);
@@ -260,6 +284,7 @@ export default function App() {
 
   const handleSelectPreset = (preset: PresetKey) => {
     setActivePreset(preset);
+    setActiveQuickScenario(null);
     const profile = PRESET_PROFILES[preset];
     setInputs((prev) => ({
       ...prev,
@@ -268,9 +293,33 @@ export default function App() {
     showToast(profile.toast);
   };
 
+  const handleSelectQuickScenario = (key: QuickScenarioKey) => {
+    const scenario = QUICK_SCENARIO_PRESETS[key];
+    setActiveQuickScenario(key);
+    setInputs((prev) => ({
+      ...prev,
+      ...scenario.values,
+    }));
+    if (key === 'avgSenior' || key === 'bucket400k') {
+      setActiveTab('tab-paycheck');
+    }
+    trackGa4Event('quick_scenario_select', {
+      event_category: 'calculator_engagement',
+      scenario_key: key,
+      scenario_label: scenario.label,
+    });
+    showToast(scenario.toast);
+    if (key === 'saversMatch2027') {
+      window.setTimeout(() => {
+        document.getElementById('saversMatchSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
+    }
+  };
+
   const updateInput = <K extends keyof RetirementInputs>(key: K, value: RetirementInputs[K]) => {
     setInputs((prev) => ({
       ...prev,
+      ...(key === 'nestEgg' || key === 'withdrawalRate' ? { bucketPresetMode: 'standard' as const } : {}),
       [key]: value,
     }));
   };
@@ -385,6 +434,12 @@ export default function App() {
             id="calculatorMainColumn"
             className="lg:col-span-12 space-y-6"
           >
+            {/* 1-Touch Scenario Presets Bar Right Above Calculator Controls */}
+            <QuickScenarioBar
+              activeQuickScenario={activeQuickScenario}
+              onSelectQuickScenario={handleSelectQuickScenario}
+            />
+
             {/* 5 Navigation Tabs */}
             <nav className="no-print" aria-label="Main Modules">
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 bg-[#ebe4d4] p-2 rounded-2xl border border-[#c5b9a5] shadow-xs">
@@ -1512,6 +1567,24 @@ export default function App() {
           </div>
         </div>
 
+        {/* DEDICATED 2027 IRS SAVER'S MATCH CALCULATOR & SECTION (SECURE 2.0 / IRC § 6433) */}
+        <SaversMatchCalculatorSection
+          saversContribution={metrics.saversContribution}
+          saversFilingStatus={metrics.saversFilingStatus}
+          saversAgi={metrics.saversAgi}
+          saversMatchRatePct={metrics.saversMatchRatePct}
+          saversMatchTierLabel={metrics.saversMatchTierLabel}
+          saversMatchDeposit={metrics.saversMatchDeposit}
+          saversTotalAdded={metrics.saversTotalAdded}
+          saversThresholds={metrics.saversThresholds}
+          onChangeContribution={(val) => updateInput('saversContribution', val)}
+          onChangeFilingStatus={(val) => updateInput('saversFilingStatus', val)}
+          onChangeAgi={(val) => updateInput('saversAgi', val)}
+        />
+
+        {/* HIGH-INTENT SEO CONTENT & STEP-BY-STEP RETIREMENT GUIDES UNDER THE CALCULATORS */}
+        <HighIntentSeoGuidesSection />
+
         {/* SHARE WITH YOUR SPOUSE OR RETIREMENT FRIEND BAR (#spouseShareBar) right below the Calculator */}
         <SpouseShareBar
           snapshot={{
@@ -1574,15 +1647,24 @@ export default function App() {
                           data-video-title={video.title}
                           className="block relative aspect-video w-full rounded-xl overflow-hidden bg-[#0f291e] border border-amber-400/40 flex flex-col items-center justify-center p-4 text-center group-hover:border-amber-300 transition-colors"
                         >
-                          <div className="w-12 h-12 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg mb-2 group-hover:scale-105 transition-transform">
+                          <img
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            width="480"
+                            height="270"
+                            loading="lazy"
+                            decoding="async"
+                            className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none"
+                          />
+                          <div className="relative z-10 w-12 h-12 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg mb-2 group-hover:scale-105 transition-transform">
                             <svg className="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                               <path d="M8 5v14l11-7z" />
                             </svg>
                           </div>
-                          <div className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300">
+                          <div className="relative z-10 text-[11px] font-extrabold uppercase tracking-wider text-amber-300">
                             @NoSuitRetirement Channel Spotlight
                           </div>
-                          <div className="text-xs font-bold text-emerald-100 mt-0.5">
+                          <div className="relative z-10 text-xs font-bold text-emerald-100 mt-0.5">
                             Age 60–63 SECURE 2.0 $11,250 Super Catch-Up
                           </div>
                         </a>
@@ -1645,13 +1727,22 @@ export default function App() {
                   >
                     <div className="space-y-3">
                       <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-amber-400/40">
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          width="480"
+                          height="270"
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        />
                         <iframe
                           src={video.embedUrl!}
                           title={video.title}
                           loading="lazy"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
-                          className="w-full h-full border-0"
+                          className="relative z-10 w-full h-full border-0"
                         />
                       </div>
 
