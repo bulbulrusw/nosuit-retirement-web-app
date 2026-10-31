@@ -4,10 +4,11 @@ import {
   extractGaMeasurementId,
 } from '../components/AdSlots';
 import { BRAND_LOGO_BASE64 } from '../data/logoData';
+import { RETIREMENT_CONSTANTS } from '../data/retirementConstants';
 
 export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_CHANNEL_CONFIG): string {
-  const cleanGsc = (inputConfig?.gscVerificationCode || 'YOUR_GSC_CODE').trim() || 'YOUR_GSC_CODE';
   const cleanGaId = extractGaMeasurementId(inputConfig?.gaMeasurementId);
+  const serializedConstants = JSON.stringify(RETIREMENT_CONSTANTS);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -20,20 +21,6 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
   <meta name="author" content="No-Suit Retirement (@NoSuitRetirement)" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://nosuitretirement.com/" />
-
-  <!-- Google Search Console Verification Tag -->
-  <meta id="gscVerificationMeta" name="google-site-verification" content="${cleanGsc}" />
-
-  <!-- Google Analytics 4 (GA4) Official gtag.js (Measurement ID: ${cleanGaId}) -->
-  <script id="ga4GtagScript" async src="https://www.googletagmanager.com/gtag/js?id=${cleanGaId}" data-ga-measurement-id="${cleanGaId}"></script>
-  <script id="ga4LoaderScript">
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    window.gtag = gtag;
-    gtag('js', new Date());
-    gtag('config', '${cleanGaId}');
-    window.__GA4_CONFIGURED_ID__ = '${cleanGaId}';
-  </script>
 
   <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website" />
@@ -399,7 +386,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
             <button id="presetAvgSeniorBtn" type="button" data-quick-scenario="avgSenior" class="quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 bg-[#f7f4eb] hover:bg-amber-50 text-slate-900 border-[#b07d4b]/60">
-              <span class="text-xs sm:text-sm font-extrabold leading-snug">👤 Average Senior ($2,000/mo SS Benefit, $185 Part B)</span>
+              <span class="text-xs sm:text-sm font-extrabold leading-snug">👤 Average Senior ($2,000/mo SS Benefit, $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)} Part B)</span>
               <span class="text-[11px] font-bold px-2 py-0.5 rounded shrink-0 bg-emerald-900 text-amber-200">Load →</span>
             </button>
             <button id="preset3BucketBtn" type="button" data-quick-scenario="bucket400k" class="quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 bg-[#f7f4eb] hover:bg-amber-50 text-slate-900 border-[#b07d4b]/60">
@@ -444,18 +431,18 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             </div>
             <div class="bg-white rounded-xl p-4 border-2 border-red-300 shadow-sm">
               <div class="text-xs font-bold uppercase text-red-700">Red Envelope (Part B/D Bite)</div>
-              <div id="kpiMedicareBite" class="text-2xl font-extrabold text-red-600 mt-1">-$36/mo</div>
-              <p id="kpiMedicareSub" class="text-xs text-slate-600 mt-1">Takes 32% of your COLA raise</p>
+              <div id="kpiMedicareBite" class="text-2xl font-extrabold text-red-600 mt-1">-$13/mo</div>
+              <p id="kpiMedicareSub" class="text-xs text-slate-600 mt-1">Takes 12% of your COLA raise</p>
             </div>
             <div class="bg-[#1b4332] text-white rounded-xl p-4 border-2 border-amber-400 shadow-sm">
               <div class="text-xs font-bold uppercase text-amber-300">True Net Social Security</div>
-              <div id="kpiNetSS" class="text-2xl font-extrabold text-white mt-1">$2,770/mo</div>
-              <p id="kpiNetRaiseSub" class="text-xs text-emerald-200 mt-1">Real net raise: +$76/mo</p>
+              <div id="kpiNetSS" class="text-2xl font-extrabold text-white mt-1">$2,793/mo</div>
+              <p id="kpiNetRaiseSub" class="text-xs text-emerald-200 mt-1">Real net raise: +$98/mo</p>
             </div>
             <div class="bg-amber-50 rounded-xl p-4 border-2 border-amber-500 shadow-sm">
               <div class="text-xs font-bold uppercase text-amber-900">Total Monthly Paycheck</div>
-              <div id="kpiTotalPaycheck" class="text-2xl font-extrabold text-slate-900 mt-1">$4,270/mo</div>
-              <p id="kpiBudgetSurplus" class="text-xs font-semibold text-emerald-800 mt-1">+$970/mo breathing room</p>
+              <div id="kpiTotalPaycheck" class="text-2xl font-extrabold text-slate-900 mt-1">$4,293/mo</div>
+              <p id="kpiBudgetSurplus" class="text-xs font-semibold text-emerald-800 mt-1">+$993/mo breathing room</p>
             </div>
           </div>
 
@@ -475,14 +462,17 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                   <input id="ssSpouseCheck" type="number" value="1160" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
                 </div>
                 <div>
-                  <label for="colaPctInput" class="block text-xs font-bold text-slate-800">Official 2027 COLA % (<span id="colaPctVal">3.6</span>% SSA Official)</label>
-                  <input id="colaPctInput" type="range" min="1.5" max="6.0" step="0.1" value="3.6" class="mt-2 w-full" />
+                  <label for="colaPctInput" class="block text-xs font-bold text-slate-800">Official 2027 COLA % (<span id="colaPctVal">${RETIREMENT_CONSTANTS.COLA_2027_PCT.toFixed(1)}</span>% SSA Official)</label>
+                  <input id="colaPctInput" type="range" min="1.5" max="6.0" step="0.1" value="${RETIREMENT_CONSTANTS.COLA_2027_PCT.toFixed(1)}" class="mt-2 w-full" />
                 </div>
                 <div>
                   <label for="partBIncreaseInput" class="block text-xs font-bold text-slate-800">Part B/D Hike ($/mo/person)</label>
-                  <input id="partBIncreaseInput" type="number" value="18" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
+                  <input id="partBIncreaseInput" type="number" step="0.1" value="${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)}" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
                 </div>
               </div>
+              <p class="text-[11px] text-slate-600 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
+                <strong>2026 Base ($${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)}/mo) → Projected 2027 ($${RETIREMENT_CONSTANTS.MEDICARE_PART_B.projected2027.toFixed(2)}/mo, +$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)}):</strong> Final 2027 Part B premium is announced by CMS (usually November) — update this field when it is published.
+              </p>
               <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl text-xs">
                 <div class="font-bold text-amber-950 flex items-center justify-between">
                   <span>The "86-Cent Dollar" Buying Power Check:</span>
@@ -656,13 +646,21 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         <!-- TAB 3: 1984 GHOST TAX, ROTH SWEET SPOT, IRMAA & ACA BRIDGE -->
         <section id="tab-taxshield" class="tab-panel hidden space-y-6">
           <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
-            <h2 class="text-lg font-extrabold text-slate-900 border-b pb-2">1984 IRS "Ghost Tax" Speedometer &amp; Roth Conversion Sweet Spot</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h2 class="text-lg font-extrabold text-slate-900 border-b pb-2">1984 IRS "Ghost Tax" Speedometer &amp; Roth Conversion Sweet Spot (2026 Tax Year)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label for="taxFilingStatus" class="block text-sm font-bold text-slate-800">Tax Filing Status</label>
                 <select id="taxFilingStatus" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white">
                   <option value="married" selected>Married Filing Jointly ($32K / $44K)</option>
                   <option value="single">Single Individual ($25K / $34K)</option>
+                </select>
+              </div>
+              <div>
+                <label for="filersAge65Plus" class="block text-sm font-bold text-slate-800">How many filers are age 65+?</label>
+                <select id="filersAge65Plus" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white">
+                  <option value="0" selected>0 Filers Age 65+</option>
+                  <option value="1">1 Filer Age 65+</option>
+                  <option value="2">2 Filers Age 65+</option>
                 </select>
               </div>
               <div>
@@ -681,7 +679,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             <div class="chalkboard-bg rounded-xl p-4 text-white space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold uppercase text-amber-300">Your IRS Combined (Provisional) Income:</span>
-                <span id="combinedIncomeValue" class="text-2xl font-extrabold text-white">$46,772 / yr</span>
+                <span id="combinedIncomeValue" class="text-2xl font-extrabold text-white">$46,770 / yr</span>
               </div>
               <div class="w-full h-5 bg-slate-800 rounded-full overflow-hidden flex border border-amber-400/50 p-0.5">
                 <div id="taxMeterBar" class="h-full rounded-full transition-all duration-300 bg-red-500" style="width: 85%;"></div>
@@ -712,7 +710,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Medicare IRMAA &amp; Form SSA-44 Appeal</h2>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label for="irmaa2025Income" class="block text-xs font-bold text-slate-800">2025 Tax Return MAGI ($)</label>
+                  <label for="irmaa2025Income" class="block text-xs font-bold text-slate-800">2025 MAGI (sets your 2027 Medicare premium) ($)</label>
                   <input id="irmaa2025Income" type="number" step="5000" value="230000" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold" />
                 </div>
                 <div>
@@ -723,21 +721,27 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                   </select>
                 </div>
               </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included. <strong>2026 premiums (2024 income):</strong> $218,000 married / $109,000 single. <strong>2027 premiums (2025 income):</strong> $224,000 married / $112,000 single (<em>projected — CMS confirms in November 2026</em>).
+              </p>
               <div id="irmaaVerdictBox" class="p-4 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-sm space-y-1.5"></div>
             </div>
 
             <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
-              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Age 60–65 Pre-Medicare ACA Bridge</h2>
+              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Age 60–65 Pre-Medicare ACA Bridge (2026 Rules)</h2>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label for="acaCurrentAge" class="block text-xs font-bold text-slate-800">Current Age (&lt;65):</label>
                   <input id="acaCurrentAge" type="number" min="55" max="64" value="62" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-1.5 font-bold" />
                 </div>
                 <div>
-                  <label for="acaMagiInput" class="block text-xs font-bold text-slate-800">Planned MAGI ($):</label>
+                  <label for="acaMagiInput" class="block text-xs font-bold text-slate-800">Planned 2026 ACA MAGI ($):</label>
                   <input id="acaMagiInput" type="number" step="2000" value="52000" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-1.5 font-bold" />
                 </div>
               </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025; 2026 400% FPL cliff is $62,600 (1 person) / $84,600 (2 people) per IRS Rev. Proc. 2025-25.
+              </p>
               <div id="acaBridgeResult" class="p-3.5 rounded-xl bg-sky-50 border border-sky-300 text-xs md:text-sm text-slate-800 space-y-1"></div>
             </div>
           </div>
@@ -838,19 +842,19 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="locWill" class="block text-xs font-bold text-slate-700">Where Original Will, Trust &amp; POA Are Kept:</label>
-                <input id="locWill" type="text" value="Fireproof safe in master closet, top shelf (Blue binder)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
+                <input id="locWill" type="text" value="" placeholder="e.g., Home safe or filing cabinet folder" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
               </div>
               <div>
                 <label for="loc401k" class="block text-xs font-bold text-slate-700">401(k) / IRA / Pension Institution Names:</label>
-                <input id="loc401k" type="text" value="Fidelity (401k & Roth IRA), Local Credit Union (Bucket 1 Cash)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
+                <input id="loc401k" type="text" value="" placeholder="e.g., Institution names only (no account numbers)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
               </div>
               <div>
                 <label for="locInsurance" class="block text-xs font-bold text-slate-700">Medicare Supplement / Life Insurance &amp; Deed Location:</label>
-                <input id="locInsurance" type="text" value="Filing cabinet drawer #2 in home study (Green folder)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
+                <input id="locInsurance" type="text" value="" placeholder="e.g., Desk drawer or family document binder" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
               </div>
               <div>
                 <label for="locContacts" class="block text-xs font-bold text-slate-700">Trusted CPA / Family Contact Name &amp; Phone:</label>
-                <input id="locContacts" type="text" value="Local CPA Office & SSA Office (1-800-772-1213)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
+                <input id="locContacts" type="text" value="" placeholder="e.g., Tax preparer name &amp; SSA (1-800-772-1213)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" />
               </div>
             </div>
           </div>
@@ -863,11 +867,11 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b-2 border-[#b07d4b]/40 pb-4">
         <div class="space-y-1">
           <div class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-950 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-400">
-            <span>🎁 SECURE 2.0 Act (Section 103) • Effective Tax Year 2027</span>
+            <span>🎁 SECURE 2.0 Act (IRC § 6433) • Effective Tax Year 2027</span>
           </div>
-          <h2 class="text-lg md:text-2xl font-extrabold text-slate-900">2027 Federal Saver's Match Calculator (Up to $1,000 Free Government Match)</h2>
+          <h2 class="text-lg md:text-2xl font-extrabold text-slate-900">2027 Federal Saver's Match Calculator (Up to $1,000/Person or $2,000/Couple Match)</h2>
           <p class="text-xs md:text-sm text-slate-700 max-w-4xl leading-relaxed">
-            Under SECURE 2.0, the old non-refundable Saver's Credit is replaced by a direct 50% federal matching deposit (up to $1,000 on $2,000 of contributions) paid directly into your IRA or 401(k).
+            Under SECURE 2.0 (IRC § 6433), the old non-refundable Saver's Credit is replaced by a direct up to 50% federal matching deposit (up to $1,000 per person on $2,000 of contributions; up to $2,000 for 2 contributing spouses on $4,000 total) deposited into a pre-tax IRA or 401(k).
           </p>
         </div>
         <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs border border-amber-400/50 shadow-sm shrink-0 self-start lg:self-center">
@@ -882,16 +886,23 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             <div>
               <label for="saversContributionInput" class="block text-xs font-bold text-slate-800">Annual Retirement Contribution ($)</label>
               <input id="saversContributionInput" type="number" min="0" step="250" value="2000" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
-              <span class="block text-[11px] text-slate-600 mt-1">First $2,000/yr per person qualifies for the 50% federal match.</span>
+              <span class="block text-[11px] text-slate-600 mt-1">Cap: $2,000/yr per contributing person ($4,000 for 2 spouses).</span>
             </div>
             <div>
               <label for="saversFilingStatus" class="block text-xs font-bold text-slate-800">Tax Filing Status</label>
               <select id="saversFilingStatus" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm">
-                <option value="single">Single ($20,500–$35,500 AGI)</option>
-                <option value="married" selected>Married Filing Jointly ($41,000–$71,000 AGI)</option>
-                <option value="hoh">Head of Household ($30,750–$53,250 AGI)</option>
+                <option value="single">Single / MFS ($20,500 → $35,500 AGI)</option>
+                <option value="married" selected>Married Filing Jointly ($41,000 → $71,000 AGI)</option>
+                <option value="hoh">Head of Household ($30,750 → $53,250 AGI)</option>
               </select>
             </div>
+          </div>
+          <div id="saversSpousesWrap">
+            <label for="saversContributingSpouses" class="block text-xs font-bold text-slate-800">Contributing Spouses (Married Filing Jointly)</label>
+            <select id="saversContributingSpouses" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm">
+              <option value="1" selected>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
+              <option value="2">2 Contributing Spouses ($4,000 total cap · up to $2,000 match)</option>
+            </select>
           </div>
           <div>
             <label for="saversAgiInput" class="block text-xs font-bold text-slate-800">Estimated Adjusted Gross Income (AGI) ($/yr)</label>
@@ -901,7 +912,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         <div class="lg:col-span-6 chalkboard-bg rounded-xl p-4 md:p-5 text-white flex flex-col justify-between space-y-4">
           <div>
             <div class="flex items-center justify-between gap-2 border-b border-amber-400/30 pb-2.5">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Step 2 • Your 2027 Federal Match Deposit</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Step 2 • Your 2027 Federal Match Deposit (Estimate)</span>
               <span id="saversTierBadge" class="px-2.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs">50% Full Federal Match</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
@@ -919,9 +930,12 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               </div>
             </div>
           </div>
-          <div class="text-[11px] text-amber-200 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-400/25">
-            <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
-            <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="underline font-extrabold text-amber-300 hover:text-white">Verify at IRS.gov/credits-deductions/savers-match →</a>
+          <div class="bg-[#0f291e] rounded-xl p-3 border border-amber-400/30 text-[11px] text-emerald-100 space-y-1 leading-relaxed">
+            <div><strong class="text-amber-300">Notes (IRC § 6433):</strong> Match is deposited into a pre-tax IRA/401(k) and taxed at withdrawal. You must be age 18+, not a full-time student, and not claimed as a dependent. Contributing to an IRA requires earned income, so many retirees cannot qualify. Linear formula: <code>rate = 50% × (end − AGI) / (end − start)</code> (estimate; IRS rounding may differ by ~1 percentage point).</div>
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-400/25 text-amber-200">
+              <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
+              <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="underline font-extrabold text-amber-300 hover:text-white">Verify at IRS.gov/credits-deductions/savers-match →</a>
+            </div>
           </div>
         </div>
       </div>
@@ -1128,10 +1142,11 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
   <aside id="cookieConsentBanner" role="region" aria-label="Cookie and Privacy Consent" class="no-print fixed bottom-14 md:bottom-0 inset-x-0 z-50 bg-[#143325] text-amber-100 border-t-2 border-amber-400 shadow-2xl px-4 py-3.5">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
       <div class="text-xs leading-relaxed max-w-4xl">
-        <strong class="text-amber-300 font-extrabold uppercase tracking-wide">🍪 Cookie &amp; Privacy Notice:</strong> We use cookies and anonymous Google Analytics 4 traffic measurement to improve our senior retirement tools. <strong class="text-white">100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.</strong>
+        <strong class="text-amber-300 font-extrabold uppercase tracking-wide">🍪 Cookie &amp; Privacy Notice:</strong> With your permission, we use cookies and anonymous Google Analytics 4 traffic measurement to improve our senior retirement tools. <strong class="text-white">100% of your retirement calculator math runs privately in your browser—zero personal or financial numbers ever leave your device.</strong>
       </div>
-      <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+      <div class="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
         <button id="cookiePrivacyPolicyBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs border border-amber-400/40 transition-colors cursor-pointer whitespace-nowrap">Privacy Policy</button>
+        <button id="declineCookiesBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs border border-slate-500 transition-colors cursor-pointer whitespace-nowrap">Decline</button>
         <button id="acceptCookiesBtn" type="button" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-md transition-colors cursor-pointer whitespace-nowrap">Accept Cookies</button>
       </div>
     </div>
@@ -1154,18 +1169,48 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 
   <script>
     (function () {
+      const CONSTANTS = ${serializedConstants};
+      const COOKIE_CONSENT_KEY = 'nosuit_cookie_consent_v1';
+
       try {
         localStorage.removeItem('nosuit_channel_config_v1');
         localStorage.removeItem('nosuit_ad_config_v1');
         localStorage.removeItem('nosuit_ad_config_v5');
       } catch (e) {}
 
-      // Automatic GA4 Custom Event Tracking helper
-      function trackGa4Event(eventName, params) {
+      function isConsentAccepted() {
+        try {
+          return localStorage.getItem(COOKIE_CONSENT_KEY) === 'accepted';
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function loadGa4ScriptIfAccepted() {
+        if (!isConsentAccepted()) return;
+        const gaId = '${cleanGaId}' || CONSTANTS.GA_MEASUREMENT_ID;
         window.dataLayer = window.dataLayer || [];
         if (typeof window.gtag !== 'function') {
           window.gtag = function () { window.dataLayer.push(arguments); };
         }
+        if (!document.getElementById('ga4GtagScript')) {
+          const s = document.createElement('script');
+          s.id = 'ga4GtagScript';
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+          s.setAttribute('data-ga-measurement-id', gaId);
+          document.head.appendChild(s);
+        }
+        if (window.__GA4_CONFIGURED_ID__ !== gaId) {
+          window.gtag('js', new Date());
+          window.gtag('config', gaId);
+          window.__GA4_CONFIGURED_ID__ = gaId;
+        }
+      }
+
+      // Consent-gated GA4 Custom Event Tracking helper (no-op unless consent === 'accepted')
+      function trackGa4Event(eventName, params) {
+        if (!isConsentAccepted() || typeof window.gtag !== 'function') return;
         window.gtag('event', eventName, Object.assign({ send_to: '${cleanGaId}' }, params || {}));
       }
 
@@ -1204,138 +1249,169 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         }
       });
 
-      // Calculator, Tabs, Presets, Checklists, and Modals
       const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
-      const fmtDec = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      let colaChart = null;
-      let bucketChart = null;
+      const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
       function updateAllCalculations() {
-        const grossSS = parseFloat(document.getElementById('grossSSInput')?.value) || 0;
-        const colaPct = parseFloat(document.getElementById('colaSlider')?.value) || 0;
-        const partB2026 = parseFloat(document.getElementById('partB2026Input')?.value) || 0;
-        const partB2027 = parseFloat(document.getElementById('partB2027Input')?.value) || 0;
-        const partD = parseFloat(document.getElementById('partDInput')?.value) || 0;
+        // Tab 1: COLA & Medicare Part B Hold Harmless + 3-Bucket
+        const ssYour = parseFloat(document.getElementById('ssYourCheck')?.value) || 0;
+        const ssSpouse = parseFloat(document.getElementById('ssSpouseCheck')?.value) || 0;
+        const colaPct = parseFloat(document.getElementById('colaPctInput')?.value) || CONSTANTS.COLA_2027_PCT;
+        const partBHikePerPerson = parseFloat(document.getElementById('partBIncreaseInput')?.value) || 0;
+        const partBBase = CONSTANTS.MEDICARE_PART_B.base2026;
+        setEl('colaPctVal', colaPct.toFixed(1));
 
-        const colaSliderLabel = document.getElementById('colaSliderVal');
-        if (colaSliderLabel) colaSliderLabel.textContent = colaPct.toFixed(1) + '%';
+        const numPeople = ssSpouse > 0 ? 2 : 1;
+        const currentGrossSS = ssYour + ssSpouse;
+        const grossColaRaise = currentGrossSS * (colaPct / 100);
+        const newGrossSS = currentGrossSS + grossColaRaise;
+        const baseMedicareCurrent = partBBase * numPeople;
+        const rawMedicareHike = partBHikePerPerson * numPeople;
+        const totalMedicareHike = currentGrossSS > 0 ? Math.min(rawMedicareHike, grossColaRaise) : rawMedicareHike;
+        const newTotalMedicare = baseMedicareCurrent + totalMedicareHike;
+        const newNetSS = Math.max(0, newGrossSS - newTotalMedicare);
+        const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
+        const bitePct = grossColaRaise > 0 ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100)) : 0;
 
-        const grossRaise = grossSS * (colaPct / 100);
-        const newGross2027 = grossSS + grossRaise;
-        const partBHike = Math.max(0, partB2027 - partB2026);
-        const totalDeduction = partBHike + partD;
-        const netRaiseMonthly = grossRaise - totalDeduction;
-        const netDeposit2026 = Math.max(0, grossSS - partB2026);
-        const netDeposit2027 = Math.max(0, newGross2027 - partB2027 - partD);
-        const medicareBitePct = grossRaise > 0 ? Math.min(100, Math.max(0, (totalDeduction / grossRaise) * 100)) : 100;
+        setEl('kpiGrossCola', '+' + fmt(grossColaRaise) + '/mo');
+        setEl('kpiGrossCheckSub', 'Gross SS climbs to ' + fmt(newGrossSS) + '/mo');
+        setEl('kpiMedicareBite', '-' + fmt(totalMedicareHike) + '/mo');
+        setEl('kpiMedicareSub', 'Takes ' + bitePct + '% of your COLA raise');
+        setEl('kpiNetSS', fmt(newNetSS) + '/mo');
+        setEl('kpiNetRaiseSub', 'Real net raise: +' + fmt(netRaise) + '/mo');
+        setEl('buyingPowerLossBadge', '-' + fmt(currentGrossSS * 0.14) + '/mo vs 2016');
 
-        const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-        setEl('resGrossRaise', '+' + fmtDec(grossRaise) + '/mo');
-        setEl('resNewGross', 'New Gross: ' + fmt(newGross2027) + '/mo');
-        setEl('resPartBHike', '-' + fmtDec(totalDeduction) + '/mo');
-        setEl('resPartBNote', 'Part B +' + fmtDec(partBHike) + ' • Extra ' + fmtDec(partD));
-        setEl('resNetRaise', (netRaiseMonthly >= 0 ? '+' : '') + fmtDec(netRaiseMonthly) + '/mo');
-        setEl('resAnnualReal', (netRaiseMonthly >= 0 ? '+' : '') + fmt(netRaiseMonthly * 12) + ' / year');
-        setEl('medicareBitePctLabel', Math.round(medicareBitePct) + '% Eaten by Medicare');
-        const biteBar = document.getElementById('medicareBiteBar');
-        if (biteBar) biteBar.style.width = Math.min(100, medicareBitePct) + '%';
-        setEl('summaryGrossDeposit', fmt(newGross2027));
-        setEl('summaryNetDeposit', fmt(netDeposit2027));
-        setEl('printNetSS', fmt(netDeposit2027) + '/mo');
+        const nestEgg = parseFloat(document.getElementById('nestEggInput')?.value) || 0;
+        const drawRate = parseFloat(document.getElementById('withdrawalRateInput')?.value) || 4.5;
+        setEl('withdrawalRateVal', drawRate.toFixed(1));
+        const annualPortDraw = nestEgg * (drawRate / 100);
+        const monthlyPortDraw = annualPortDraw / 12;
+        const expH = parseFloat(document.getElementById('expHousing')?.value) || 0;
+        const expG = parseFloat(document.getElementById('expGroceries')?.value) || 0;
+        const expM = parseFloat(document.getElementById('expHealthcare')?.value) || 0;
+        const expC = parseFloat(document.getElementById('expCarFun')?.value) || 0;
+        const monthlyExpenses = expH + expG + expM + expC;
+        const totalMonthlyPaycheck = newNetSS + monthlyPortDraw;
+        const monthlySurplus = totalMonthlyPaycheck - monthlyExpenses;
 
-        if (window.Chart) {
-          const ctx1 = document.getElementById('colaChartCanvas');
-          if (ctx1) {
-            if (colaChart) colaChart.destroy();
-            colaChart = new Chart(ctx1, {
-              type: 'bar',
-              data: {
-                labels: ['2026 Net Check', '2027 Gross Check', '2027 True Net Check'],
-                datasets: [{ data: [Math.round(netDeposit2026), Math.round(newGross2027), Math.round(netDeposit2027)], backgroundColor: ['#64748b', '#f59e0b', '#1b4332'], borderRadius: 8 }]
-              },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-          }
-        }
+        setEl('kpiTotalPaycheck', fmt(totalMonthlyPaycheck) + '/mo');
+        setEl('kpiBudgetSurplus', (monthlySurplus >= 0 ? '+' : '') + fmt(monthlySurplus) + '/mo ' + (monthlySurplus >= 0 ? 'breathing room' : 'shortfall'));
 
-        // Tab 2: 3-Bucket Plan
-        const savings = parseFloat(document.getElementById('totalSavingsInput')?.value) || 0;
-        const expenses = parseFloat(document.getElementById('monthlyExpenseInput')?.value) || 0;
-        const swr = parseFloat(document.getElementById('swrSlider')?.value) || 4.5;
-        const cashYears = parseFloat(document.getElementById('bucket1YearsInput')?.value) || 2;
-        setEl('swrSliderVal', swr.toFixed(1) + '%');
-
-        const portDrawMo = (savings * (swr / 100)) / 12;
-        const totalMoIncome = netDeposit2027 + portDrawMo;
-        const gap = totalMoIncome - expenses;
-        setEl('bResSS', fmt(netDeposit2027) + '/mo');
-        setEl('bResPortDraw', fmt(portDrawMo) + '/mo');
-        setEl('bResTotalIncome', fmt(totalMoIncome) + '/mo');
-        setEl('bResGap', (gap >= 0 ? '+' : '-') + fmt(Math.abs(gap)) + '/mo');
-        setEl('bResGapNote', gap >= 0 ? 'Monthly Surplus Cushion' : 'Monthly Budget Shortfall');
-
-        const b1 = Math.min(savings, Math.round(portDrawMo * 12 * cashYears));
-        const rem = Math.max(0, savings - b1);
-        const b2 = Math.min(rem, Math.round(portDrawMo * 12 * 6));
-        const b3 = Math.max(0, savings - b1 - b2);
-        const pct = (v) => (savings > 0 ? Math.round((v / savings) * 100) + '% of total' : '0%');
+        const b1 = Math.min(nestEgg, Math.round(annualPortDraw * 2));
+        const b2 = Math.min(Math.max(0, nestEgg - b1), Math.round(annualPortDraw * 6));
+        const b3 = Math.max(0, nestEgg - b1 - b2);
         setEl('bucket1Amt', fmt(b1));
-        setEl('bucket1Pct', pct(b1));
         setEl('bucket2Amt', fmt(b2));
-        setEl('bucket2Pct', pct(b2));
         setEl('bucket3Amt', fmt(b3));
-        setEl('bucket3Pct', pct(b3));
-        setEl('printPortDraw', fmt(portDrawMo) + '/mo');
+        setEl('printNetSS', fmt(newNetSS) + '/mo');
+        setEl('printPortDraw', fmt(monthlyPortDraw) + '/mo');
         setEl('printBuckets', 'Cash: ' + fmt(b1) + ' • Bonds: ' + fmt(b2) + ' • Growth: ' + fmt(b3));
 
-        if (window.Chart) {
-          const ctx2 = document.getElementById('bucketChartCanvas');
-          if (ctx2) {
-            if (bucketChart) bucketChart.destroy();
-            bucketChart = new Chart(ctx2, {
-              type: 'doughnut',
-              data: {
-                labels: ['Bucket 1: Cash', 'Bucket 2: Income/Bonds', 'Bucket 3: Growth'],
-                datasets: [{ data: [b1, b2, b3], backgroundColor: ['#10b981', '#f59e0b', '#1b4332'] }]
-              },
-              options: { responsive: true, maintainAspectRatio: false, cutout: '62%' }
-            });
-          }
+        // Tab 3: 1984 Ghost Tax, 2026 Tax Year Roth Sweet Spot, IRMAA & ACA Bridge
+        const isMarried = (document.getElementById('taxFilingStatus')?.value || 'married') === 'married';
+        const rawFilers65 = parseInt(document.getElementById('filersAge65Plus')?.value || '0', 10) || 0;
+        const filersAge65 = isMarried ? Math.min(2, Math.max(0, rawFilers65)) : Math.min(1, Math.max(0, rawFilers65));
+        const preTaxDraw = parseFloat(document.getElementById('taxPreTaxDraw')?.value) || 0;
+        const rothDraw = parseFloat(document.getElementById('taxRothDraw')?.value) || 0;
+        const interestInc = parseFloat(document.getElementById('taxInterest')?.value) || 0;
+        const annualGrossSS = newGrossSS * 12;
+        const combinedIncome = annualGrossSS * 0.5 + preTaxDraw + interestInc;
+        const line50 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line50 : CONSTANTS.TAX_2026.ghostTax1984.single.line50;
+        const line85 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line85 : CONSTANTS.TAX_2026.ghostTax1984.single.line85;
+
+        let taxZone = '0% Zone';
+        let taxableSS = 0;
+        if (combinedIncome > line85) {
+          taxZone = '85% Zone';
+          taxableSS = Math.min(0.85 * annualGrossSS, 0.5 * (line85 - line50) + 0.85 * (combinedIncome - line85));
+        } else if (combinedIncome > line50) {
+          taxZone = '50% Zone';
+          taxableSS = Math.min(0.5 * annualGrossSS, 0.5 * (combinedIncome - line50));
+        }
+        setEl('combinedIncomeValue', fmt(combinedIncome) + ' / yr');
+        setEl('printTaxStatus', 'Combined: ' + fmt(combinedIncome) + ' (' + taxZone + ')');
+
+        const baseStdDed = isMarried ? CONSTANTS.TAX_2026.standardDeduction.married : CONSTANTS.TAX_2026.standardDeduction.single;
+        const extra65Ded = isMarried ? filersAge65 * CONSTANTS.TAX_2026.extraAge65Deduction.marriedPerSpouse : filersAge65 * CONSTANTS.TAX_2026.extraAge65Deduction.single;
+        const taxMagi = preTaxDraw + interestInc + taxableSS;
+        const obbbaStart = isMarried ? CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutStart.married : CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutStart.single;
+        const tentativeObbbaSeniorDed = filersAge65 * CONSTANTS.TAX_2026.obbbaSeniorDeduction.perPerson;
+        const obbbaPhaseoutReduction = CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutRate * Math.max(0, taxMagi - obbbaStart);
+        const obbbaDed = Math.round(Math.max(0, tentativeObbbaSeniorDed - obbbaPhaseoutReduction));
+        const totalStdDed = baseStdDed + extra65Ded + obbbaDed;
+        const bracket12Top = isMarried ? CONSTANTS.TAX_2026.bracket12Top.married : CONSTANTS.TAX_2026.bracket12Top.single;
+        const currentTaxable = Math.max(0, taxMagi - totalStdDed);
+        const rothSweetSpotRoom = Math.max(0, Math.round(bracket12Top - currentTaxable));
+        const rothBox = document.getElementById('rothSweetSpotBox');
+        if (rothBox) {
+          rothBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎯 Your Annual Roth Conversion "Sweet Spot" (2026 Tax Year · Before Age 73 RMDs): ' + fmt(rothSweetSpotRoom) + '/yr</div><p class="text-xs text-slate-700">2026 tax year (IRS Rev. Proc. 2025-32): Base deduction ' + fmt(baseStdDed) + ', Age 65+ extra ' + fmt(extra65Ded) + ', OBBBA senior deduction ' + fmt(obbbaDed) + '; 12% bracket top ' + fmt(bracket12Top) + '. (' + fmt(rothDraw) + ' Roth draw is tax-free.)</p>';
         }
 
-        // Tab 3: 1984 Ghost Tax & IRMAA
-        const status = document.getElementById('filingStatusInput')?.value || 'married';
-        const annualSS = parseFloat(document.getElementById('taxAnnualSSInput')?.value) || 0;
-        const preTax = parseFloat(document.getElementById('taxPreTaxInput')?.value) || 0;
-        const roth = parseFloat(document.getElementById('taxRothInput')?.value) || 0;
-        const magi2Yr = parseFloat(document.getElementById('irmaaMagiInput')?.value) || 0;
-        const combined = annualSS * 0.5 + preTax;
-        const t1 = status === 'married' ? 32000 : 25000;
-        const t2 = status === 'married' ? 44000 : 34000;
-
-        setEl('resProvisionalIncome', fmt(combined));
-        let zone = '0% Tax-Free Zone';
-        if (combined > t2) zone = 'Up to 85% Taxable Zone';
-        else if (combined > t1) zone = 'Up to 50% Taxable Zone';
-        setEl('resTaxZoneBadge', zone);
-        setEl('resTaxZoneExplain', 'Thresholds (' + status + '): ' + fmt(t1) + ' (50% tier) / ' + fmt(t2) + ' (85% tier). Your ' + fmt(roth) + ' Roth withdrawal adds $0 to Provisional Income.');
-        setEl('printTaxStatus', 'Combined: ' + fmt(combined) + ' (' + zone + ')');
-
-        const irmaaLimit = status === 'married' ? 212000 : 106000;
-        const irmaaBox = document.getElementById('irmaaResultBox');
+        const irmaaIncome = parseFloat(document.getElementById('irmaa2025Income')?.value) || 0;
+        const irmaaRetired = (document.getElementById('irmaaRetiredEvent')?.value || 'yes') === 'yes';
+        const irmaa2026Limit = isMarried ? CONSTANTS.IRMAA.year2026From2024Magi.married : CONSTANTS.IRMAA.year2026From2024Magi.single;
+        const irmaa2027Limit = isMarried ? CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.married : CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.single;
+        const irmaaBox = document.getElementById('irmaaVerdictBox');
         if (irmaaBox) {
-          if (magi2Yr > irmaaLimit) {
-            irmaaBox.innerHTML = '<div class="font-extrabold text-red-900">⚠️ IRMAA Surcharge Alert: 2-Year-Ago MAGI (' + fmt(magi2Yr) + ') Exceeds ' + fmt(irmaaLimit) + '</div><p class="mt-1 text-xs">File <strong>Social Security Form SSA-44</strong> (Work Stoppage / Retirement) to request removal of the Medicare IRMAA surcharge.</p>';
+          if (irmaaIncome > irmaa2027Limit && irmaaRetired) {
+            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">✅ File Form SSA-44 Immediately (Save ~$1,800+/yr)!</div><p class="text-xs text-slate-800">Your 2025 MAGI (' + fmt(irmaaIncome) + ') exceeds the projected 2027 limit of ' + fmt(irmaa2027Limit) + ' (projected — CMS confirms in November 2026; 2026 limit from 2024 income is ' + fmt(irmaa2026Limit) + ').</p>';
+          } else if (irmaaIncome > irmaa2027Limit) {
+            irmaaBox.innerHTML = '<div class="font-extrabold text-amber-950">⚠️ 2027 IRMAA Surcharge Applies</div><p class="text-xs text-slate-800">2025 MAGI (' + fmt(irmaaIncome) + ') exceeds projected ' + fmt(irmaa2027Limit) + ' (projected — CMS confirms in November 2026).</p>';
           } else {
-            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-900">✅ Standard Medicare Tier: MAGI (' + fmt(magi2Yr) + ') Is Below ' + fmt(irmaaLimit) + '</div><p class="mt-1 text-xs">No IRMAA surcharge triggered at this income level.</p>';
+            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎉 $0 IRMAA Surcharge (' + fmt(irmaa2027Limit - irmaaIncome) + ' below projected ' + fmt(irmaa2027Limit) + ' 2027 threshold — CMS confirms in November 2026)!</div>';
           }
         }
+
+        // ACA Bridge (2026 400% FPL cliff & IRS Rev. Proc. 2025-25 linear bands)
+        const acaAge = Math.min(64, Math.max(55, parseInt(document.getElementById('acaCurrentAge')?.value || '62', 10) || 62));
+        const acaMagi = parseFloat(document.getElementById('acaMagiInput')?.value) || 0;
+        const acaFpl = isMarried ? CONSTANTS.ACA_2026.fpl2Person : CONSTANTS.ACA_2026.fpl1Person;
+        const acaCliff = isMarried ? CONSTANTS.ACA_2026.cliff2Person : CONSTANTS.ACA_2026.cliff1Person;
+        const acaFplPct = acaFpl > 0 ? (acaMagi / acaFpl) * 100 : 0;
+        const acaYears = Math.max(1, 65 - acaAge);
+        const acaBox = document.getElementById('acaBridgeResult');
+        if (acaBox) {
+          if (acaMagi > acaCliff) {
+            acaBox.innerHTML = '<strong>⚠️ ' + acaYears + '-Year Bridge Warning (' + Math.round(acaFplPct) + '% of FPL):</strong> <strong>No premium tax credit — you pay the full premium.</strong> Cut <strong>' + fmt(acaMagi - acaCliff) + '</strong> of MAGI to get back under the ' + fmt(acaCliff) + ' (400% FPL) cliff!';
+          } else {
+            let appPct = 9.96;
+            const bands = CONSTANTS.ACA_2026.revProc2025_25Bands;
+            if (acaFplPct <= 133) appPct = bands[0].startPct;
+            else if (acaFplPct >= 300) appPct = bands[5].endPct;
+            else {
+              for (let i = 0; i < bands.length; i++) {
+                const b = bands[i];
+                if (acaFplPct >= b.minFplPct && acaFplPct <= b.maxFplPct) {
+                  const span = b.maxFplPct - b.minFplPct;
+                  appPct = b.startPct + (span > 0 ? ((acaFplPct - b.minFplPct) / span) * (b.endPct - b.startPct) : 0);
+                  break;
+                }
+              }
+            }
+            const moShare = Math.round((acaMagi * (appPct / 100)) / 12);
+            acaBox.innerHTML = '<strong>🏥 ' + acaYears + '-Year Bridge to Medicare (' + Math.round(acaFplPct) + '% of FPL · ' + appPct.toFixed(2) + '% cap):</strong> Estimated YOUR share toward the benchmark Silver plan: <strong>' + fmt(moShare) + '/month</strong>.';
+          }
+        }
+
+        // Saver's Match (IRC §6433, linear phase-out)
+        const saversContrib = parseFloat(document.getElementById('saversContributionInput')?.value) || 0;
+        const saversStatus = document.getElementById('saversFilingStatus')?.value || 'married';
+        const saversSpouses = saversStatus === 'married' && document.getElementById('saversContributingSpouses')?.value === '2' ? 2 : 1;
+        const saversAgi = parseFloat(document.getElementById('saversAgiInput')?.value) || 0;
+        const phaseCfg = CONSTANTS.SAVERS_MATCH_2027.phaseout[saversStatus] || CONSTANTS.SAVERS_MATCH_2027.phaseout.married;
+        const rawRate = saversAgi <= phaseCfg.start ? 50 : saversAgi >= phaseCfg.end ? 0 : 50 * ((phaseCfg.end - saversAgi) / (phaseCfg.end - phaseCfg.start));
+        const clampedRate = Math.max(0, Math.min(50, rawRate));
+        const eligibleContrib = Math.min(saversContrib, CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson * saversSpouses);
+        const matchDep = Math.round(eligibleContrib * (clampedRate / 100));
+        setEl('saversMatchRateResult', (Math.round(clampedRate * 10) / 10) + '%');
+        setEl('saversMatchDepositResult', '+' + fmt(matchDep));
+        setEl('saversTotalAddedResult', fmt(saversContrib + matchDep));
       }
 
       const presets = {
-        300: { grossSSInput: 2200, colaSlider: 2.8, partB2026Input: 202.9, partB2027Input: 220.0, partDInput: 25, totalSavingsInput: 300000, monthlyExpenseInput: 3100, swrSlider: 4.5, bucket1YearsInput: 2, filingStatusInput: 'single', taxAnnualSSInput: 26400, taxPreTaxInput: 13500, taxRothInput: 3500, irmaaMagiInput: 88000 },
-        400: { grossSSInput: 2950, colaSlider: 2.8, partB2026Input: 202.9, partB2027Input: 220.0, partDInput: 42, totalSavingsInput: 400000, monthlyExpenseInput: 4200, swrSlider: 4.5, bucket1YearsInput: 2, filingStatusInput: 'married', taxAnnualSSInput: 37544, taxPreTaxInput: 28000, taxRothInput: 6000, irmaaMagiInput: 195000 },
-        500: { grossSSInput: 3800, colaSlider: 2.8, partB2026Input: 202.9, partB2027Input: 220.0, partDInput: 55, totalSavingsInput: 500000, monthlyExpenseInput: 5400, swrSlider: 4.6, bucket1YearsInput: 3, filingStatusInput: 'married', taxAnnualSSInput: 45600, taxPreTaxInput: 34000, taxRothInput: 9000, irmaaMagiInput: 235000 }
+        single: { ssYourCheck: 2150, ssSpouseCheck: 0, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 380000, withdrawalRateInput: 4.4, taxFilingStatus: 'single', filersAge65Plus: 1, taxPreTaxDraw: 16000, taxRothDraw: 4000, taxInterest: 2400, irmaa2025Income: 125000, acaMagiInput: 38000 },
+        couple400k: { ssYourCheck: 1940, ssSpouseCheck: 1160, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 400000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 0, taxPreTaxDraw: 24000, taxRothDraw: 4000, taxInterest: 3500, irmaa2025Income: 230000, acaMagiInput: 52000 },
+        latesaver: { ssYourCheck: 1850, ssSpouseCheck: 950, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 120000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 0, taxPreTaxDraw: 8000, taxRothDraw: 3000, taxInterest: 1200, irmaa2025Income: 95000, acaMagiInput: 44000 }
       };
 
       document.querySelectorAll('.preset-btn').forEach((btn) => {
@@ -1350,19 +1426,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         });
       });
 
-      document.querySelectorAll('.tab-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const target = btn.getAttribute('data-tab');
-          document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-          document.querySelectorAll('.tab-panel').forEach((panel) => {
-            panel.classList.toggle('hidden', panel.id !== target);
-          });
-          updateAllCalculations();
-        });
-      });
-
-      ['grossSSInput', 'colaSlider', 'partB2026Input', 'partB2027Input', 'partDInput', 'totalSavingsInput', 'monthlyExpenseInput', 'swrSlider', 'bucket1YearsInput', 'filingStatusInput', 'taxAnnualSSInput', 'taxPreTaxInput', 'taxRothInput', 'irmaaMagiInput'].forEach((id) => {
+      ['ssYourCheck', 'ssSpouseCheck', 'colaPctInput', 'partBIncreaseInput', 'nestEggInput', 'withdrawalRateInput', 'expHousing', 'expGroceries', 'expHealthcare', 'expCarFun', 'taxFilingStatus', 'filersAge65Plus', 'taxPreTaxDraw', 'taxRothDraw', 'taxInterest', 'irmaa2025Income', 'irmaaRetiredEvent', 'acaCurrentAge', 'acaMagiInput', 'saversContributionInput', 'saversFilingStatus', 'saversContributingSpouses', 'saversAgiInput'].forEach((id) => {
         document.getElementById(id)?.addEventListener('input', updateAllCalculations);
         document.getElementById(id)?.addEventListener('change', updateAllCalculations);
       });
@@ -1370,14 +1434,14 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       document.querySelectorAll('.scam-check').forEach((c) => {
         c.addEventListener('change', () => {
           const count = Array.from(document.querySelectorAll('.scam-check')).filter((x) => x.checked).length;
-          const banner = document.getElementById('scamVerdictBanner');
+          const banner = document.getElementById('scamAlertBanner');
           if (!banner) return;
           if (count > 0) {
-            banner.className = 'p-4 rounded-xl bg-red-100 border-2 border-red-600 text-red-950 font-extrabold text-sm';
+            banner.className = 'p-4 rounded-xl bg-red-100 border-2 border-red-600 text-red-950 font-extrabold text-xs';
             banner.textContent = '🚨 HANG UP IMMEDIATELY (' + count + ' Red Flag' + (count > 1 ? 's' : '') + ' Detected): Social Security, Medicare, and the IRS NEVER operate this way.';
           } else {
-            banner.className = 'p-4 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-950 font-bold text-sm';
-            banner.textContent = '✅ 0 Red Flags Checked: Check any warning box above if a caller, email, or text message exhibits these behaviors.';
+            banner.className = 'p-4 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-950 font-extrabold text-xs';
+            banner.textContent = '🛡️ No Red Flags Checked Yet';
           }
         });
       });
@@ -1385,14 +1449,11 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       document.querySelectorAll('.audit-check').forEach((c) => {
         c.addEventListener('change', () => {
           const count = Array.from(document.querySelectorAll('.audit-check')).filter((x) => x.checked).length;
-          const badge = document.getElementById('auditProgressBadge');
-          if (badge) badge.textContent = count + ' / 5 Completed';
+          const badge = document.getElementById('checklistProgressBadge');
+          if (badge) badge.textContent = count + ' / 5 Done';
         });
       });
 
-      document.getElementById('largeTextBtn')?.addEventListener('click', () => {
-        document.body.classList.toggle('senior-large-mode');
-      });
       document.getElementById('openGlossaryBtn')?.addEventListener('click', () => document.getElementById('glossaryModal')?.classList.remove('hidden'));
       document.getElementById('closeGlossaryBtn')?.addEventListener('click', () => document.getElementById('glossaryModal')?.classList.add('hidden'));
       document.getElementById('openPrivacyBtn')?.addEventListener('click', () => document.getElementById('privacyModal')?.classList.remove('hidden'));
@@ -1411,11 +1472,14 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       }
 
       // 1. Cookie & Privacy Consent Banner (localStorage 'nosuit_cookie_consent_v1')
-      const COOKIE_CONSENT_KEY = 'nosuit_cookie_consent_v1';
       const cookieBanner = document.getElementById('cookieConsentBanner');
       try {
-        if (localStorage.getItem(COOKIE_CONSENT_KEY) === 'accepted' && cookieBanner) {
+        const savedConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
+        if ((savedConsent === 'accepted' || savedConsent === 'declined') && cookieBanner) {
           cookieBanner.classList.add('hidden');
+        }
+        if (savedConsent === 'accepted') {
+          loadGa4ScriptIfAccepted();
         }
       } catch (e) {}
 
@@ -1424,8 +1488,17 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
         } catch (e) {}
         cookieBanner?.classList.add('hidden');
+        loadGa4ScriptIfAccepted();
         trackGa4Event('cookie_consent_accepted', { event_category: 'compliance', consent_status: 'accepted' });
         showToast('Cookie & privacy preferences saved.');
+      });
+
+      document.getElementById('declineCookiesBtn')?.addEventListener('click', () => {
+        try {
+          localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+        } catch (e) {}
+        cookieBanner?.classList.add('hidden');
+        showToast('Analytics cookies declined. Calculator remains 100% private.');
       });
 
       // 2. Share With Your Spouse or Retirement Friend Bar (#spouseShareBar)

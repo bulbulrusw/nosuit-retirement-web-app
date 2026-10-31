@@ -1,20 +1,27 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# No-Suit Retirement Companion
 
-# Run and deploy your AI Studio app
+Plain-English U.S. Retirement & Social Security Calculator (100% private in-browser calculations).
 
-This contains everything you need to run your app locally.
+## Development
 
-View your app in AI Studio: https://ai.studio/apps/3d3e786c-5090-464a-b1c5-08b5348127d5
+```bash
+npm install
+npm run dev
+```
 
-## Run Locally
+## Verification & Tests
 
-**Prerequisites:**  Node.js
+```bash
+npm run lint
+npm run build
+npx tsx --test src/utils/retirementMath.test.ts
+```
 
+## TODO: Google Search Console Verification
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+To verify site ownership in Google Search Console, add your real verification `<meta>` tag inside the `<head>` of `index.html`:
+
+```html
+<!-- TODO: Replace with your real Google Search Console verification code when ready -->
+<!-- <meta name="google-site-verification" content="YOUR_REAL_VERIFICATION_CODE" /> -->
+```

@@ -25,6 +25,7 @@ import {
 import {
   COOKIE_CONSENT_STORAGE_KEY,
   CookieConsentBanner,
+  CookieConsentStatus,
   MobileBottomNavBar,
   SpouseShareBar,
 } from './components/ConversionAndComplianceBars';
@@ -97,11 +98,13 @@ export default function App() {
   const [activeVideoModal, setActiveVideoModal] = useState<FeaturedVideoEpisode | null>(null);
   const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [isCookieAccepted, setIsCookieAccepted] = useState<boolean>(() => {
+  const [cookieConsentStatus, setCookieConsentStatus] = useState<CookieConsentStatus>(() => {
     try {
-      return localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'accepted';
+      const saved = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+      if (saved === 'accepted' || saved === 'declined') return saved;
+      return null;
     } catch {
-      return false;
+      return null;
     }
   });
 
@@ -109,11 +112,11 @@ export default function App() {
   const [checkedScams, setCheckedScams] = useState<Record<string, boolean>>({});
   const [checkedAudits, setCheckedAudits] = useState<Record<string, boolean>>({});
 
-  // Family Emergency Binder physical locations
-  const [locWill, setLocWill] = useState('Fireproof safe in master closet, top shelf (Blue binder)');
-  const [loc401k, setLoc401k] = useState('Fidelity (401k & Roth IRA), Local Credit Union (Bucket 1 Cash)');
-  const [locInsurance, setLocInsurance] = useState('Filing cabinet drawer #2 in home study (Green folder)');
-  const [locContacts, setLocContacts] = useState('Local CPA Office & SSA Office (1-800-772-1213)');
+  // Family Emergency Binder physical locations (empty by default with neutral placeholders)
+  const [locWill, setLocWill] = useState('');
+  const [loc401k, setLoc401k] = useState('');
+  const [locInsurance, setLocInsurance] = useState('');
+  const [locContacts, setLocContacts] = useState('');
 
   const metrics = useMemo(() => calculateRetirementMetrics(inputs), [inputs]);
 
@@ -129,8 +132,10 @@ export default function App() {
 
   useEffect(() => {
     purgeLegacyConfigStorage();
-    syncGa4HeadScript(DEFAULT_CHANNEL_CONFIG);
-  }, []);
+    if (cookieConsentStatus === 'accepted') {
+      syncGa4HeadScript(DEFAULT_CHANNEL_CONFIG);
+    }
+  }, [cookieConsentStatus]);
 
   // Automatic GA4 Custom Event Tracking for YouTube videos and Official/Partner resource links
   useEffect(() => {
@@ -173,12 +178,13 @@ export default function App() {
   }, []);
 
   const handleAcceptCookies = () => {
-    setIsCookieAccepted(true);
     try {
       localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'accepted');
     } catch {
       // ignore storage errors
     }
+    setCookieConsentStatus('accepted');
+    syncGa4HeadScript(DEFAULT_CHANNEL_CONFIG);
     trackGa4Event('cookie_consent_accepted', {
       event_category: 'compliance',
       consent_status: 'accepted',
@@ -186,12 +192,22 @@ export default function App() {
     showToast('Cookie & privacy preferences saved.');
   };
 
+  const handleDeclineCookies = () => {
+    try {
+      localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'declined');
+    } catch {
+      // ignore storage errors
+    }
+    setCookieConsentStatus('declined');
+    showToast('Analytics cookies declined. Calculator remains 100% private.');
+  };
+
   const handleWatchLatestVideo = () => {
     const latestVideo = FEATURED_YOUTUBE_VIDEOS[0];
     setActiveVideoModal(latestVideo);
     trackGa4Event('youtube_video_play', {
       event_category: 'hero_watch_latest_video',
-      video_id: latestVideo.videoId,
+      video_id: latestVideo.videoId || 'XHIm3Q1OvK8',
       video_title: latestVideo.title,
       link_url: latestVideo.videoUrl,
     });
@@ -604,12 +620,17 @@ export default function App() {
                       <input
                         id="partBIncreaseInput"
                         type="number"
+                        step="0.1"
                         value={inputs.partBIncrease}
                         onChange={(e) => updateInput('partBIncrease', parseFloat(e.target.value) || 0)}
                         className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
                       />
                     </div>
                   </div>
+
+                  <p className="text-[11px] text-slate-600 bg-slate-100/90 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
+                    <strong>2026 Base ($202.90/mo) → Projected 2027 ($209.50/mo, +$6.60):</strong> Final 2027 Part B premium is announced by CMS (usually November) — update this field when it is published.
+                  </p>
 
                   <div className="bg-amber-50/90 border border-amber-300 p-3.5 rounded-xl text-xs">
                     <div className="font-bold text-amber-950 flex flex-wrap items-center justify-between gap-1">
@@ -1062,7 +1083,7 @@ export default function App() {
                   1984 IRS &ldquo;Ghost Tax&rdquo; Speedometer &amp; Roth Conversion Sweet Spot
                 </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div>
                     <label htmlFor="taxFilingStatus" className="block text-sm font-bold text-slate-800">
                       Tax Filing Status
@@ -1070,11 +1091,43 @@ export default function App() {
                     <select
                       id="taxFilingStatus"
                       value={inputs.taxFilingStatus}
-                      onChange={(e) => updateInput('taxFilingStatus', e.target.value as 'married' | 'single')}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white"
+                      onChange={(e) => {
+                        const nextStatus = e.target.value as 'married' | 'single';
+                        setInputs((prev) => ({
+                          ...prev,
+                          taxFilingStatus: nextStatus,
+                          filersAge65Plus:
+                            nextStatus === 'single' && (prev.filersAge65Plus ?? 0) > 1
+                              ? 1
+                              : prev.filersAge65Plus ?? 0,
+                        }));
+                      }}
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm"
                     >
                       <option value="married">Married Filing Jointly ($32K / $44K)</option>
                       <option value="single">Single Individual ($25K / $34K)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="filersAge65Plus" className="block text-sm font-bold text-slate-800">
+                      How many filers are age 65+?
+                    </label>
+                    <select
+                      id="filersAge65Plus"
+                      value={metrics.filersAge65Plus}
+                      onChange={(e) =>
+                        updateInput(
+                          'filersAge65Plus',
+                          Math.max(0, Math.min(2, parseInt(e.target.value, 10) || 0)) as 0 | 1 | 2
+                        )
+                      }
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm"
+                    >
+                      <option value={0}>0 Filers Age 65+ (Under 65)</option>
+                      <option value={1}>1 Filer Age 65+</option>
+                      {inputs.taxFilingStatus === 'married' && (
+                        <option value={2}>2 Filers Age 65+ (Both Spouses)</option>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -1087,7 +1140,7 @@ export default function App() {
                       step="1000"
                       value={inputs.taxPreTaxDraw}
                       onChange={(e) => updateInput('taxPreTaxDraw', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm"
                     />
                   </div>
                   <div>
@@ -1100,7 +1153,7 @@ export default function App() {
                       step="1000"
                       value={inputs.taxRothDraw}
                       onChange={(e) => updateInput('taxRothDraw', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-emerald-800"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-emerald-800 text-sm"
                     />
                   </div>
                   <div>
@@ -1113,7 +1166,7 @@ export default function App() {
                       step="500"
                       value={inputs.taxInterest}
                       onChange={(e) => updateInput('taxInterest', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm"
                     />
                   </div>
                 </div>
@@ -1180,14 +1233,29 @@ export default function App() {
 
                 <div
                   id="rothSweetSpotBox"
-                  className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-xs md:text-sm text-slate-800 space-y-1 leading-relaxed"
+                  className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-xs md:text-sm text-slate-800 space-y-1.5 leading-relaxed"
                 >
                   <div className="font-extrabold text-emerald-950">
-                    🎯 Your Annual Roth Conversion &ldquo;Sweet Spot&rdquo; (Before Age 73 RMDs):{' '}
+                    🎯 Your Annual Roth Conversion &ldquo;Sweet Spot&rdquo; (2026 Tax Year · Before Age 73 RMDs):{' '}
                     <span className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}/yr</span>
                   </div>
                   <p className="text-xs text-slate-700">
-                    You can convert up to <strong className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}</strong> this year from your Traditional 401(k)/IRA into a tax-free Roth IRA while staying inside the low 12% federal bracket!
+                    For the <strong>2026 tax year</strong> (IRS Rev. Proc. 2025-32), you can convert up to{' '}
+                    <strong className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}</strong> from your Traditional 401(k)/IRA into a Roth IRA while staying inside the 12% federal bracket (top:{' '}
+                    <span className="font-num font-bold">{formatUSD(metrics.bracket12Top)}</span> taxable income).
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    <strong>2026 Deductions Applied ({formatUSD(metrics.standardDed)} total):</strong> Base standard deduction{' '}
+                    <span className="font-num font-semibold">{formatUSD(metrics.baseStandardDed)}</span>
+                    {metrics.filersAge65Plus > 0 ? (
+                      <>
+                        {' '}+ Age 65+ extra standard deduction{' '}
+                        <span className="font-num font-semibold">{formatUSD(metrics.extraAge65Ded)}</span> + OBBBA senior deduction (2025–2028, $6,000/person with 6% phaseout above {metrics.isMarried ? '$150,000' : '$75,000'} MAGI){' '}
+                        <span className="font-num font-semibold">{formatUSD(metrics.obbbaSeniorDed)}</span>
+                      </>
+                    ) : (
+                      ' (select 1 or 2 filers age 65+ above to include the $2,050/$1,650 extra 65+ deduction and $6,000 OBBBA senior deduction).'
+                    )}
                   </p>
                 </div>
 
@@ -1231,7 +1299,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="irmaa2025Income" className="block text-xs font-bold text-slate-800">
-                        2025 Tax Return MAGI ($)
+                        2025 MAGI (sets your 2027 Medicare premium) ($)
                       </label>
                       <input
                         id="irmaa2025Income"
@@ -1258,6 +1326,12 @@ export default function App() {
                     </div>
                   </div>
 
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included.{' '}
+                    <strong>2026 premiums (2024 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaa2026Limit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
+                    <strong>2027 premiums (2025 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}, <em>projected — CMS confirms in November 2026</em>).
+                  </p>
+
                   <div
                     id="irmaaVerdictBox"
                     className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-400 text-xs space-y-1 leading-relaxed"
@@ -1268,8 +1342,8 @@ export default function App() {
                           ✅ File Form SSA-44 Immediately (Save ~$1,800+/yr)!
                         </div>
                         <p className="text-slate-800">
-                          Your 2025 working income (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds{' '}
-                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>. File{' '}
+                          Your 2025 MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the projected 2027 threshold of{' '}
+                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span> (projected — CMS confirms in November 2026). File{' '}
                           <strong>Form SSA-44 (Work Stoppage)</strong> so Medicare drops your 2027 IRMAA surcharge!
                         </p>
                       </>
@@ -1277,13 +1351,13 @@ export default function App() {
                       <>
                         <div className="font-extrabold text-amber-950 text-sm">⚠️ 2027 IRMAA Surcharge Applies</div>
                         <p className="text-slate-800">
-                          Your 2025 MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds{' '}
-                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>.
+                          Your 2025 MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the projected 2027 threshold of{' '}
+                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span> (projected — CMS confirms in November 2026).
                         </p>
                       </>
                     ) : (
                       <div className="font-extrabold text-emerald-950 text-sm">
-                        🎉 $0 IRMAA Surcharge (<span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> safety buffer)!
+                        🎉 $0 IRMAA Surcharge (<span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> below projected {formatUSD(metrics.irmaaLimit)} 2027 threshold — CMS confirms in November 2026)!
                       </div>
                     )}
                   </div>
@@ -1292,7 +1366,7 @@ export default function App() {
                 {/* ACA Bridge */}
                 <div className="surface-card rounded-2xl p-5 space-y-4">
                   <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
-                    Age 60–65 Pre-Medicare ACA Healthcare Bridge
+                    Age 60–65 Pre-Medicare ACA Healthcare Bridge (2026 Rules)
                   </h2>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -1311,7 +1385,7 @@ export default function App() {
                     </div>
                     <div>
                       <label htmlFor="acaMagiInput" className="block text-xs font-bold text-slate-800">
-                        Planned Taxable MAGI ($):
+                        Planned 2026 ACA MAGI ($):
                       </label>
                       <input
                         id="acaMagiInput"
@@ -1323,12 +1397,29 @@ export default function App() {
                       />
                     </div>
                   </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025, so the <strong>400% FPL cliff ({formatUSD(metrics.acaCliff)} for a {metrics.acaHouseholdSize}-person household)</strong> applies in 2026 (IRS Rev. Proc. 2025-25).
+                  </p>
                   <div
                     id="acaBridgeResult"
-                    className="p-3.5 rounded-xl bg-sky-50 border border-sky-300 text-xs text-slate-800 leading-relaxed"
+                    className={`p-3.5 rounded-xl border text-xs leading-relaxed ${
+                      metrics.acaOverCliff
+                        ? 'bg-red-50 border-red-300 text-red-950'
+                        : 'bg-sky-50 border-sky-300 text-slate-800'
+                    }`}
                   >
-                    <strong>🏥 {metrics.acaYearsToMedicare}-Year Bridge to Medicare:</strong> Estimated ACA benchmark Silver plan near{' '}
-                    <strong className="font-num">~{formatUSD(metrics.acaEstimatedMonthlyPremium)}/mo</strong>. Use Roth/Cash for extra expenses to protect your subsidy!
+                    {metrics.acaOverCliff ? (
+                      <>
+                        <strong>⚠️ {metrics.acaYearsToMedicare}-Year Bridge Warning ({Math.round(metrics.acaFplRatioPct)}% of FPL):</strong>{' '}
+                        <strong>No premium tax credit — you pay the full premium.</strong> Your MAGI (<span className="font-num font-bold">{formatUSD(metrics.acaMagi)}</span>) exceeds the 2026 400% FPL cliff (<span className="font-num font-bold">{formatUSD(metrics.acaCliff)}</span>). Cut <strong className="font-num">{formatUSD(metrics.acaDollarsOverCliff)}</strong> of MAGI (using Roth/Cash instead of pre-tax 401k draws) to get back under the cliff!
+                      </>
+                    ) : (
+                      <>
+                        <strong>🏥 {metrics.acaYearsToMedicare}-Year Bridge to Medicare ({Math.round(metrics.acaFplRatioPct)}% of FPL · {metrics.acaApplicablePct.toFixed(2)}% cap):</strong>{' '}
+                        Estimated YOUR share toward the benchmark Silver plan:{' '}
+                        <strong className="font-num">{formatUSD(metrics.acaEstimatedMonthlyPremium)}/month</strong> (not the full unsubsidized premium). Keep MAGI at or below <strong className="font-num">{formatUSD(metrics.acaCliff)}</strong> (400% FPL) using Roth/Cash to protect your subsidy!
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1521,6 +1612,7 @@ export default function App() {
                       id="locWill"
                       type="text"
                       value={locWill}
+                      placeholder="e.g., Home safe or filing cabinet folder"
                       onChange={(e) => setLocWill(e.target.value)}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
                     />
@@ -1533,6 +1625,7 @@ export default function App() {
                       id="loc401k"
                       type="text"
                       value={loc401k}
+                      placeholder="e.g., Institution names only (no account numbers)"
                       onChange={(e) => setLoc401k(e.target.value)}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
                     />
@@ -1545,6 +1638,7 @@ export default function App() {
                       id="locInsurance"
                       type="text"
                       value={locInsurance}
+                      placeholder="e.g., Desk drawer or family document binder"
                       onChange={(e) => setLocInsurance(e.target.value)}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
                     />
@@ -1557,6 +1651,7 @@ export default function App() {
                       id="locContacts"
                       type="text"
                       value={locContacts}
+                      placeholder="e.g., Tax preparer name & SSA (1-800-772-1213)"
                       onChange={(e) => setLocContacts(e.target.value)}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
                     />
@@ -1572,6 +1667,9 @@ export default function App() {
           saversContribution={metrics.saversContribution}
           saversFilingStatus={metrics.saversFilingStatus}
           saversAgi={metrics.saversAgi}
+          saversContributingSpouses={metrics.saversContributingSpouses}
+          saversMaxEligibleContribution={metrics.saversMaxEligibleContribution}
+          saversMaxMatch={metrics.saversMaxMatch}
           saversMatchRatePct={metrics.saversMatchRatePct}
           saversMatchTierLabel={metrics.saversMatchTierLabel}
           saversMatchDeposit={metrics.saversMatchDeposit}
@@ -1580,6 +1678,7 @@ export default function App() {
           onChangeContribution={(val) => updateInput('saversContribution', val)}
           onChangeFilingStatus={(val) => updateInput('saversFilingStatus', val)}
           onChangeAgi={(val) => updateInput('saversAgi', val)}
+          onChangeContributingSpouses={(val) => updateInput('saversContributingSpouses', val)}
         />
 
         {/* HIGH-INTENT SEO CONTENT & STEP-BY-STEP RETIREMENT GUIDES UNDER THE CALCULATORS */}
@@ -1949,8 +2048,9 @@ export default function App() {
 
       {/* Cookie & Privacy Consent Bottom Banner (#cookieConsentBanner) */}
       <CookieConsentBanner
-        isAccepted={isCookieAccepted}
+        consentStatus={cookieConsentStatus}
         onAccept={handleAcceptCookies}
+        onDecline={handleDeclineCookies}
         onOpenPrivacy={() => setIsPrivacyOpen(true)}
       />
 
