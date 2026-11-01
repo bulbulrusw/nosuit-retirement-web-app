@@ -3,6 +3,7 @@ import { RETIREMENT_CONSTANTS } from '../data/retirementConstants';
 export type PresetKey = 'single' | 'couple400k' | 'latesaver';
 export type QuickScenarioKey = 'avgSenior' | 'bucket400k' | 'saversMatch2027';
 export type SaversFilingStatus = 'single' | 'married' | 'hoh';
+export type ClaimingBirthYearCohort = keyof typeof RETIREMENT_CONSTANTS.FRA_BY_BIRTH_YEAR;
 
 export interface RetirementInputs {
   // Tab 1: Two-Envelope COLA & 3-Bucket Nest Egg
@@ -20,6 +21,7 @@ export interface RetirementInputs {
   expCarFun: number;
 
   // Tab 2: Claiming Age, Side-Gig & Mortgage
+  claimingBirthYear?: ClaimingBirthYearCohort;
   fraBenefit: number;
   lifeExpAge: number;
   sideGigIncome: number;
@@ -61,6 +63,7 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   expHealthcare: 650,
   expCarFun: 550,
 
+  claimingBirthYear: '1960+',
   fraBenefit: 2200,
   lifeExpAge: 82,
   sideGigIncome: 30000,
@@ -251,14 +254,20 @@ export interface RetirementMetrics {
   // Tab 1
   numPeople: number;
   currentGrossSS: number;
+  primaryColaRaise: number;
+  spouseColaRaise: number;
   grossColaRaise: number;
   newGrossSS: number;
   partBBasePerPerson: number;
   baseMedicareCurrent: number;
   rawMedicareHike: number;
+  primaryMedicareHike: number;
+  spouseMedicareHike: number;
   totalMedicareHike: number;
   holdHarmlessProtected: boolean;
   newTotalMedicare: number;
+  primaryNetSS: number;
+  spouseNetSS: number;
   newNetSS: number;
   netRaise: number;
   bitePct: number;
@@ -281,6 +290,15 @@ export interface RetirementMetrics {
   nogoSpend: number;
 
   // Tab 2
+  claimingBirthYear: ClaimingBirthYearCohort;
+  fraYears: number;
+  fraMonths: number;
+  fraDecimalAge: number;
+  fraShortLabel: string;
+  claim62PctLabel: string;
+  claim70PctLabel: string;
+  breakevenFraVs62Label: string;
+  breakeven70VsFraLabel: string;
   fra: number;
   targetAge: number;
   mo62: number;
@@ -395,18 +413,41 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
 
   const numPeople = ssSpouse > 0 ? 2 : 1;
   const currentGrossSS = ssYour + ssSpouse;
-  const grossColaRaise = currentGrossSS * (colaPct / 100);
+
+  // Social Security Act § 1839(f): Hold Harmless applies individually to each qualifying beneficiary,
+  // not as an aggregate household pool.
+  const primaryColaRaise = ssYour * (colaPct / 100);
+  const spouseColaRaise = ssSpouse * (colaPct / 100);
+  const grossColaRaise = primaryColaRaise + spouseColaRaise;
   const newGrossSS = currentGrossSS + grossColaRaise;
 
   const baseMedicareCurrent = partBBasePerPerson * numPeople;
   const rawMedicareHike = partBHikePerPerson * numPeople;
-  // Federal Hold Harmless rule (Social Security Act §1839(f)):
-  // Medicare Part B dollar increase cannot exceed the dollar amount of the COLA raise
-  const holdHarmlessProtected = currentGrossSS > 0 && rawMedicareHike > grossColaRaise;
-  const totalMedicareHike =
-    currentGrossSS > 0 ? Math.min(rawMedicareHike, grossColaRaise) : rawMedicareHike;
+
+  const primaryMedicareHike =
+    ssYour > 0
+      ? Math.min(partBHikePerPerson, primaryColaRaise)
+      : ssSpouse === 0
+      ? partBHikePerPerson
+      : 0;
+  const spouseMedicareHike =
+    ssSpouse > 0 ? Math.min(partBHikePerPerson, spouseColaRaise) : 0;
+
+  const totalMedicareHike = primaryMedicareHike + spouseMedicareHike;
+  const holdHarmlessProtected =
+    (ssYour > 0 && partBHikePerPerson > primaryColaRaise) ||
+    (ssSpouse > 0 && partBHikePerPerson > spouseColaRaise);
+
   const newTotalMedicare = baseMedicareCurrent + totalMedicareHike;
-  const newNetSS = Math.max(0, newGrossSS - newTotalMedicare);
+  const primaryNetSS =
+    ssYour > 0
+      ? Math.max(0, ssYour + primaryColaRaise - (partBBasePerPerson + primaryMedicareHike))
+      : 0;
+  const spouseNetSS =
+    ssSpouse > 0
+      ? Math.max(0, ssSpouse + spouseColaRaise - (partBBasePerPerson + spouseMedicareHike))
+      : 0;
+  const newNetSS = primaryNetSS + spouseNetSS;
   const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
   const bitePct =
     grossColaRaise > 0
@@ -441,25 +482,32 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const slowgoSpend = Math.round(monthlyExpenses * 0.85);
   const nogoSpend = Math.round(monthlyExpenses * 0.95);
 
-  // Tab 2: Claiming Age & Working Rules
+  // Tab 2: Claiming Age (Dynamic FRA by Birth Year) & Working Rules
+  const rawBirthYear = inputs.claimingBirthYear || '1960+';
+  const claimingBirthYear: ClaimingBirthYearCohort =
+    rawBirthYear in RETIREMENT_CONSTANTS.FRA_BY_BIRTH_YEAR
+      ? (rawBirthYear as ClaimingBirthYearCohort)
+      : '1960+';
+  const fraCohort = RETIREMENT_CONSTANTS.FRA_BY_BIRTH_YEAR[claimingBirthYear];
+
   const fra = Math.max(0, Number(inputs.fraBenefit) || 0);
   const targetAge = Math.max(68, Math.min(95, Math.round(Number(inputs.lifeExpAge) || 82)));
-  const mo62 = Math.round(fra * 0.7);
+  const mo62 = Math.round(fra * fraCohort.claim62Factor);
   const mo67 = Math.round(fra * 1.0);
-  const mo70 = Math.round(fra * 1.24);
+  const mo70 = Math.round(fra * fraCohort.claim70Factor);
 
   const totalByAge = (claimAge: number, moAmt: number, age: number) =>
-    age > claimAge ? (age - claimAge) * 12 * moAmt : 0;
+    age > claimAge ? Math.round((age - claimAge) * 12 * moAmt) : 0;
 
   const total62AtTarget = totalByAge(62, mo62, targetAge);
-  const total67AtTarget = totalByAge(67, mo67, targetAge);
+  const total67AtTarget = totalByAge(fraCohort.fraDecimalAge, mo67, targetAge);
   const total70AtTarget = totalByAge(70, mo70, targetAge);
 
   const ages = [62, 66, 70, 74, 78, 80, 82, 86, 90, 94];
   const breakevenSeries = ages.map((a) => ({
     age: a,
     claim62: totalByAge(62, mo62, a),
-    claim67: totalByAge(67, mo67, a),
+    claim67: totalByAge(fraCohort.fraDecimalAge, mo67, a),
     claim70: totalByAge(70, mo70, a),
   }));
 
@@ -493,7 +541,10 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const rothDraw = Math.max(0, Number(inputs.taxRothDraw) || 0);
   const interestInc = Math.max(0, Number(inputs.taxInterest) || 0);
 
-  const annualGrossSS = newGrossSS * 12;
+  // Separate 2026 Tax Year from 2027 Benefit Projections:
+  // Compute 2026 taxable Social Security using baseline 2026 benefits (currentGrossSS * 12),
+  // NOT the 2027 COLA-adjusted benefit.
+  const annualGrossSS = currentGrossSS * 12;
   const halfSS = annualGrossSS * 0.5;
   const combinedIncome = halfSS + preTaxDraw + interestInc;
 
@@ -670,14 +721,20 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   return {
     numPeople,
     currentGrossSS,
+    primaryColaRaise,
+    spouseColaRaise,
     grossColaRaise,
     newGrossSS,
     partBBasePerPerson,
     baseMedicareCurrent,
     rawMedicareHike,
+    primaryMedicareHike,
+    spouseMedicareHike,
     totalMedicareHike,
     holdHarmlessProtected,
     newTotalMedicare,
+    primaryNetSS,
+    spouseNetSS,
     newNetSS,
     netRaise,
     bitePct,
@@ -699,6 +756,15 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     slowgoSpend,
     nogoSpend,
 
+    claimingBirthYear,
+    fraYears: fraCohort.fraYears,
+    fraMonths: fraCohort.fraMonths,
+    fraDecimalAge: fraCohort.fraDecimalAge,
+    fraShortLabel: fraCohort.fraShortLabel,
+    claim62PctLabel: fraCohort.claim62PctLabel,
+    claim70PctLabel: fraCohort.claim70PctLabel,
+    breakevenFraVs62Label: fraCohort.breakevenFraVs62Label,
+    breakeven70VsFraLabel: fraCohort.breakeven70VsFraLabel,
     fra,
     targetAge,
     mo62,

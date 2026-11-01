@@ -26,7 +26,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
+          <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-950 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
             ⚡ 1-Touch Quick-Start Scenarios
           </span>
           <h2 className="text-sm md:text-base font-extrabold text-slate-900 mt-1">
@@ -56,7 +56,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
               type="button"
               data-quick-scenario={key}
               onClick={() => onSelectQuickScenario(key)}
-              className={`quick-scenario-btn text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+              className={`quick-scenario-btn min-h-[44px] text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                 isActive
                   ? 'bg-[#1b4332] text-white border-amber-400 shadow-md'
                   : 'bg-[#f8f5ec] hover:bg-amber-50/90 text-slate-900 border-[#c5b9a5] hover:border-[#b07d4b]'
@@ -71,7 +71,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
                   {item.label}
                 </span>
                 <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded shrink-0 ${
+                  className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 ${
                     isActive
                       ? 'bg-amber-400 text-slate-950'
                       : 'bg-emerald-900 text-amber-200'
@@ -81,7 +81,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
                 </span>
               </div>
               <p
-                className={`text-[11px] leading-relaxed ${
+                className={`text-xs leading-relaxed ${
                   isActive ? 'text-emerald-100' : 'text-slate-600'
                 }`}
               >
@@ -143,7 +143,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
     <section
       id="saversMatchSection"
       aria-label="2027 Federal Saver's Match Calculator"
-      className="surface-card rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm space-y-5"
+      className="no-print surface-card rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm space-y-5"
     >
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b-2 border-[#b07d4b]/40 pb-4">
         <div className="space-y-1">
@@ -197,7 +197,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 onChange={(e) => onChangeContribution(parseFloat(e.target.value) || 0)}
                 className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
               />
-              <span className="block text-[11px] text-slate-600 mt-1">
+              <span className="block text-xs text-slate-600 mt-1">
                 Eligible cap: <strong className="font-num">{formatUSD(saversMaxEligibleContribution)}/yr</strong> ($2,000 per contributing person).
               </span>
             </div>
@@ -265,17 +265,17 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-num">
               <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
-                <span className="block text-[10px] font-bold uppercase text-emerald-900">Full 50% Match</span>
+                <span className="block text-xs font-bold uppercase text-emerald-900">Full 50% Match</span>
                 <span className="font-extrabold text-slate-900">Up to {formatUSD(saversThresholds.start)}</span>
               </div>
               <div className="p-2 rounded-lg bg-amber-50 border border-amber-200">
-                <span className="block text-[10px] font-bold uppercase text-amber-900">Linear Phase-Out (50% → 0%)</span>
+                <span className="block text-xs font-bold uppercase text-amber-900">Linear Phase-Out (50% → 0%)</span>
                 <span className="font-extrabold text-slate-900">
                   {formatUSD(saversThresholds.start)} – {formatUSD(saversThresholds.end)}
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-slate-100 border border-slate-300">
-                <span className="block text-[10px] font-bold uppercase text-slate-700">0% Phased Out</span>
+                <span className="block text-xs font-bold uppercase text-slate-700">0% Phased Out</span>
                 <span className="font-extrabold text-slate-900">At or Above {formatUSD(saversThresholds.end)}</span>
               </div>
             </div>
@@ -299,7 +299,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="chalk-card rounded-xl p-3.5">
-                <div className="text-[11px] font-bold uppercase text-amber-200">
+                <div className="text-xs font-bold uppercase text-amber-200">
                   Federal Match Rate
                 </div>
                 <div
@@ -308,13 +308,13 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   {formattedRatePct}%
                 </div>
-                <p className="text-[11px] text-emerald-100 mt-1">
+                <p className="text-xs text-emerald-100 mt-1">
                   Linear phase-out (max 50%)
                 </p>
               </div>
 
               <div className="chalk-card rounded-xl p-3.5">
-                <div className="text-[11px] font-bold uppercase text-emerald-200">
+                <div className="text-xs font-bold uppercase text-emerald-200">
                   Gov&apos;t Match Deposit
                 </div>
                 <div
@@ -323,13 +323,13 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   +{formatUSD(saversMatchDeposit)}
                 </div>
-                <p className="text-[11px] text-emerald-100 mt-1">
+                <p className="text-xs text-emerald-100 mt-1">
                   Max {formatUSD(saversMaxMatch)} ({saversContributingSpouses === 2 ? '2 spouses' : '1 person'})
                 </p>
               </div>
 
               <div className="chalk-card rounded-xl p-3.5">
-                <div className="text-[11px] font-bold uppercase text-sky-200">
+                <div className="text-xs font-bold uppercase text-sky-200">
                   Total Added to Retirement
                 </div>
                 <div
@@ -338,7 +338,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   {formatUSD(saversTotalAdded)}
                 </div>
-                <p className="text-[11px] text-emerald-100 mt-1">
+                <p className="text-xs text-emerald-100 mt-1">
                   Your {formatUSD(saversContribution)} + {formatUSD(saversMatchDeposit)} Match
                 </p>
               </div>
@@ -349,7 +349,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
             <div>
               <strong className="text-amber-300">Important IRC § 6433 Eligibility &amp; Tax Rules:</strong>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-100">
+            <ul className="list-disc list-inside space-y-1 text-xs text-emerald-100">
               <li>
                 <strong>Pre-Tax Account Deposit:</strong> The federal match is deposited directly into a <strong>pre-tax Traditional IRA or 401(k)</strong> and is <strong>taxed at withdrawal</strong> (it cannot be deposited into a Roth account).
               </li>
@@ -363,7 +363,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 <strong>Rounding Note (Estimate):</strong> Linear formula: <code className="font-mono text-amber-200">rate = 50% × (end − AGI) / (end − start)</code>. Results are estimates; IRS statutory rounding may differ by about 1 percentage point.
               </li>
             </ul>
-            <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-amber-200 border-t border-amber-400/20">
+            <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-200 border-t border-amber-400/20">
               <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
               <a
                 href="https://www.irs.gov/credits-deductions/savers-match"
@@ -385,8 +385,8 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
   return (
     <section
       id="seoRetirementGuidesSection"
-      aria-label="2027 Official Retirement Step-by-Step Guides"
-      className="space-y-4"
+      aria-label="No-Suit Plain-English Guides (Grounded in Official SSA & CMS Statutes)"
+      className="no-print space-y-4"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Guide 1: 2027 Social Security COLA & Medicare Part B Hold Harmless Guide */}
@@ -397,7 +397,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
               <span className="px-2.5 py-1 rounded-md bg-emerald-900 text-amber-300 font-extrabold text-xs uppercase tracking-wider">
-                Official SSA Guide #1 · 2027 COLA &amp; Medicare Part B
+                No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
               </span>
               <span className="text-xs font-bold text-emerald-800">
                 Social Security Act § 1839(f)
@@ -414,14 +414,14 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
 
             <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-xs text-slate-800">
               <div className="font-extrabold text-[#1b4332] uppercase tracking-wider">
-                How the Federal &ldquo;Hold Harmless&rdquo; Rule Protects Seniors:
+                How the Federal &ldquo;Hold Harmless&rdquo; Rule Protects Each Individual Beneficiary:
               </div>
               <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
                 <li>
-                  <strong>Automatic Net Check Protection:</strong> Under federal law (<em>Social Security Act § 1839(f)</em>), if your Medicare Part B premium is deducted directly from your Social Security benefit and your income is below the IRMAA surcharge threshold, your Part B dollar increase is <strong>legally capped at your gross COLA dollar raise</strong>.
+                  <strong>Individual-Level Protection (§ 1839(f)):</strong> Under federal law (<em>Social Security Act § 1839(f)</em>), Hold Harmless applies <strong>individually to each qualifying beneficiary</strong>—not as an aggregate household pool. If your Medicare Part B premium is deducted directly from your Social Security benefit and your income is below the IRMAA surcharge threshold, your individual Part B dollar increase is <strong>legally capped at your individual gross COLA dollar raise</strong>.
                 </li>
                 <li>
-                  <strong>Your Net Check Cannot Drop:</strong> Even if Medicare Part B rises faster than a modest Social Security benefit&apos;s 3.6% COLA, Hold Harmless guarantees your net monthly Social Security deposit will never decrease from one year to the next due to a standard Part B hike.
+                  <strong>Your Net Check Cannot Drop:</strong> Even if Medicare Part B rises faster than a modest Social Security benefit&apos;s 3.6% COLA, Hold Harmless guarantees each protected beneficiary&apos;s net monthly Social Security deposit will never decrease from one year to the next due to a standard Part B hike.
                 </li>
                 <li>
                   <strong>Who Is Excluded From Hold Harmless:</strong> New Medicare enrollees in 2027, higher-income beneficiaries paying <strong>IRMAA surcharges</strong>, and enrollees whose premiums are billed directly rather than deducted from Social Security checks pay the full standard Part B rate.
@@ -431,8 +431,8 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] font-semibold text-slate-500">
-              Authority Source: Social Security Administration
+            <span className="text-xs font-semibold text-slate-500">
+              No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
             </span>
             <a
               href="https://www.ssa.gov/news/en/cola/factsheets/2027.html"
@@ -445,7 +445,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                   link_url: 'https://www.ssa.gov/news/en/cola/factsheets/2027.html',
                 })
               }
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs shadow-xs transition-colors"
             >
               <span>📄 Official 2027 SSA COLA Fact Sheet (SSA.gov) →</span>
             </a>
@@ -460,7 +460,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
               <span className="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider">
-                Official Medicare Appeal Guide #2 · Form SSA-44
+                No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
               </span>
               <span className="text-xs font-bold text-amber-900">
                 8 Official Life-Changing Events
@@ -489,15 +489,15 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                 <div className="text-emerald-900 font-extrabold">4. Work Stoppage (Retirement) ★</div>
                 <div>8. Employer Settlement Payment</div>
               </div>
-              <p className="text-[11px] text-slate-600 pt-1 border-t border-slate-200 leading-relaxed">
+              <p className="text-xs text-slate-600 pt-1 border-t border-slate-200 leading-relaxed">
                 <strong>How to File in 3 Steps:</strong> (1) Check <em>&ldquo;Work Stoppage&rdquo;</em> or <em>&ldquo;Work Reduction&rdquo;</em> in Step 1 of Form SSA-44; (2) Enter your lower 2026/2027 estimated retirement AGI + tax-exempt interest in Step 2–3; (3) Attach a copy of your retirement letter or final pay stub and mail or fax it to your local Social Security office.
               </p>
             </div>
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] font-semibold text-slate-500">
-              Authority Source: Official SSA Form SSA-44 PDF
+            <span className="text-xs font-semibold text-slate-500">
+              No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
             </span>
             <a
               href="https://www.ssa.gov/forms/ssa-44.pdf"
@@ -510,7 +510,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                   link_url: 'https://www.ssa.gov/forms/ssa-44.pdf',
                 })
               }
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-xs transition-colors"
             >
               <span>📥 Download Official Form SSA-44 (SSA.gov PDF) →</span>
             </a>

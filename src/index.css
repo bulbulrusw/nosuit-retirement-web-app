@@ -59,15 +59,33 @@ input[type="range"] {
   }
 }
 
+@media (max-width: 767px) {
+  button,
+  [role="button"],
+  .preset-btn,
+  .quick-scenario-btn,
+  .nav-tab-btn,
+  .affiliate-link {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 @media print {
-  .no-print {
+  .no-print,
+  #saversMatchSection,
+  #seoRetirementGuidesSection {
     display: none !important;
   }
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
-  .tab-panel {
+  .tab-panel:not(#tab-binder) {
+    display: none !important;
+  }
+  #tab-binder {
     display: block !important;
   }
 }
+

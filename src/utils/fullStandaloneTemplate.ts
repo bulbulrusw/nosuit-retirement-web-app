@@ -21,6 +21,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
   <meta name="author" content="No-Suit Retirement (@NoSuitRetirement)" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://nosuitretirement.com/" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z'/></svg>" />
 
   <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website" />
@@ -28,11 +29,13 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
   <meta property="og:site_name" content="No-Suit Retirement" />
   <meta property="og:title" content="No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator" />
   <meta property="og:description" content="Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals." />
+  <meta property="og:image" content="https://nosuitretirement.com/og-preview.jpg" />
 
   <!-- Twitter / X Cards -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator" />
   <meta name="twitter:description" content="Free 100% private 60–65+ retirement math calculators for 2027 Social Security 3.6% COLA, Medicare Part B Hold Harmless, 2027 IRS Saver's Match, $400K 3-Bucket plans, and Form SSA-44 IRMAA appeals." />
+  <meta name="twitter:image" content="https://nosuitretirement.com/og-preview.jpg" />
 
   <!-- Enhanced Schema.org JSON-LD Structured Data: WebApplication, Organization, FAQPage & VideoObject -->
   <script id="seoJsonLdSchema" type="application/ld+json">
@@ -165,10 +168,17 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       border: 2px solid rgba(251, 191, 36, 0.35);
     }
     input[type="range"] { accent-color: #1b4332; height: 0.65rem; cursor: pointer; }
+    @media (max-width: 767px) {
+      button, [role="button"], .preset-btn, .quick-scenario-btn, .nav-tab-btn, .affiliate-link {
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
     @media print {
-      .no-print { display: none !important; }
+      .no-print, #saversMatchSection, #seoRetirementGuidesSection { display: none !important; }
       body { background: #ffffff !important; color: #000000 !important; }
-      .tab-panel { display: block !important; }
+      .tab-panel:not(#tab-binder) { display: none !important; }
+      #tab-binder { display: block !important; }
     }
   </style>
 </head>
@@ -470,8 +480,8 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                   <input id="partBIncreaseInput" type="number" step="0.1" value="${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)}" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
                 </div>
               </div>
-              <p class="text-[11px] text-slate-600 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
-                <strong>2026 Base ($${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)}/mo) → Projected 2027 ($${RETIREMENT_CONSTANTS.MEDICARE_PART_B.projected2027.toFixed(2)}/mo, +$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)}):</strong> Final 2027 Part B premium is announced by CMS (usually November) — update this field when it is published.
+              <p class="text-xs text-slate-600 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
+                <strong>2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)</strong> (up +$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)} from the official 2026 base of $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)}/mo). Under Social Security Act § 1839(f), Hold Harmless caps each individual beneficiary's Part B increase at their individual COLA dollar raise.
               </p>
               <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl text-xs">
                 <div class="font-bold text-amber-950 flex items-center justify-between">
@@ -572,10 +582,21 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         <!-- TAB 2: CLAIMING AGE & WORKING RULES -->
         <section id="tab-claiming" class="tab-panel hidden space-y-6">
           <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
-            <h2 class="text-lg font-extrabold text-slate-900 border-b pb-3">Social Security Claiming Age: 62 vs. 67 (FRA) vs. 70 Break-Even</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h2 class="text-lg font-extrabold text-slate-900 border-b pb-3">Social Security Claiming Age: 62 vs. FRA (<span id="fraTitleLabel">67</span>) vs. 70 Break-Even</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label for="fraBenefitInput" class="block text-sm font-bold text-slate-800">Full Retirement Age (67) Benefit ($/mo)</label>
+                <label for="claimingBirthYearSelect" class="block text-sm font-bold text-slate-800">Your Birth Year (Sets Statutory FRA)</label>
+                <select id="claimingBirthYearSelect" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white text-sm">
+                  <option value="1960+" selected>Born 1960 or Later (FRA 67)</option>
+                  <option value="1959">Born 1959 (FRA 66 + 10 mos)</option>
+                  <option value="1958">Born 1958 (FRA 66 + 8 mos)</option>
+                  <option value="1957">Born 1957 (FRA 66 + 6 mos)</option>
+                  <option value="1956">Born 1956 (FRA 66 + 4 mos)</option>
+                  <option value="1955">Born 1955 (FRA 66 + 2 mos)</option>
+                </select>
+              </div>
+              <div>
+                <label for="fraBenefitInput" class="block text-sm font-bold text-slate-800">Full Retirement Age (<span id="fraInputLabel">67</span>) Benefit ($/mo)</label>
                 <input id="fraBenefitInput" type="number" step="50" value="2200" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold" />
               </div>
               <div>
@@ -583,19 +604,19 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                 <input id="lifeExpInput" type="range" min="68" max="95" step="1" value="82" class="mt-2 w-full" />
               </div>
             </div>
-            <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
               <div class="p-3 rounded-xl bg-amber-50 border-2 border-amber-300">
-                <div class="text-xs font-bold uppercase text-amber-900">Claim Early at 62</div>
+                <div id="claim62CardTitle" class="text-xs font-bold uppercase text-amber-900">Claim Early at 62 (70%)</div>
                 <div id="claim62Mo" class="text-xl font-extrabold text-slate-900 mt-1">$1,540/mo</div>
                 <div id="claim62Total" class="text-xs font-semibold text-slate-700 mt-1">Total: $369,600</div>
               </div>
               <div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500">
-                <div class="text-xs font-bold uppercase text-emerald-900">Claim Full at 67</div>
+                <div id="claimFraCardTitle" class="text-xs font-bold uppercase text-emerald-900">Claim Full at 67 (100% FRA)</div>
                 <div id="claim67Mo" class="text-xl font-extrabold text-emerald-900 mt-1">$2,200/mo</div>
                 <div id="claim67Total" class="text-xs font-semibold text-slate-700 mt-1">Total: $396,000</div>
               </div>
               <div class="p-3 rounded-xl bg-sky-50 border-2 border-sky-400">
-                <div class="text-xs font-bold uppercase text-sky-900">Claim Max at 70</div>
+                <div id="claim70CardTitle" class="text-xs font-bold uppercase text-sky-900">Claim Max at 70 (124%)</div>
                 <div id="claim70Mo" class="text-xl font-extrabold text-sky-900 mt-1">$2,728/mo</div>
                 <div id="claim70Total" class="text-xs font-semibold text-slate-700 mt-1">Total: $392,832</div>
               </div>
@@ -679,7 +700,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             <div class="chalkboard-bg rounded-xl p-4 text-white space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold uppercase text-amber-300">Your IRS Combined (Provisional) Income:</span>
-                <span id="combinedIncomeValue" class="text-2xl font-extrabold text-white">$46,770 / yr</span>
+                <span id="combinedIncomeValue" class="text-2xl font-extrabold text-white">$46,100 / yr</span>
               </div>
               <div class="w-full h-5 bg-slate-800 rounded-full overflow-hidden flex border border-amber-400/50 p-0.5">
                 <div id="taxMeterBar" class="h-full rounded-full transition-all duration-300 bg-red-500" style="width: 85%;"></div>
@@ -863,7 +884,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
     </div>
 
     <!-- 2027 IRS SAVER'S MATCH CALCULATOR SECTION (#saversMatchSection) -->
-    <section id="saversMatchSection" aria-label="2027 Federal Saver's Match Calculator" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm space-y-5">
+    <section id="saversMatchSection" aria-label="2027 Federal Saver's Match Calculator" class="no-print bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm space-y-5">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b-2 border-[#b07d4b]/40 pb-4">
         <div class="space-y-1">
           <div class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-950 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-400">
@@ -886,7 +907,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             <div>
               <label for="saversContributionInput" class="block text-xs font-bold text-slate-800">Annual Retirement Contribution ($)</label>
               <input id="saversContributionInput" type="number" min="0" step="250" value="2000" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
-              <span class="block text-[11px] text-slate-600 mt-1">Cap: $2,000/yr per contributing person ($4,000 for 2 spouses).</span>
+              <span class="block text-xs text-slate-600 mt-1">Cap: $2,000/yr per contributing person ($4,000 for 2 spouses).</span>
             </div>
             <div>
               <label for="saversFilingStatus" class="block text-xs font-bold text-slate-800">Tax Filing Status</label>
@@ -917,20 +938,20 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
               <div class="chalk-card rounded-xl p-3.5">
-                <div class="text-[11px] font-bold uppercase text-amber-200">Federal Match Rate</div>
+                <div class="text-xs font-bold uppercase text-amber-200">Federal Match Rate</div>
                 <div id="saversMatchRateResult" class="text-2xl font-extrabold text-amber-300 mt-1">50%</div>
               </div>
               <div class="chalk-card rounded-xl p-3.5">
-                <div class="text-[11px] font-bold uppercase text-emerald-200">Gov't Match Deposit</div>
+                <div class="text-xs font-bold uppercase text-emerald-200">Gov't Match Deposit</div>
                 <div id="saversMatchDepositResult" class="text-2xl font-extrabold text-white mt-1">+$1,000</div>
               </div>
               <div class="chalk-card rounded-xl p-3.5">
-                <div class="text-[11px] font-bold uppercase text-sky-200">Total Added to Retirement</div>
+                <div class="text-xs font-bold uppercase text-sky-200">Total Added to Retirement</div>
                 <div id="saversTotalAddedResult" class="text-2xl font-extrabold text-amber-300 mt-1">$3,000</div>
               </div>
             </div>
           </div>
-          <div class="bg-[#0f291e] rounded-xl p-3 border border-amber-400/30 text-[11px] text-emerald-100 space-y-1 leading-relaxed">
+          <div class="bg-[#0f291e] rounded-xl p-3 border border-amber-400/30 text-xs text-emerald-100 space-y-1 leading-relaxed">
             <div><strong class="text-amber-300">Notes (IRC § 6433):</strong> Match is deposited into a pre-tax IRA/401(k) and taxed at withdrawal. You must be age 18+, not a full-time student, and not claimed as a dependent. Contributing to an IRA requires earned income, so many retirees cannot qualify. Linear formula: <code>rate = 50% × (end − AGI) / (end − start)</code> (estimate; IRS rounding may differ by ~1 percentage point).</div>
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-400/25 text-amber-200">
               <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
@@ -942,16 +963,16 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
     </section>
 
     <!-- HIGH-INTENT SEO GUIDES SECTION (#seoRetirementGuidesSection) -->
-    <section id="seoRetirementGuidesSection" aria-label="2027 Official Retirement Step-by-Step Guides" class="space-y-4">
+    <section id="seoRetirementGuidesSection" aria-label="No-Suit Plain-English Guides (Grounded in Official SSA & CMS Statutes)" class="no-print space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <article id="guideColaHoldHarmlessCard" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm flex flex-col justify-between space-y-4">
           <div class="space-y-3">
-            <span class="px-2.5 py-1 rounded-md bg-emerald-900 text-amber-300 font-extrabold text-xs uppercase tracking-wider">Official SSA Guide #1 • 2027 COLA &amp; Medicare Part B</span>
+            <span class="px-2.5 py-1 rounded-md bg-emerald-900 text-amber-300 font-extrabold text-xs uppercase tracking-wider">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <h3 class="text-lg md:text-xl font-extrabold text-slate-900">2027 Social Security 3.6% COLA &amp; Medicare Part B Hold Harmless Guide</h3>
-            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 benefits. Under the federal <strong>Hold Harmless provision (Social Security Act § 1839(f))</strong>, your Medicare Part B hike is legally capped at your gross COLA dollar raise so your net check cannot decrease.</p>
+            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 benefits. Under the federal <strong>Hold Harmless provision (Social Security Act § 1839(f))</strong>, protection applies individually to each qualifying beneficiary: your individual Medicare Part B hike is legally capped at your individual gross COLA dollar raise so your net check cannot decrease.</p>
           </div>
           <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
-            <span class="text-[11px] font-semibold text-slate-500">Authority Source: Social Security Administration</span>
+            <span class="text-xs font-semibold text-slate-500">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <a href="https://www.ssa.gov/news/en/cola/factsheets/2027.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs shadow-sm">
               <span>📄 Official 2027 SSA COLA Fact Sheet (SSA.gov) →</span>
             </a>
@@ -959,12 +980,12 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         </article>
         <article id="guideSsa44IrmaaCard" class="bg-white rounded-2xl p-5 md:p-6 border-2 border-[#b07d4b] shadow-sm flex flex-col justify-between space-y-4">
           <div class="space-y-3">
-            <span class="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider">Official Medicare Appeal Guide #2 • Form SSA-44</span>
+            <span class="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <h3 class="text-lg md:text-xl font-extrabold text-slate-900">Form SSA-44 IRMAA Appeal: 8 Life-Changing Events Retirement Checklist</h3>
             <p class="text-xs md:text-sm text-slate-700 leading-relaxed">Medicare IRMAA surcharges use a 2-year tax lookback. If you experienced one of the 8 official Life-Changing Events—<strong>1. Marriage, 2. Divorce/Annulment, 3. Death of Your Spouse, 4. Work Stoppage (Retirement), 5. Work Reduction, 6. Loss of Income-Producing Property, 7. Loss of Pension Income, or 8. Employer Settlement Payment</strong>—file Form SSA-44 to remove the surcharge.</p>
           </div>
           <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
-            <span class="text-[11px] font-semibold text-slate-500">Authority Source: Official SSA Form SSA-44 PDF</span>
+            <span class="text-xs font-semibold text-slate-500">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <a href="https://www.ssa.gov/forms/ssa-44.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm">
               <span>📥 Download Official Form SSA-44 (SSA.gov PDF) →</span>
             </a>
@@ -1263,13 +1284,18 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 
         const numPeople = ssSpouse > 0 ? 2 : 1;
         const currentGrossSS = ssYour + ssSpouse;
-        const grossColaRaise = currentGrossSS * (colaPct / 100);
+        const primaryColaRaise = ssYour * (colaPct / 100);
+        const spouseColaRaise = ssSpouse * (colaPct / 100);
+        const grossColaRaise = primaryColaRaise + spouseColaRaise;
         const newGrossSS = currentGrossSS + grossColaRaise;
         const baseMedicareCurrent = partBBase * numPeople;
-        const rawMedicareHike = partBHikePerPerson * numPeople;
-        const totalMedicareHike = currentGrossSS > 0 ? Math.min(rawMedicareHike, grossColaRaise) : rawMedicareHike;
+        const primaryMedicareHike = ssYour > 0 ? Math.min(partBHikePerPerson, primaryColaRaise) : (ssSpouse === 0 ? partBHikePerPerson : 0);
+        const spouseMedicareHike = ssSpouse > 0 ? Math.min(partBHikePerPerson, spouseColaRaise) : 0;
+        const totalMedicareHike = primaryMedicareHike + spouseMedicareHike;
         const newTotalMedicare = baseMedicareCurrent + totalMedicareHike;
-        const newNetSS = Math.max(0, newGrossSS - newTotalMedicare);
+        const primaryNetSS = ssYour > 0 ? Math.max(0, ssYour + primaryColaRaise - (partBBase + primaryMedicareHike)) : 0;
+        const spouseNetSS = ssSpouse > 0 ? Math.max(0, ssSpouse + spouseColaRaise - (partBBase + spouseMedicareHike)) : 0;
+        const newNetSS = primaryNetSS + spouseNetSS;
         const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
         const bitePct = grossColaRaise > 0 ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100)) : 0;
 
@@ -1307,14 +1333,35 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         setEl('printPortDraw', fmt(monthlyPortDraw) + '/mo');
         setEl('printBuckets', 'Cash: ' + fmt(b1) + ' • Bonds: ' + fmt(b2) + ' • Growth: ' + fmt(b3));
 
-        // Tab 3: 1984 Ghost Tax, 2026 Tax Year Roth Sweet Spot, IRMAA & ACA Bridge
+        // Tab 2: Claiming Age (Dynamic FRA by Birth Year)
+        const birthYearKey = document.getElementById('claimingBirthYearSelect')?.value || '1960+';
+        const fraCohort = CONSTANTS.FRA_BY_BIRTH_YEAR[birthYearKey] || CONSTANTS.FRA_BY_BIRTH_YEAR['1960+'];
+        const fraBenefitVal = parseFloat(document.getElementById('fraBenefitInput')?.value) || 2200;
+        const targetAgeVal = parseInt(document.getElementById('lifeExpInput')?.value || '82', 10) || 82;
+        setEl('lifeExpVal', String(targetAgeVal));
+        setEl('fraTitleLabel', fraCohort.fraShortLabel);
+        setEl('fraInputLabel', fraCohort.fraShortLabel);
+        setEl('claim62CardTitle', 'Claim Early at 62 (' + fraCohort.claim62PctLabel + ')');
+        setEl('claimFraCardTitle', 'Claim Full at ' + fraCohort.fraShortLabel + ' (100% FRA)');
+        setEl('claim70CardTitle', 'Claim Max at 70 (' + fraCohort.claim70PctLabel + ')');
+        const mo62Val = Math.round(fraBenefitVal * fraCohort.claim62Factor);
+        const moFraVal = Math.round(fraBenefitVal);
+        const mo70Val = Math.round(fraBenefitVal * fraCohort.claim70Factor);
+        setEl('claim62Mo', fmt(mo62Val) + '/mo');
+        setEl('claim67Mo', fmt(moFraVal) + '/mo');
+        setEl('claim70Mo', fmt(mo70Val) + '/mo');
+        setEl('claim62Total', 'Total by ' + targetAgeVal + ': ' + fmt(Math.round((targetAgeVal - 62) * 12 * mo62Val)));
+        setEl('claim67Total', 'Total by ' + targetAgeVal + ': ' + fmt(Math.round((targetAgeVal - fraCohort.fraDecimalAge) * 12 * moFraVal)));
+        setEl('claim70Total', 'Total by ' + targetAgeVal + ': ' + fmt(Math.round((targetAgeVal - 70) * 12 * mo70Val)));
+
+        // Tab 3: 1984 Ghost Tax, 2026 Tax Year Roth Sweet Spot (baseline 2026 currentGrossSS), IRMAA & ACA Bridge
         const isMarried = (document.getElementById('taxFilingStatus')?.value || 'married') === 'married';
         const rawFilers65 = parseInt(document.getElementById('filersAge65Plus')?.value || '0', 10) || 0;
         const filersAge65 = isMarried ? Math.min(2, Math.max(0, rawFilers65)) : Math.min(1, Math.max(0, rawFilers65));
         const preTaxDraw = parseFloat(document.getElementById('taxPreTaxDraw')?.value) || 0;
         const rothDraw = parseFloat(document.getElementById('taxRothDraw')?.value) || 0;
         const interestInc = parseFloat(document.getElementById('taxInterest')?.value) || 0;
-        const annualGrossSS = newGrossSS * 12;
+        const annualGrossSS = currentGrossSS * 12;
         const combinedIncome = annualGrossSS * 0.5 + preTaxDraw + interestInc;
         const line50 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line50 : CONSTANTS.TAX_2026.ghostTax1984.single.line50;
         const line85 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line85 : CONSTANTS.TAX_2026.ghostTax1984.single.line85;
@@ -1426,7 +1473,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         });
       });
 
-      ['ssYourCheck', 'ssSpouseCheck', 'colaPctInput', 'partBIncreaseInput', 'nestEggInput', 'withdrawalRateInput', 'expHousing', 'expGroceries', 'expHealthcare', 'expCarFun', 'taxFilingStatus', 'filersAge65Plus', 'taxPreTaxDraw', 'taxRothDraw', 'taxInterest', 'irmaa2025Income', 'irmaaRetiredEvent', 'acaCurrentAge', 'acaMagiInput', 'saversContributionInput', 'saversFilingStatus', 'saversContributingSpouses', 'saversAgiInput'].forEach((id) => {
+      ['ssYourCheck', 'ssSpouseCheck', 'colaPctInput', 'partBIncreaseInput', 'nestEggInput', 'withdrawalRateInput', 'expHousing', 'expGroceries', 'expHealthcare', 'expCarFun', 'claimingBirthYearSelect', 'fraBenefitInput', 'lifeExpInput', 'taxFilingStatus', 'filersAge65Plus', 'taxPreTaxDraw', 'taxRothDraw', 'taxInterest', 'irmaa2025Income', 'irmaaRetiredEvent', 'acaCurrentAge', 'acaMagiInput', 'saversContributionInput', 'saversFilingStatus', 'saversContributingSpouses', 'saversAgiInput'].forEach((id) => {
         document.getElementById(id)?.addEventListener('input', updateAllCalculations);
         document.getElementById(id)?.addEventListener('change', updateAllCalculations);
       });

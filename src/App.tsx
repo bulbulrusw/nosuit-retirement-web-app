@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
+  ClaimingBirthYearCohort,
   DEFAULT_INPUTS,
   PRESET_PROFILES,
   PresetKey,
@@ -628,8 +629,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 bg-slate-100/90 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
-                    <strong>2026 Base ($202.90/mo) → Projected 2027 ($209.50/mo, +$6.60):</strong> Final 2027 Part B premium is announced by CMS (usually November) — update this field when it is published.
+                  <p className="text-xs text-slate-600 bg-slate-100/90 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
+                    <strong>2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)</strong> (up +$6.60 from the official 2026 base of $202.90/mo). Under Social Security Act § 1839(f), Hold Harmless caps each individual beneficiary&apos;s Part B increase at their individual COLA dollar raise.
                   </p>
 
                   <div className="bg-amber-50/90 border border-amber-300 p-3.5 rounded-xl text-xs">
@@ -693,7 +694,7 @@ export default function App() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
                     <div>
-                      <label htmlFor="expHousing" className="block text-[11px] font-bold text-slate-700">
+                      <label htmlFor="expHousing" className="block text-xs font-bold text-slate-700">
                         Housing ($/mo)
                       </label>
                       <input
@@ -705,7 +706,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="expGroceries" className="block text-[11px] font-bold text-slate-700">
+                      <label htmlFor="expGroceries" className="block text-xs font-bold text-slate-700">
                         Groceries ($/mo)
                       </label>
                       <input
@@ -717,7 +718,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="expHealthcare" className="block text-[11px] font-bold text-slate-700">
+                      <label htmlFor="expHealthcare" className="block text-xs font-bold text-slate-700">
                         Medical ($/mo)
                       </label>
                       <input
@@ -729,7 +730,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="expCarFun" className="block text-[11px] font-bold text-slate-700">
+                      <label htmlFor="expCarFun" className="block text-xs font-bold text-slate-700">
                         Car/Fun ($/mo)
                       </label>
                       <input
@@ -863,12 +864,32 @@ export default function App() {
             >
               <div className="surface-card rounded-2xl p-5 space-y-4">
                 <h2 className="text-lg font-extrabold text-slate-900 border-b border-slate-200 pb-3">
-                  Social Security Claiming Age: 62 vs. 67 (FRA) vs. 70 Break-Even
+                  Social Security Claiming Age: 62 vs. FRA ({metrics.fraShortLabel}) vs. 70 Break-Even
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="claimingBirthYearSelect" className="block text-sm font-bold text-slate-800">
+                      Your Birth Year (Sets Statutory FRA)
+                    </label>
+                    <select
+                      id="claimingBirthYearSelect"
+                      value={metrics.claimingBirthYear}
+                      onChange={(e) =>
+                        updateInput('claimingBirthYear', e.target.value as ClaimingBirthYearCohort)
+                      }
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm"
+                    >
+                      <option value="1960+">Born 1960 or Later (FRA 67)</option>
+                      <option value="1959">Born 1959 (FRA 66 + 10 mos)</option>
+                      <option value="1958">Born 1958 (FRA 66 + 8 mos)</option>
+                      <option value="1957">Born 1957 (FRA 66 + 6 mos)</option>
+                      <option value="1956">Born 1956 (FRA 66 + 4 mos)</option>
+                      <option value="1955">Born 1955 (FRA 66 + 2 mos)</option>
+                    </select>
+                  </div>
                   <div>
                     <label htmlFor="fraBenefitInput" className="block text-sm font-bold text-slate-800">
-                      Your Full Retirement Age (67) Benefit ($/mo)
+                      Your Full Retirement Age ({metrics.fraShortLabel}) Benefit ($/mo)
                     </label>
                     <input
                       id="fraBenefitInput"
@@ -899,9 +920,11 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                   <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-300">
-                    <div className="text-xs font-bold uppercase text-amber-900">Claim Early at 62 (70%)</div>
+                    <div className="text-xs font-bold uppercase text-amber-900">
+                      Claim Early at 62 ({metrics.claim62PctLabel})
+                    </div>
                     <div id="claim62Mo" className="text-xl font-extrabold text-slate-900 mt-1 font-num">
                       {formatUSD(metrics.mo62)}/mo
                     </div>
@@ -910,7 +933,9 @@ export default function App() {
                     </div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-emerald-50/90 border-2 border-emerald-500">
-                    <div className="text-xs font-bold uppercase text-emerald-900">Claim Full at 67 (100% FRA)</div>
+                    <div className="text-xs font-bold uppercase text-emerald-900">
+                      Claim Full at {metrics.fraShortLabel} (100% FRA)
+                    </div>
                     <div id="claim67Mo" className="text-xl font-extrabold text-emerald-900 mt-1 font-num">
                       {formatUSD(metrics.mo67)}/mo
                     </div>
@@ -919,7 +944,9 @@ export default function App() {
                     </div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-sky-50/90 border border-sky-300">
-                    <div className="text-xs font-bold uppercase text-sky-900">Claim Max at 70 (124%)</div>
+                    <div className="text-xs font-bold uppercase text-sky-900">
+                      Claim Max at 70 ({metrics.claim70PctLabel})
+                    </div>
                     <div id="claim70Mo" className="text-xl font-extrabold text-sky-900 mt-1 font-num">
                       {formatUSD(metrics.mo70)}/mo
                     </div>
@@ -932,7 +959,7 @@ export default function App() {
                 <BreakevenLineChart series={metrics.breakevenSeries} targetAge={metrics.targetAge} />
 
                 <div className="bg-[#1b4332] text-amber-100 p-4 rounded-xl text-xs md:text-sm leading-relaxed">
-                  <strong>Chalkboard Verdict:</strong> Claiming at 67 beats claiming at 62 once you live past <strong>Age 78 and 8 months</strong>. Claiming at 70 beats age 67 after <strong>Age 82 and 6 months</strong>.
+                  <strong>Chalkboard Verdict ({metrics.claimingBirthYear} Cohort):</strong> Claiming at FRA ({metrics.fraShortLabel}) beats claiming at 62 once you live past <strong>{metrics.breakevenFraVs62Label}</strong>. Claiming at 70 beats FRA after <strong>{metrics.breakeven70VsFraLabel}</strong>.
                 </div>
               </div>
 
@@ -1240,17 +1267,17 @@ export default function App() {
                     <span className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}/yr</span>
                   </div>
                   <p className="text-xs text-slate-700">
-                    For the <strong>2026 tax year</strong> (IRS Rev. Proc. 2025-32), you can convert up to{' '}
+                    For the <strong>2026 tax year</strong> (IRS Rev. Proc. 2025-32, computed using baseline 2026 Social Security benefits of <span className="font-num font-semibold">{formatUSD(metrics.annualGrossSS)}/yr</span> rather than 2027 COLA projections), you can convert up to{' '}
                     <strong className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}</strong> from your Traditional 401(k)/IRA into a Roth IRA while staying inside the 12% federal bracket (top:{' '}
                     <span className="font-num font-bold">{formatUSD(metrics.bracket12Top)}</span> taxable income).
                   </p>
-                  <p className="text-[11px] text-slate-600">
+                  <p className="text-xs text-slate-600">
                     <strong>2026 Deductions Applied ({formatUSD(metrics.standardDed)} total):</strong> Base standard deduction{' '}
                     <span className="font-num font-semibold">{formatUSD(metrics.baseStandardDed)}</span>
                     {metrics.filersAge65Plus > 0 ? (
                       <>
                         {' '}+ Age 65+ extra standard deduction{' '}
-                        <span className="font-num font-semibold">{formatUSD(metrics.extraAge65Ded)}</span> + OBBBA senior deduction (2025–2028, $6,000/person with 6% phaseout above {metrics.isMarried ? '$150,000' : '$75,000'} MAGI){' '}
+                        <span className="font-num font-semibold">{formatUSD(metrics.extraAge65Ded)}</span> + OBBBA senior deduction (2025–2028, $6,000/person with 6% household phaseout above {metrics.isMarried ? '$150,000' : '$75,000'} MAGI){' '}
                         <span className="font-num font-semibold">{formatUSD(metrics.obbbaSeniorDed)}</span>
                       </>
                     ) : (
@@ -1326,7 +1353,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included.{' '}
                     <strong>2026 premiums (2024 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaa2026Limit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
                     <strong>2027 premiums (2025 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}, <em>projected — CMS confirms in November 2026</em>).
@@ -1397,7 +1424,7 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025, so the <strong>400% FPL cliff ({formatUSD(metrics.acaCliff)} for a {metrics.acaHouseholdSize}-person household)</strong> applies in 2026 (IRS Rev. Proc. 2025-25).
                   </p>
                   <div

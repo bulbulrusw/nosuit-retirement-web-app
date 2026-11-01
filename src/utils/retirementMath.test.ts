@@ -41,7 +41,7 @@ test('default couple400k profile computes accurate Net SS, Medicare Part B $202.
   // Net Raise = $111.60 - $13.20 = $98.40 -> $98/mo
   assert.equal(formatUSD(res.netRaise), '$98');
 
-  // Federal Hold Harmless rule caps totalMedicareHike at grossColaRaise so netRaise >= 0
+  // Federal Hold Harmless rule (Social Security Act § 1839(f)) caps Part B hike individually per beneficiary
   const resHoldHarmless = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     ssYourCheck: 900,
@@ -54,6 +54,24 @@ test('default couple400k profile computes accurate Net SS, Medicare Part B $202.
   assert.equal(resHoldHarmless.totalMedicareHike, 18);
   assert.equal(resHoldHarmless.netRaise, 0);
 
+  // Individual-level Hold Harmless test for married couple with asymmetric benefits:
+  // Primary: $2,500 * 3.6% = $90.00 COLA -> $6.60 Part B hike (not capped)
+  // Spouse: $150 * 3.6% = $5.40 COLA -> $6.60 Part B hike capped individually at $5.40!
+  // Total household Medicare hike = $6.60 + $5.40 = $12.00 (would have been $13.20 under aggregate pooling)
+  const resIndividualHoldHarmless = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    ssYourCheck: 2500,
+    ssSpouseCheck: 150,
+    colaPct: 3.6,
+    partBIncrease: 6.6,
+  });
+  assert.ok(Math.abs(resIndividualHoldHarmless.primaryColaRaise - 90) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.spouseColaRaise - 5.4) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.primaryMedicareHike - 6.6) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.spouseMedicareHike - 5.4) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.totalMedicareHike - 12.0) < 0.001);
+  assert.equal(resIndividualHoldHarmless.holdHarmlessProtected, true);
+
   // $400,000 * 4.5% = $18,000/yr ($1,500/mo)
   assert.equal(res.monthlyPortDraw, 1500);
   assert.equal(res.bucket1, 36000);
@@ -62,8 +80,10 @@ test('default couple400k profile computes accurate Net SS, Medicare Part B $202.
   assert.equal(res.yearsProtected, 8);
 });
 
-test('Fix 5: 2026 Tax-Year Consistency in Ghost Tax / Roth Sweet Spot + Age 65+ Extra Deduction + OBBBA $6,000 Senior Deduction & Phaseout', () => {
+test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax / Roth Sweet Spot + Age 65+ Extra Deduction + OBBBA $6,000 Senior Deduction & Phaseout', () => {
   // Default couple400k has filersAge65Plus = 0 -> standardDed = $32,200, bracket12Top = $100,800
+  // 2026 baseline SS = $3,100 * 12 = $37,200/yr (halfSS = $18,600)
+  // combinedIncome = $18,600 + $24,000 + $3,500 = $46,100
   const resDefault = calculateRetirementMetrics(DEFAULT_INPUTS);
   assert.equal(resDefault.baseStandardDed, 32200);
   assert.equal(resDefault.extraAge65Ded, 0);
@@ -73,9 +93,10 @@ test('Fix 5: 2026 Tax-Year Consistency in Ghost Tax / Roth Sweet Spot + Age 65+ 
   assert.equal(resDefault.line50, 32000);
   assert.equal(resDefault.line85, 44000);
   assert.equal(resDefault.taxZone, '85% Zone');
-  assert.equal(formatUSD(resDefault.combinedIncome), '$46,770');
+  assert.equal(resDefault.annualGrossSS, 37200);
+  assert.equal(formatUSD(resDefault.combinedIncome), '$46,100');
 
-  // Verify exact two-tier IRS Pub 915 formula when combinedIncome ($46,769.60) > line85 ($44,000)
+  // Verify exact two-tier IRS Pub 915 formula when combinedIncome ($46,100) > line85 ($44,000)
   const expectedTaxableSS = 0.5 * (44000 - 32000) + 0.85 * (resDefault.combinedIncome - 44000);
   assert.ok(Math.abs(resDefault.taxableSS - expectedTaxableSS) < 0.01);
   assert.equal(
@@ -264,7 +285,7 @@ test('Fix 2 & Fix 3: ACA Bridge 2026 400% FPL Cliff (Rev. Proc. 2025-25) and IRM
   assert.equal(resSingleAca.irmaaLimit, 112000);
 });
 
-test('Official 2027 side-gig $25,560/yr ($2,130/mo) earnings penalty, claiming ages, and SECURE 2.0 $11,250 Super Catch-Up', () => {
+test('Official 2027 side-gig $25,560/yr ($2,130/mo) earnings penalty, dynamic FRA claiming ages by birth year, and SECURE 2.0 $11,250 Super Catch-Up', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
   assert.equal(res.sideGigLimit, 25560);
   assert.equal(res.sideGigFraYearLimit, 67920);
@@ -272,16 +293,39 @@ test('Official 2027 side-gig $25,560/yr ($2,130/mo) earnings penalty, claiming a
   assert.equal(res.sideGigPenalty, 2220);
   assert.equal(res.safeHoursPerMonth, 85);
 
+  // Default 1960+ cohort: FRA 67, 70% at 62, 124% at 70
+  assert.equal(res.claimingBirthYear, '1960+');
+  assert.equal(res.fraShortLabel, '67');
   assert.equal(res.mo62, 1540);
   assert.equal(res.mo67, 2200);
   assert.equal(res.mo70, 2728);
+
+  // Born 1959 cohort: FRA 66 + 10 mos, 70.83% at 62 ($1,558), 125.33% at 70 ($2,757)
+  const res1959 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    claimingBirthYear: '1959',
+  });
+  assert.equal(res1959.fraShortLabel, '66 + 10 mos');
+  assert.equal(res1959.mo62, 1558);
+  assert.equal(res1959.mo67, 2200);
+  assert.equal(res1959.mo70, 2757);
+
+  // Born 1957 cohort: FRA 66 + 6 mos, 72.5% at 62 ($1,595), 128% at 70 ($2,816)
+  const res1957 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    claimingBirthYear: '1957',
+  });
+  assert.equal(res1957.fraShortLabel, '66 + 6 mos');
+  assert.equal(res1957.mo62, 1595);
+  assert.equal(res1957.mo70, 2816);
+
   assert.equal(res.base401kLimit, 24500);
   assert.equal(res.catchupLimit, 11250);
   assert.equal(res.total401kLimit, 35750);
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 });
 
-test('Fix 6 & Fix 7: Standalone HTML and AdSlots gate GA4 behind cookie consent, remove YOUR_GSC_CODE, and clear binder defaults', () => {
+test('Fix 6, Fix 7 & Audit Items 2/6: Standalone HTML and AdSlots gate GA4 behind cookie consent, enforce 1-page #tab-binder print CSS, og:image/twitter:image, and No-Suit Plain-English Guide attribution', () => {
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
   assert.equal(extractGaMeasurementId(''), 'G-66NLH28JBQ');
@@ -305,6 +349,11 @@ test('Fix 6 & Fix 7: Standalone HTML and AdSlots gate GA4 behind cookie consent,
 
   const html = buildFullStandaloneHtml(DEFAULT_CHANNEL_CONFIG);
   assert.ok(html.includes("No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator"));
+  assert.ok(html.includes('<meta property="og:image" content="https://nosuitretirement.com/og-preview.jpg" />'));
+  assert.ok(html.includes('<meta name="twitter:image" content="https://nosuitretirement.com/og-preview.jpg" />'));
+  assert.ok(html.includes('.tab-panel:not(#tab-binder) { display: none !important; }'));
+  assert.ok(html.includes('No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)'));
+  assert.ok(html.includes('2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)'));
   // Verify YOUR_GSC_CODE placeholder is completely removed
   assert.equal(html.includes('YOUR_GSC_CODE'), false);
   // Verify Decline button and consent-gated GA4 loader are present in standalone HTML
