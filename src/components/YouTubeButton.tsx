@@ -38,7 +38,7 @@ export const YouTubeButton: React.FC<YouTubeButtonProps> = ({ variant = 'hero', 
         aria-label="Subscribe on YouTube - NoSuitRetirement"
         className={`group inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#FF0000] hover:bg-[#e60000] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-[0_0_20px_rgba(255,0,0,0.45)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${className}`}
       >
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-white/15 group-hover:bg-white/25 transition-colors">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-white/15 group-hover:bg-white/25 transition-colors shrink-0">
           <svg
             className="w-4 h-4 shrink-0 fill-current"
             viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ export const YouTubeButton: React.FC<YouTubeButtonProps> = ({ variant = 'hero', 
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Subscribe on YouTube - NoSuitRetirement"
-      className={`group relative inline-flex items-center justify-center gap-2.5 sm:gap-3 px-3.5 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-[#FF0000] via-[#e60000] to-[#cc0000] text-white font-extrabold text-xs sm:text-sm tracking-tight border border-white/25 shadow-[0_6px_20px_-3px_rgba(255,0,0,0.45)] hover:shadow-[0_8px_28px_rgba(255,0,0,0.65)] hover:scale-[1.03] active:scale-[0.99] transition-all duration-200 max-w-full sm:whitespace-nowrap sm:shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${className}`}
+      className={`group relative inline-flex items-center justify-center gap-3 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-[#FF0000] via-[#e60000] to-[#cc0000] text-white font-extrabold text-xs sm:text-sm tracking-tight border border-white/25 shadow-[0_6px_20px_-3px_rgba(255,0,0,0.45)] hover:shadow-[0_8px_28px_rgba(255,0,0,0.65)] hover:scale-[1.03] active:scale-[0.99] transition-all duration-200 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${className}`}
     >
       <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white text-[#FF0000] shadow-xs transition-transform duration-200 group-hover:scale-110 shrink-0">
         <svg
@@ -69,11 +69,11 @@ export const YouTubeButton: React.FC<YouTubeButtonProps> = ({ variant = 'hero', 
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       </span>
-      <span className="flex flex-col text-left leading-tight">
-        <span className="text-[10px] uppercase tracking-wider font-semibold text-red-100">
+      <span className="flex flex-col text-left leading-snug">
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-red-100 whitespace-normal leading-tight">
           WATCH RETIREMENT MATH IN PLAIN ENGLISH
         </span>
-        <span className="text-xs sm:text-sm font-extrabold text-white">
+        <span className="text-xs sm:text-sm font-extrabold text-white whitespace-nowrap leading-snug mt-0.5">
           Subscribe on YouTube - NoSuitRetirement
         </span>
       </span>

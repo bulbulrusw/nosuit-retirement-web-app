@@ -24,8 +24,8 @@ export const PaycheckCashFlowChart: React.FC<PaycheckChartProps> = ({
   const maxVal = Math.max(...bars.map((b) => b.value), 1000) * 1.18;
 
   return (
-    <div className="w-full h-64 flex flex-col justify-between pt-2 pb-1 px-2 select-none" data-testid="paycheck-chart">
-      <svg viewBox="0 0 560 220" className="w-full h-full overflow-visible" role="img" aria-label="Go-Go, Slow-Go, No-Go Monthly Cash Flow Bar Chart">
+    <div className="w-full h-56 flex flex-col justify-between pt-2 pb-1 px-2 select-none" data-testid="paycheck-chart">
+      <svg viewBox="0 0 520 220" className="w-full h-full overflow-visible" role="img" aria-label="Go-Go, Slow-Go, No-Go Monthly Cash Flow Bar Chart">
         {/* Horizontal grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((t, idx) => {
           const y = 175 - t * 145;
@@ -35,7 +35,7 @@ export const PaycheckCashFlowChart: React.FC<PaycheckChartProps> = ({
               <line
                 x1={56}
                 y1={y}
-                x2={540}
+                x2={504}
                 y2={y}
                 stroke={t === 0 ? '#94a3b8' : '#e2e8f0'}
                 strokeDasharray={t === 0 ? undefined : '4 4'}
@@ -58,7 +58,7 @@ export const PaycheckCashFlowChart: React.FC<PaycheckChartProps> = ({
         {/* Bars */}
         {bars.map((bar, i) => {
           const barWidth = 76;
-          const gap = (484 - bars.length * barWidth) / (bars.length + 1);
+          const gap = (448 - bars.length * barWidth) / (bars.length + 1);
           const x = 56 + gap + i * (barWidth + gap);
           const barHeight = Math.max(6, (bar.value / maxVal) * 145);
           const y = 175 - barHeight;
@@ -89,7 +89,7 @@ export const PaycheckCashFlowChart: React.FC<PaycheckChartProps> = ({
                 y={194}
                 textAnchor="middle"
                 fill="#1e293b"
-                fontSize="11.5"
+                fontSize="11"
                 fontWeight="700"
               >
                 {bar.label}

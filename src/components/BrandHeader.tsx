@@ -31,8 +31,8 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
   return (
     <>
       {/* Top Privacy & Senior Accessibility Bar */}
-      <div className="bg-[#0f291e] text-amber-100 border-b border-[#b07d4b]/60 px-4 py-2.5 text-sm no-print">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[#0f291e] text-amber-100 border-b border-[#b07d4b]/60 px-4 py-2 text-sm no-print">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-emerald-100">
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-600 text-white shrink-0">
               <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -131,7 +131,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
       {/* Main Chalkboard Brand Header with Permanently Locked Official Logo */}
       <header className="max-w-7xl w-full mx-auto px-4 pt-4 pb-2 no-print">
         <div className="chalkboard-bg rounded-2xl p-5 md:p-6 text-white flex flex-col xl:flex-row items-center justify-between gap-5">
-          <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-left">
             {/* Permanently Locked Official Logo Container — UNCHANGED */}
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-[#fbf6ea] border-2 border-amber-400 flex items-center justify-center shadow-xl flex-shrink-0 overflow-hidden p-0.5 select-none pointer-events-none">
               <img
@@ -199,8 +199,8 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
           </div>
 
           {/* Right Column: Prominent YouTube Channel CTA + Hero Watch Latest Video + Sample Household Presets */}
-          <div className="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-2.5 shrink-0">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="w-full xl:w-auto flex flex-col sm:flex-row xl:flex-col items-stretch sm:items-center xl:items-end justify-between gap-3 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2">
               <YouTubeButton variant="hero" className="w-full sm:w-auto" />
               <button
                 id="heroWatchLatestVideoBtn"
