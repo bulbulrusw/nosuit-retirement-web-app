@@ -81,7 +81,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             "name": "What is the official 2027 Social Security COLA and how does the Medicare Part B Hold Harmless rule work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "The official 2027 Social Security Cost-of-Living Adjustment (COLA) is 3.6%, announced by the Social Security Administration on October 14, 2026 and payable starting January 2027. Under the federal Hold Harmless provision (Social Security Act Section 1839(f)), if your Medicare Part B premium is deducted directly from your Social Security check and your income is below IRMAA thresholds, your Medicare Part B dollar increase cannot exceed your gross COLA dollar increase—preventing your net Social Security check from decreasing."
+              "text": "The official 2027 Social Security Cost-of-Living Adjustment (COLA) is 3.6%, announced by the Social Security Administration on October 14, 2026 and payable starting January 2027. For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Under Social Security Act Section 1839(f), Hold Harmless only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers."
             }
           },
           {
@@ -89,7 +89,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             "name": "How does the 2027 IRS Federal Saver's Match (SECURE 2.0) work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Starting in 2027 under the SECURE 2.0 Act (IRC Section 6433), the non-refundable Saver's Credit is replaced by the Federal Saver's Match—a direct 50% federal matching deposit of up to $1,000 on up to $2,000 of eligible retirement contributions per person, deposited directly into your IRA or 401(k). The full 50% match applies to Married Filing Jointly filers with Modified AGI up to $41,000 (phasing out at $71,000), Single filers up to $20,500 (phasing out at $35,500), and Head of Household filers up to $30,750 (phasing out at $53,250)."
+              "text": "Starting in 2027 under the SECURE 2.0 Act (IRC Section 6433), the non-refundable Saver's Credit is replaced by the Federal Saver's Match—a direct 50% federal matching deposit of up to $1,000 on up to $2,000 of eligible retirement contributions per person (up to $2,000 match on $4,000 for married couples with two contributing spouses, capped at $2,000 per spouse), deposited directly into your IRA or 401(k). The full 50% match applies to Married Filing Jointly filers with Modified AGI up to $41,000 (phasing out at $71,000), Single filers up to $20,500 (phasing out at $35,500), and Head of Household filers up to $30,750 (phasing out at $53,250)."
             }
           },
           {
@@ -97,7 +97,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             "name": "How do I file Form SSA-44 to appeal a Medicare IRMAA surcharge after retirement?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Medicare IRMAA surcharges are based on your tax return from 2 years ago. If your income dropped due to one of the 8 official SSA Life-Changing Events—such as Work Stoppage (Retirement), Work Reduction, Marriage, Divorce, Death of a Spouse, Loss of Income-Producing Property, Loss of Pension Income, or Employer Settlement Payment—you can submit Form SSA-44 (Medicare Income-Related Monthly Adjustment Amount Life-Changing Event) with proof of retirement to have the Social Security Administration recalculate your Part B and Part D premiums using your current lower retirement income."
+              "text": "Medicare IRMAA surcharges are based on your tax return from 2 years ago (confirmed 2026 CMS thresholds from 2024 MAGI start above $109,000 single / $218,000 married filing jointly; 2027 CMS announcement expected mid-November). If your income dropped due to one of the 8 official SSA Life-Changing Events—such as Work Stoppage (Retirement), Work Reduction, Marriage, Divorce, Death of a Spouse, Loss of Income-Producing Property, Loss of Pension Income, or Employer Settlement Payment—you can submit Form SSA-44 (Medicare Income-Related Monthly Adjustment Amount Life-Changing Event) with proof of retirement to have the Social Security Administration recalculate your Part B and Part D premiums using your current lower retirement income."
             }
           },
           {
@@ -140,10 +140,10 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             "position": 3,
             "name": "Turning 60 in 2026? The $11,250 \"Super Catch-Up\" Window Closing on Dec 31",
             "description": "How workers aged 60, 61, 62, or 63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 and shield their retirement savings from the 1984 IRS Ghost Tax.",
-            "thumbnailUrl": ["https://nosuitretirement.com/og-super-catchup-2026.jpg"],
+            "thumbnailUrl": ["https://i.ytimg.com/vi/2RCtkLFUmUc/hqdefault.jpg"],
             "uploadDate": "2026-10-15T08:00:00-05:00",
-            "contentUrl": "https://www.youtube.com/@NoSuitRetirement",
-            "embedUrl": "https://www.youtube.com/@NoSuitRetirement"
+            "contentUrl": "https://youtu.be/2RCtkLFUmUc",
+            "embedUrl": "https://www.youtube.com/embed/2RCtkLFUmUc"
           }
         ]
       }
@@ -312,7 +312,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               Single (Age 66, $380K)
             </button>
             <button type="button" data-preset="couple400k" class="preset-btn px-2.5 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs hover:bg-amber-300 shadow-sm">
-              Couple (Age 62, $400K)
+              Couple (Age 66, $400K)
             </button>
             <button type="button" data-preset="latesaver" class="preset-btn px-2.5 py-1.5 rounded-lg bg-emerald-800 text-amber-100 font-semibold text-xs hover:bg-emerald-700 border border-amber-400/30">
               Late Saver (Age 59, $120K)
@@ -476,18 +476,29 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                   <input id="colaPctInput" type="range" min="1.5" max="6.0" step="0.1" value="${RETIREMENT_CONSTANTS.COLA_2027_PCT.toFixed(1)}" class="mt-2 w-full" />
                 </div>
                 <div>
-                  <label for="partBIncreaseInput" class="block text-xs font-bold text-slate-800">Part B/D Hike ($/mo/person)</label>
+                  <label for="partBIncreaseInput" class="block text-xs font-bold text-slate-800">Part B Hike ($/mo/person)</label>
                   <input id="partBIncreaseInput" type="number" step="0.1" value="${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)}" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
                 </div>
+                <div class="sm:col-span-2">
+                  <label for="partDMonthlyPremiumInput" class="block text-xs font-bold text-slate-800">Part D Plan Monthly Premium ($/mo/person)</label>
+                  <input id="partDMonthlyPremiumInput" type="number" min="0" step="1" value="0" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold text-sm" />
+                </div>
               </div>
-              <p class="text-xs text-slate-600 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
-                <strong>2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)</strong> (up +$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)} from the official 2026 base of $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)}/mo). Under Social Security Act § 1839(f), Hold Harmless caps each individual beneficiary's Part B increase at their individual COLA dollar raise.
-              </p>
-              <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl text-xs">
+              <div class="text-xs text-slate-600 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed space-y-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <strong class="text-slate-900">2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)</strong>
+                  <span id="holdHarmlessStatusBadge" class="px-2.5 py-0.5 rounded-md font-extrabold text-xs bg-emerald-100 text-emerald-950 border border-emerald-400">COLA Absorbs Hike (§ 1839(f) Eligible)</span>
+                </div>
+                <p>For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.</p>
+              </div>
+              <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl text-xs space-y-1">
                 <div class="font-bold text-amber-950 flex items-center justify-between">
                   <span>The "86-Cent Dollar" Buying Power Check:</span>
-                  <span id="buyingPowerLossBadge" class="font-extrabold">-$434/mo vs 2016</span>
+                  <span id="buyingPowerLossBadge" class="font-extrabold">-$425/mo vs 2016</span>
                 </div>
+                <p class="text-[11px] text-slate-700 leading-relaxed">
+                  Source: <a href="https://seniorsleague.org" target="_blank" rel="noopener noreferrer" class="underline font-semibold text-amber-950">The Senior Citizens League</a>, 2026 Loss of Buying Power study (13.7% loss 2016-2026, using TSCL's own 70-item price index; not an official government measure).
+                </p>
               </div>
             </div>
 
@@ -556,6 +567,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                 <div id="bucket3Amt" class="text-xl font-extrabold text-amber-300 mt-1">$256,000</div>
                 <p class="text-xs text-emerald-100 mt-1">Long-term index growth untouched for <span id="yearsProtectedText">8 full years</span>.</p>
               </div>
+            </div>
+            <div class="bg-[#0f291e] rounded-xl p-3 text-xs text-emerald-200 border border-amber-400/25 leading-relaxed">
+              ℹ️ Baseline Guardrail Model: Assumes a 4.5% safe portfolio draw and 8 full years in cash/T-Bills to protect against sequence-of-returns risk. Not an investment guarantee.
             </div>
           </div>
 
@@ -627,8 +641,15 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
               <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Part-Time / Side-Gig Penalty ($25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026))</h2>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-3">
+                  <label for="reachingFraThisYearSelect" class="block text-xs font-bold text-slate-800">Reaching Full Retirement Age (67) in 2027?</label>
+                  <select id="reachingFraThisYearSelect" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white text-xs">
+                    <option value="no" selected>No — Under FRA All Year ($25,560/yr limit · $1-for-$2 withholding)</option>
+                    <option value="yes">Yes — Reaching FRA in 2027 ($67,920/yr limit · $1-for-$3 withholding)</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-2">
                   <label for="sideGigIncome" class="block text-xs font-bold text-slate-800">Annual Part-Time Pay ($)</label>
                   <input id="sideGigIncome" type="number" step="1000" value="30000" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold" />
                 </div>
@@ -679,9 +700,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               <div>
                 <label for="filersAge65Plus" class="block text-sm font-bold text-slate-800">How many filers are age 65+?</label>
                 <select id="filersAge65Plus" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white">
-                  <option value="0" selected>0 Filers Age 65+</option>
+                  <option value="0">0 Filers Age 65+</option>
                   <option value="1">1 Filer Age 65+</option>
-                  <option value="2">2 Filers Age 65+</option>
+                  <option value="2" selected>2 Filers Age 65+</option>
                 </select>
               </div>
               <div>
@@ -718,8 +739,8 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <select id="workerAgeSelect" class="rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold text-sm bg-white">
                   <option value="55">Age 50–59 ($8,000 Catch-Up · $32,500 Total)</option>
-                  <option value="61" selected>Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
-                  <option value="65">Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
+                  <option value="61">Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
+                  <option value="65" selected>Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
                 </select>
                 <div id="superCatchupOutput" class="text-xs text-slate-800 font-semibold">🎉 Age 60–63 Super Catch-Up: $35,750 ($24,500 base + $11,250 catch-up) enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory Roth catch-up if prior-year FICA wages exceed $150,000.</div>
               </div>
@@ -731,11 +752,11 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Medicare IRMAA &amp; Form SSA-44 Appeal</h2>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label for="irmaa2025Income" class="block text-xs font-bold text-slate-800">2025 MAGI (sets your 2027 Medicare premium) ($)</label>
+                  <label for="irmaa2025Income" class="block text-xs font-bold text-slate-800">2-Year Lookback MAGI (2024 MAGI for 2026 CMS Rates) ($)</label>
                   <input id="irmaa2025Income" type="number" step="5000" value="230000" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold" />
                 </div>
                 <div>
-                  <label for="irmaaRetiredEvent" class="block text-xs font-bold text-slate-800">Retired Since 2025?</label>
+                  <label for="irmaaRetiredEvent" class="block text-xs font-bold text-slate-800">Retired Since Lookback Year?</label>
                   <select id="irmaaRetiredEvent" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 font-bold bg-white">
                     <option value="yes" selected>Yes — Retired / Cut Hours</option>
                     <option value="no">No — Unchanged</option>
@@ -743,25 +764,34 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
                 </div>
               </div>
               <p class="text-[11px] text-slate-600 leading-relaxed">
-                <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included. <strong>2026 premiums (2024 income):</strong> $218,000 married / $109,000 single. <strong>2027 premiums (2025 income):</strong> $224,000 married / $112,000 single (<em>projected — CMS confirms in November 2026</em>).
+                <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included. <strong>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.</strong> 2026 IRMAA threshold (from 2024 MAGI): $218,000 married / $109,000 single (Part B + Part D combined surcharge per person).
               </p>
               <div id="irmaaVerdictBox" class="p-4 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-sm space-y-1.5"></div>
             </div>
 
             <div class="bg-white rounded-2xl p-5 border-2 border-[#b07d4b] shadow-sm space-y-4">
-              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Age 60–65 Pre-Medicare ACA Bridge (2026 Rules)</h2>
-              <div class="grid grid-cols-2 gap-3">
+              <h2 class="text-base font-extrabold text-slate-900 border-b pb-2">Age 60–65 Pre-Medicare ACA Bridge (2027 ACA Coverage Year (IRS Rev. Proc. 2026-26))</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label for="acaCurrentAge" class="block text-xs font-bold text-slate-800">Current Age (&lt;65):</label>
-                  <input id="acaCurrentAge" type="number" min="55" max="64" value="62" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-1.5 font-bold" />
+                  <input id="acaCurrentAge" type="number" min="55" max="64" value="64" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-1.5 font-bold" />
                 </div>
                 <div>
-                  <label for="acaMagiInput" class="block text-xs font-bold text-slate-800">Planned 2026 ACA MAGI ($):</label>
+                  <label for="acaMagiInput" class="block text-xs font-bold text-slate-800">Planned 2027 ACA MAGI ($):</label>
                   <input id="acaMagiInput" type="number" step="2000" value="52000" class="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-1.5 font-bold" />
+                </div>
+                <div>
+                  <label for="acaHouseholdSizeSelect" class="block text-xs font-bold text-slate-800">ACA Household Size:</label>
+                  <select id="acaHouseholdSizeSelect" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-2.5 py-1.5 font-bold text-xs">
+                    <option value="1">1 Person ($15,960 FPL · $63,840 Cliff)</option>
+                    <option value="2" selected>2 People ($21,640 FPL · $86,560 Cliff)</option>
+                    <option value="3">3 People ($27,320 FPL · $109,280 Cliff)</option>
+                    <option value="4">4 People ($33,000 FPL · $132,000 Cliff)</option>
+                  </select>
                 </div>
               </div>
               <p class="text-[11px] text-slate-600 leading-relaxed">
-                <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025; 2026 400% FPL cliff is $62,600 (1 person) / $84,600 (2 people) per IRS Rev. Proc. 2025-25.
+                <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). <strong>2027 ACA Coverage Year (IRS Rev. Proc. 2026-26):</strong> uses 2026 HHS Federal Poverty Guidelines ($15,960 for 1 person, $21,640 for 2, $27,320 for 3, $33,000 for 4); 400% FPL cliff is $63,840 (1 person) / $86,560 (2 people) / $109,280 (3 people) / $132,000 (4 people) with a 2.15%–10.22% benchmark Silver cap.
               </p>
               <div id="acaBridgeResult" class="p-3.5 rounded-xl bg-sky-50 border border-sky-300 text-xs md:text-sm text-slate-800 space-y-1"></div>
             </div>
@@ -905,9 +935,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-950 border-b border-[#b07d4b]/30 pb-2">Step 1 • Enter Your 2027 Contribution &amp; Income</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="saversContributionInput" class="block text-xs font-bold text-slate-800">Annual Retirement Contribution ($)</label>
+              <label for="saversContributionInput" class="block text-xs font-bold text-slate-800">Your Annual Contribution ($)</label>
               <input id="saversContributionInput" type="number" min="0" step="250" value="2000" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
-              <span class="block text-xs text-slate-600 mt-1">Cap: $2,000/yr per contributing person ($4,000 for 2 spouses).</span>
+              <span class="block text-xs text-slate-600 mt-1">Cap: $2,000/yr per person (each spouse capped individually at $2,000).</span>
             </div>
             <div>
               <label for="saversFilingStatus" class="block text-xs font-bold text-slate-800">Tax Filing Status</label>
@@ -918,12 +948,19 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
               </select>
             </div>
           </div>
-          <div id="saversSpousesWrap">
-            <label for="saversContributingSpouses" class="block text-xs font-bold text-slate-800">Contributing Spouses (Married Filing Jointly)</label>
-            <select id="saversContributingSpouses" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm">
-              <option value="1" selected>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
-              <option value="2">2 Contributing Spouses ($4,000 total cap · up to $2,000 match)</option>
-            </select>
+          <div id="saversSpousesWrap" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="saversContributingSpouses" class="block text-xs font-bold text-slate-800">Contributing Spouses (Married Filing Jointly)</label>
+              <select id="saversContributingSpouses" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm">
+                <option value="1" selected>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
+                <option value="2">2 Contributing Spouses ($2,000 cap each · up to $2,000 match)</option>
+              </select>
+            </div>
+            <div id="saversSpouseContributionWrap">
+              <label for="saversSpouseContributionInput" class="block text-xs font-bold text-slate-800">Spouse 2 Annual Contribution ($)</label>
+              <input id="saversSpouseContributionInput" type="number" min="0" step="250" value="0" class="mt-1 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 font-bold text-sm" />
+              <span class="block text-xs text-slate-600 mt-1">Capped separately at $2,000 for Spouse 2.</span>
+            </div>
           </div>
           <div>
             <label for="saversAgiInput" class="block text-xs font-bold text-slate-800">Estimated Adjusted Gross Income (AGI) ($/yr)</label>
@@ -952,7 +989,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
             </div>
           </div>
           <div class="bg-[#0f291e] rounded-xl p-3 border border-amber-400/30 text-xs text-emerald-100 space-y-1 leading-relaxed">
-            <div><strong class="text-amber-300">Notes (IRC § 6433):</strong> Match is deposited into a pre-tax IRA/401(k) and taxed at withdrawal. You must be age 18+, not a full-time student, and not claimed as a dependent. Contributing to an IRA requires earned income, so many retirees cannot qualify. Linear formula: <code>rate = 50% × (end − AGI) / (end − start)</code> (estimate; IRS rounding may differ by ~1 percentage point).</div>
+            <div><strong class="text-amber-300">Notes (IRC § 6433 &amp; IRS Notice 2026-48):</strong> Match is deposited into a pre-tax IRA/401(k) and taxed at withdrawal. You must be age 18+, not a full-time student, and not claimed as a dependent. Contributing to an IRA requires earned income, so many retirees cannot qualify. Under IRC § 6433(b)(2) &amp; IRS Notice 2026-48, statutory reduction points <code>floor(50 × (AGI − start) / (end − start))</code> are rounded DOWN to the next lowest whole percentage point. Illustrative educational estimate; consult your tax advisor.</div>
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-400/25 text-amber-200">
               <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
               <a href="https://www.irs.gov/credits-deductions/savers-match" target="_blank" rel="noopener noreferrer" class="underline font-extrabold text-amber-300 hover:text-white">Verify at IRS.gov/credits-deductions/savers-match →</a>
@@ -969,7 +1006,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="space-y-3">
             <span class="px-2.5 py-1 rounded-md bg-emerald-900 text-amber-300 font-extrabold text-xs uppercase tracking-wider">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <h3 class="text-lg md:text-xl font-extrabold text-slate-900">2027 Social Security 3.6% COLA &amp; Medicare Part B Hold Harmless Guide</h3>
-            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 benefits. Under the federal <strong>Hold Harmless provision (Social Security Act § 1839(f))</strong>, protection applies individually to each qualifying beneficiary: your individual Medicare Part B hike is legally capped at your individual gross COLA dollar raise so your net check cannot decrease.</p>
+            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 benefits. For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.</p>
           </div>
           <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
             <span class="text-xs font-semibold text-slate-500">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
@@ -982,7 +1019,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           <div class="space-y-3">
             <span class="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
             <h3 class="text-lg md:text-xl font-extrabold text-slate-900">Form SSA-44 IRMAA Appeal: 8 Life-Changing Events Retirement Checklist</h3>
-            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">Medicare IRMAA surcharges use a 2-year tax lookback. If you experienced one of the 8 official Life-Changing Events—<strong>1. Marriage, 2. Divorce/Annulment, 3. Death of Your Spouse, 4. Work Stoppage (Retirement), 5. Work Reduction, 6. Loss of Income-Producing Property, 7. Loss of Pension Income, or 8. Employer Settlement Payment</strong>—file Form SSA-44 to remove the surcharge.</p>
+            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">Medicare IRMAA surcharges use a 2-year tax lookback (Confirmed 2026 CMS rates from 2024 MAGI start above $109,000 single / $218,000 married; 2027 CMS announcement expected mid-November). If you experienced one of the 8 official Life-Changing Events—<strong>1. Marriage, 2. Divorce/Annulment, 3. Death of Your Spouse, 4. Work Stoppage (Retirement), 5. Work Reduction, 6. Loss of Income-Producing Property, 7. Loss of Pension Income, or 8. Employer Settlement Payment</strong>—file Form SSA-44 to remove the surcharge.</p>
           </div>
           <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
             <span class="text-xs font-semibold text-slate-500">No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)</span>
@@ -1068,15 +1105,15 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
 
           <div class="chalk-card rounded-xl p-4 hover:border-amber-400 transition-all flex flex-col justify-between gap-3">
             <div class="space-y-2">
-              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" class="block relative aspect-video w-full rounded-lg overflow-hidden bg-[#143325] border border-amber-400/40">
-                <img src="https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg" alt="Turning 60 in 2026? The $11,250 Super Catch-Up Window Closing on Dec 31" width="480" height="270" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-85" />
+              <a href="https://youtu.be/2RCtkLFUmUc" target="_blank" rel="noopener noreferrer" class="block relative aspect-video w-full rounded-lg overflow-hidden bg-[#143325] border border-amber-400/40">
+                <img src="https://i.ytimg.com/vi/2RCtkLFUmUc/hqdefault.jpg" alt="Turning 60 in 2026? The $11,250 Super Catch-Up Window Closing on Dec 31" width="480" height="270" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-85" />
               </a>
               <div class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Episode #3 · Age 60–63 Super Catch-Up</div>
-              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Turning 60 in 2026? The $11,250 &quot;Super Catch-Up&quot; Window Closing on Dec 31" class="block text-sm font-extrabold text-white">Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31</a>
+              <a href="https://youtu.be/2RCtkLFUmUc" target="_blank" rel="noopener noreferrer" data-ga-event="youtube_video_play" data-video-title="Turning 60 in 2026? The $11,250 &quot;Super Catch-Up&quot; Window Closing on Dec 31" class="block text-sm font-extrabold text-white">Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31</a>
               <p class="text-xs text-emerald-100/90 leading-relaxed">How workers aged 60–63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 ($35,750 total 401k limit).</p>
             </div>
             <div class="flex flex-col gap-1.5">
-              <a href="https://www.youtube.com/@NoSuitRetirement" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
+              <a href="https://youtu.be/2RCtkLFUmUc" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-300">▶ Watch Video →</a>
               <button type="button" data-goto-tab="tab-taxshield" class="guide-tab-link px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-xs">🧮 Open $11,250 Super Catch-Up Tool (Tab 3)</button>
             </div>
           </div>
@@ -1274,30 +1311,34 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
       const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
       function updateAllCalculations() {
-        // Tab 1: COLA & Medicare Part B Hold Harmless + 3-Bucket
+        // Tab 1: COLA & Medicare Part B Hold Harmless + Part D + 3-Bucket
         const ssYour = parseFloat(document.getElementById('ssYourCheck')?.value) || 0;
         const ssSpouse = parseFloat(document.getElementById('ssSpouseCheck')?.value) || 0;
         const colaPct = parseFloat(document.getElementById('colaPctInput')?.value) || CONSTANTS.COLA_2027_PCT;
         const partBHikePerPerson = parseFloat(document.getElementById('partBIncreaseInput')?.value) || 0;
+        const partDMonthlyPremium = Math.max(0, parseFloat(document.getElementById('partDMonthlyPremiumInput')?.value) || 0);
         const partBBase = CONSTANTS.MEDICARE_PART_B.base2026;
         setEl('colaPctVal', colaPct.toFixed(1));
 
-        const numPeople = ssSpouse > 0 ? 2 : 1;
+        const activeMedicareEnrollees = (ssYour > 0 ? 1 : 0) + (ssSpouse > 0 ? 1 : 0);
         const currentGrossSS = ssYour + ssSpouse;
         const primaryColaRaise = ssYour * (colaPct / 100);
         const spouseColaRaise = ssSpouse * (colaPct / 100);
         const grossColaRaise = primaryColaRaise + spouseColaRaise;
         const newGrossSS = currentGrossSS + grossColaRaise;
-        const baseMedicareCurrent = partBBase * numPeople;
-        const primaryMedicareHike = ssYour > 0 ? Math.min(partBHikePerPerson, primaryColaRaise) : (ssSpouse === 0 ? partBHikePerPerson : 0);
+        const baseMedicareCurrent = partBBase * activeMedicareEnrollees;
+        const primaryMedicareHike = ssYour > 0 ? Math.min(partBHikePerPerson, primaryColaRaise) : 0;
         const spouseMedicareHike = ssSpouse > 0 ? Math.min(partBHikePerPerson, spouseColaRaise) : 0;
         const totalMedicareHike = primaryMedicareHike + spouseMedicareHike;
         const newTotalMedicare = baseMedicareCurrent + totalMedicareHike;
         const primaryNetSS = ssYour > 0 ? Math.max(0, ssYour + primaryColaRaise - (partBBase + primaryMedicareHike)) : 0;
         const spouseNetSS = ssSpouse > 0 ? Math.max(0, ssSpouse + spouseColaRaise - (partBBase + spouseMedicareHike)) : 0;
-        const newNetSS = primaryNetSS + spouseNetSS;
+        const newNetSS = Math.max(0, primaryNetSS - partDMonthlyPremium * (ssYour > 0 ? 1 : 0) + spouseNetSS - partDMonthlyPremium * (ssSpouse > 0 ? 1 : 0));
         const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
         const bitePct = grossColaRaise > 0 ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100)) : 0;
+        const primaryHoldHarmlessProtected = ssYour > 0 && partBHikePerPerson > primaryColaRaise;
+        const spouseHoldHarmlessProtected = ssSpouse > 0 && partBHikePerPerson > spouseColaRaise;
+        const holdHarmlessProtected = primaryHoldHarmlessProtected || spouseHoldHarmlessProtected;
 
         setEl('kpiGrossCola', '+' + fmt(grossColaRaise) + '/mo');
         setEl('kpiGrossCheckSub', 'Gross SS climbs to ' + fmt(newGrossSS) + '/mo');
@@ -1305,7 +1346,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         setEl('kpiMedicareSub', 'Takes ' + bitePct + '% of your COLA raise');
         setEl('kpiNetSS', fmt(newNetSS) + '/mo');
         setEl('kpiNetRaiseSub', 'Real net raise: +' + fmt(netRaise) + '/mo');
-        setEl('buyingPowerLossBadge', '-' + fmt(currentGrossSS * 0.14) + '/mo vs 2016');
+        setEl('buyingPowerLossBadge', '-' + fmt(currentGrossSS * CONSTANTS.BUYING_POWER_LOSS_PCT_2016_2026) + '/mo vs 2016');
 
         const nestEgg = parseFloat(document.getElementById('nestEggInput')?.value) || 0;
         const drawRate = parseFloat(document.getElementById('withdrawalRateInput')?.value) || 4.5;
@@ -1333,7 +1374,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         setEl('printPortDraw', fmt(monthlyPortDraw) + '/mo');
         setEl('printBuckets', 'Cash: ' + fmt(b1) + ' • Bonds: ' + fmt(b2) + ' • Growth: ' + fmt(b3));
 
-        // Tab 2: Claiming Age (Dynamic FRA by Birth Year)
+        // Tab 2: Claiming Age (Dynamic FRA by Birth Year) & Earnings Test (Full Year vs Year Reaching FRA)
         const birthYearKey = document.getElementById('claimingBirthYearSelect')?.value || '1960+';
         const fraCohort = CONSTANTS.FRA_BY_BIRTH_YEAR[birthYearKey] || CONSTANTS.FRA_BY_BIRTH_YEAR['1960+'];
         const fraBenefitVal = parseFloat(document.getElementById('fraBenefitInput')?.value) || 2200;
@@ -1354,6 +1395,29 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         setEl('claim67Total', 'Total by ' + targetAgeVal + ': ' + fmt(Math.round((targetAgeVal - fraCohort.fraDecimalAge) * 12 * moFraVal)));
         setEl('claim70Total', 'Total by ' + targetAgeVal + ': ' + fmt(Math.round((targetAgeVal - 70) * 12 * mo70Val)));
 
+        const reachingFra = (document.getElementById('reachingFraThisYearSelect')?.value || 'no') === 'yes';
+        const sideGigLimit = reachingFra ? CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraAnnualLimit : CONSTANTS.SSA_EARNINGS_TEST_2027.underFraAnnualLimit;
+        const sideGigMonthlyLimit = reachingFra ? CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraMonthlyLimit : CONSTANTS.SSA_EARNINGS_TEST_2027.underFraMonthlyLimit;
+        const sideGigDivisor = reachingFra ? CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraWithholdingDivisor : CONSTANTS.SSA_EARNINGS_TEST_2027.underFraWithholdingDivisor;
+        const sideGigPay = Math.max(0, parseFloat(document.getElementById('sideGigIncome')?.value) || 0);
+        const sideGigHourly = Math.max(1, parseFloat(document.getElementById('sideGigHourly')?.value) || 25);
+        const sideGigExcess = Math.max(0, sideGigPay - sideGigLimit);
+        const sideGigPenalty = Math.round(sideGigExcess / sideGigDivisor);
+        const sideGigBuffer = Math.max(0, sideGigLimit - sideGigPay);
+        const safeHoursPerMonth = Math.floor(sideGigLimit / 12 / sideGigHourly);
+        const sideGigBox = document.getElementById('sideGigResultBox');
+        if (sideGigBox) {
+          if (sideGigExcess > 0) {
+            sideGigBox.className = 'p-3.5 rounded-xl bg-red-50 border border-red-300 text-sm space-y-1';
+            setEl('sideGigPenaltyTitle', '⚠️ Penalty Alert: ' + fmt(sideGigPenalty) + '/yr Withheld ($1-for-$' + sideGigDivisor + ')!');
+            setEl('sideGigPenaltyDesc', 'You are ' + fmt(sideGigExcess) + ' above the ' + fmt(sideGigLimit) + '/yr (' + fmt(sideGigMonthlyLimit) + '/mo) 2027 limit. Cap work at ' + safeHoursPerMonth + ' hrs/mo to avoid early Social Security clawbacks.');
+          } else {
+            sideGigBox.className = 'p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-sm space-y-1';
+            setEl('sideGigPenaltyTitle', '✅ $0 Penalty (You Keep 100% of Your Check!)');
+            setEl('sideGigPenaltyDesc', 'You are ' + fmt(sideGigBuffer) + ' below the ' + fmt(sideGigLimit) + '/yr (' + fmt(sideGigMonthlyLimit) + '/mo) 2027 limit. You can work up to ' + safeHoursPerMonth + ' hrs/mo penalty-free.');
+          }
+        }
+
         // Tab 3: 1984 Ghost Tax, 2026 Tax Year Roth Sweet Spot (baseline 2026 currentGrossSS), IRMAA & ACA Bridge
         const isMarried = (document.getElementById('taxFilingStatus')?.value || 'married') === 'married';
         const rawFilers65 = parseInt(document.getElementById('filersAge65Plus')?.value || '0', 10) || 0;
@@ -1362,7 +1426,8 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         const rothDraw = parseFloat(document.getElementById('taxRothDraw')?.value) || 0;
         const interestInc = parseFloat(document.getElementById('taxInterest')?.value) || 0;
         const annualGrossSS = currentGrossSS * 12;
-        const combinedIncome = annualGrossSS * 0.5 + preTaxDraw + interestInc;
+        const halfSS = annualGrossSS * 0.5;
+        const combinedIncome = halfSS + preTaxDraw + interestInc;
         const line50 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line50 : CONSTANTS.TAX_2026.ghostTax1984.single.line50;
         const line85 = isMarried ? CONSTANTS.TAX_2026.ghostTax1984.married.line85 : CONSTANTS.TAX_2026.ghostTax1984.single.line85;
 
@@ -1370,7 +1435,8 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         let taxableSS = 0;
         if (combinedIncome > line85) {
           taxZone = '85% Zone';
-          taxableSS = Math.min(0.85 * annualGrossSS, 0.5 * (line85 - line50) + 0.85 * (combinedIncome - line85));
+          const tier1Max = Math.min(0.5 * annualGrossSS, 0.5 * (line85 - line50));
+          taxableSS = Math.min(0.85 * annualGrossSS, tier1Max + 0.85 * Math.max(0, combinedIncome - line85));
         } else if (combinedIncome > line50) {
           taxZone = '50% Zone';
           taxableSS = Math.min(0.5 * annualGrossSS, 0.5 * (combinedIncome - line50));
@@ -1388,32 +1454,89 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         const totalStdDed = baseStdDed + extra65Ded + obbbaDed;
         const bracket12Top = isMarried ? CONSTANTS.TAX_2026.bracket12Top.married : CONSTANTS.TAX_2026.bracket12Top.single;
         const currentTaxable = Math.max(0, taxMagi - totalStdDed);
-        const rothSweetSpotRoom = Math.max(0, Math.round(bracket12Top - currentTaxable));
+
+        function computeTaxableAtConversion(conversionAmount) {
+          const convPreTax = preTaxDraw + conversionAmount;
+          const convCombined = halfSS + convPreTax + interestInc;
+          let convTaxableSS = 0;
+          if (convCombined > line85) {
+            const tier1Max = Math.min(0.5 * annualGrossSS, 0.5 * (line85 - line50));
+            convTaxableSS = Math.min(0.85 * annualGrossSS, tier1Max + 0.85 * Math.max(0, convCombined - line85));
+          } else if (convCombined > line50) {
+            convTaxableSS = Math.min(0.5 * annualGrossSS, 0.5 * (convCombined - line50));
+          }
+          const convTaxMagi = convPreTax + interestInc + convTaxableSS;
+          const convObbbaReduction = CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutRate * Math.max(0, convTaxMagi - obbbaStart);
+          const convObbbaDed = Math.round(Math.max(0, tentativeObbbaSeniorDed - convObbbaReduction));
+          const convStdDed = baseStdDed + extra65Ded + convObbbaDed;
+          return Math.max(0, convTaxMagi - convStdDed);
+        }
+
+        let rothSweetSpotRoom = 0;
+        if (computeTaxableAtConversion(0) <= bracket12Top) {
+          let low = 0;
+          let high = Math.max(0, Math.ceil(bracket12Top + totalStdDed + annualGrossSS));
+          while (low < high) {
+            const mid = Math.floor((low + high + 1) / 2);
+            if (computeTaxableAtConversion(mid) <= bracket12Top) {
+              low = mid;
+            } else {
+              high = mid - 1;
+            }
+          }
+          rothSweetSpotRoom = low;
+        }
         const rothBox = document.getElementById('rothSweetSpotBox');
         if (rothBox) {
-          rothBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎯 Your Annual Roth Conversion "Sweet Spot" (2026 Tax Year · Before Age 73 RMDs): ' + fmt(rothSweetSpotRoom) + '/yr</div><p class="text-xs text-slate-700">2026 tax year (IRS Rev. Proc. 2025-32): Base deduction ' + fmt(baseStdDed) + ', Age 65+ extra ' + fmt(extra65Ded) + ', OBBBA senior deduction ' + fmt(obbbaDed) + '; 12% bracket top ' + fmt(bracket12Top) + '. (' + fmt(rothDraw) + ' Roth draw is tax-free.)</p>';
+          rothBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎯 Your Annual Roth Conversion "Sweet Spot" (2026 Tax Year · Before Age 73 RMDs): ' + fmt(rothSweetSpotRoom) + '/yr</div><p class="text-xs text-slate-700">2026 tax year (IRS Rev. Proc. 2025-32): Base deduction ' + fmt(baseStdDed) + ', Age 65+ extra ' + fmt(extra65Ded) + ', OBBBA senior deduction ' + fmt(obbbaDed) + '; 12% bracket top ' + fmt(bracket12Top) + '. (' + fmt(rothDraw) + ' Roth draw is tax-free.)</p><p class="text-xs text-emerald-900 font-semibold border-t border-emerald-300/70 pt-1">ℹ️ Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket (IRS Rev. Proc. 2025-32) before jumping to 22%. Illustrative kitchen-table estimate; consult your CPA for full Form 1040 itemized deductions.</p>';
         }
 
         const irmaaIncome = parseFloat(document.getElementById('irmaa2025Income')?.value) || 0;
         const irmaaRetired = (document.getElementById('irmaaRetiredEvent')?.value || 'yes') === 'yes';
-        const irmaa2026Limit = isMarried ? CONSTANTS.IRMAA.year2026From2024Magi.married : CONSTANTS.IRMAA.year2026From2024Magi.single;
-        const irmaa2027Limit = isMarried ? CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.married : CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.single;
+        const irmaaLimit = isMarried ? CONSTANTS.IRMAA.year2026From2024Magi.married : CONSTANTS.IRMAA.year2026From2024Magi.single;
+        let irmaaTier = 1;
+        let irmaaPerPerson = 0;
+        const tiers = CONSTANTS.IRMAA.tiers2026 || [];
+        for (let i = 0; i < tiers.length; i++) {
+          const tMax = isMarried ? tiers[i].marriedMax : tiers[i].singleMax;
+          const matchesTier = tiers[i].exclusiveMax ? irmaaIncome < tMax : irmaaIncome <= tMax;
+          if (matchesTier) {
+            irmaaTier = tiers[i].tier;
+            irmaaPerPerson = tiers[i].annualPerPerson;
+            break;
+          }
+        }
+        const irmaaAnnualSurcharge = Number((irmaaPerPerson * (isMarried ? 2 : 1)).toFixed(2));
+        const irmaaOverLimit = irmaaIncome > irmaaLimit;
+        const hhBadge = document.getElementById('holdHarmlessStatusBadge');
+        if (hhBadge) {
+          let hhStatusText = '§ 1839(f) Not Applicable';
+          if (currentGrossSS > 0 && !irmaaOverLimit) {
+            hhStatusText = holdHarmlessProtected ? '§ 1839(f) Cap Active' : 'COLA Absorbs Hike (§ 1839(f) Eligible)';
+          }
+          hhBadge.textContent = hhStatusText;
+          hhBadge.className = hhStatusText === '§ 1839(f) Not Applicable'
+            ? 'px-2.5 py-0.5 rounded-md font-extrabold text-xs bg-amber-100 text-amber-950 border border-amber-400'
+            : 'px-2.5 py-0.5 rounded-md font-extrabold text-xs bg-emerald-100 text-emerald-950 border border-emerald-400';
+        }
         const irmaaBox = document.getElementById('irmaaVerdictBox');
         if (irmaaBox) {
-          if (irmaaIncome > irmaa2027Limit && irmaaRetired) {
-            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">✅ File Form SSA-44 Immediately (Save ~$1,800+/yr)!</div><p class="text-xs text-slate-800">Your 2025 MAGI (' + fmt(irmaaIncome) + ') exceeds the projected 2027 limit of ' + fmt(irmaa2027Limit) + ' (projected — CMS confirms in November 2026; 2026 limit from 2024 income is ' + fmt(irmaa2026Limit) + ').</p>';
-          } else if (irmaaIncome > irmaa2027Limit) {
-            irmaaBox.innerHTML = '<div class="font-extrabold text-amber-950">⚠️ 2027 IRMAA Surcharge Applies</div><p class="text-xs text-slate-800">2025 MAGI (' + fmt(irmaaIncome) + ') exceeds projected ' + fmt(irmaa2027Limit) + ' (projected — CMS confirms in November 2026).</p>';
+          if (irmaaOverLimit && irmaaRetired) {
+            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">✅ File Form SSA-44 Immediately: Erases your Tier ' + irmaaTier + ' surcharge to save ' + fmt(irmaaAnnualSurcharge) + '/yr!</div><p class="text-xs text-slate-800">Your lookback MAGI (' + fmt(irmaaIncome) + ') places you in IRMAA Tier ' + irmaaTier + ' ($' + irmaaPerPerson.toFixed(2) + '/yr per person) above the confirmed 2026 CMS threshold of ' + fmt(irmaaLimit) + ' (Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November).</p>';
+          } else if (irmaaOverLimit) {
+            irmaaBox.innerHTML = '<div class="font-extrabold text-amber-950">⚠️ 2026 IRMAA Tier ' + irmaaTier + ' Surcharge Applies (' + fmt(irmaaAnnualSurcharge) + '/yr)</div><p class="text-xs text-slate-800">Lookback MAGI (' + fmt(irmaaIncome) + ') exceeds the confirmed 2026 CMS threshold of ' + fmt(irmaaLimit) + ' (Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November).</p>';
           } else {
-            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎉 $0 IRMAA Surcharge (' + fmt(irmaa2027Limit - irmaaIncome) + ' below projected ' + fmt(irmaa2027Limit) + ' 2027 threshold — CMS confirms in November 2026)!</div>';
+            irmaaBox.innerHTML = '<div class="font-extrabold text-emerald-950">🎉 $0 IRMAA Surcharge (Tier 1 · ' + fmt(irmaaLimit - irmaaIncome) + ' below confirmed ' + fmt(irmaaLimit) + ' 2026 CMS threshold — 2027 CMS announcement expected mid-November)!</div>';
           }
         }
 
-        // ACA Bridge (2026 400% FPL cliff & IRS Rev. Proc. 2025-25 linear bands)
-        const acaAge = Math.min(64, Math.max(55, parseInt(document.getElementById('acaCurrentAge')?.value || '62', 10) || 62));
+        // ACA Bridge (2027 ACA Coverage Year per IRS Rev. Proc. 2026-26 & 2026 FPL)
+        const acaAge = Math.min(64, Math.max(55, parseInt(document.getElementById('acaCurrentAge')?.value || '64', 10) || 64));
         const acaMagi = parseFloat(document.getElementById('acaMagiInput')?.value) || 0;
-        const acaFpl = isMarried ? CONSTANTS.ACA_2026.fpl2Person : CONSTANTS.ACA_2026.fpl1Person;
-        const acaCliff = isMarried ? CONSTANTS.ACA_2026.cliff2Person : CONSTANTS.ACA_2026.cliff1Person;
+        const rawHh = parseInt(document.getElementById('acaHouseholdSizeSelect')?.value || (isMarried ? '2' : '1'), 10);
+        const acaHhSize = (rawHh >= 1 && rawHh <= 4) ? rawHh : (isMarried ? 2 : 1);
+        const acaFpl = CONSTANTS.ACA_2027.fplByHouseholdSize[acaHhSize] || (isMarried ? CONSTANTS.ACA_2027.fpl2Person : CONSTANTS.ACA_2027.fpl1Person);
+        const acaCliff = CONSTANTS.ACA_2027.cliffByHouseholdSize[acaHhSize] || (isMarried ? CONSTANTS.ACA_2027.cliff2Person : CONSTANTS.ACA_2027.cliff1Person);
         const acaFplPct = acaFpl > 0 ? (acaMagi / acaFpl) * 100 : 0;
         const acaYears = Math.max(1, 65 - acaAge);
         const acaBox = document.getElementById('acaBridgeResult');
@@ -1421,9 +1544,9 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           if (acaMagi > acaCliff) {
             acaBox.innerHTML = '<strong>⚠️ ' + acaYears + '-Year Bridge Warning (' + Math.round(acaFplPct) + '% of FPL):</strong> <strong>No premium tax credit — you pay the full premium.</strong> Cut <strong>' + fmt(acaMagi - acaCliff) + '</strong> of MAGI to get back under the ' + fmt(acaCliff) + ' (400% FPL) cliff!';
           } else {
-            let appPct = 9.96;
-            const bands = CONSTANTS.ACA_2026.revProc2025_25Bands;
-            if (acaFplPct <= 133) appPct = bands[0].startPct;
+            let appPct = 10.22;
+            const bands = CONSTANTS.ACA_2027.revProc2026_26Bands;
+            if (acaFplPct < 133) appPct = bands[0].startPct;
             else if (acaFplPct >= 300) appPct = bands[5].endPct;
             else {
               for (let i = 0; i < bands.length; i++) {
@@ -1440,25 +1563,40 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
           }
         }
 
-        // Saver's Match (IRC §6433, linear phase-out)
-        const saversContrib = parseFloat(document.getElementById('saversContributionInput')?.value) || 0;
+        // Saver's Match (IRC §6433 & IRS Notice 2026-48 statutory rounding + per-spouse $2,000 cap)
+        const saversContrib1 = Math.max(0, parseFloat(document.getElementById('saversContributionInput')?.value) || 0);
+        const saversContrib2 = Math.max(0, parseFloat(document.getElementById('saversSpouseContributionInput')?.value) || 0);
         const saversStatus = document.getElementById('saversFilingStatus')?.value || 'married';
         const saversSpouses = saversStatus === 'married' && document.getElementById('saversContributingSpouses')?.value === '2' ? 2 : 1;
+        const spouse2Wrap = document.getElementById('saversSpouseContributionWrap');
+        if (spouse2Wrap) {
+          spouse2Wrap.classList.toggle('hidden', saversSpouses !== 2);
+        }
         const saversAgi = parseFloat(document.getElementById('saversAgiInput')?.value) || 0;
         const phaseCfg = CONSTANTS.SAVERS_MATCH_2027.phaseout[saversStatus] || CONSTANTS.SAVERS_MATCH_2027.phaseout.married;
-        const rawRate = saversAgi <= phaseCfg.start ? 50 : saversAgi >= phaseCfg.end ? 0 : 50 * ((phaseCfg.end - saversAgi) / (phaseCfg.end - phaseCfg.start));
-        const clampedRate = Math.max(0, Math.min(50, rawRate));
-        const eligibleContrib = Math.min(saversContrib, CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson * saversSpouses);
-        const matchDep = Math.round(eligibleContrib * (clampedRate / 100));
-        setEl('saversMatchRateResult', (Math.round(clampedRate * 10) / 10) + '%');
+        let saversRatePct = 0;
+        if (saversAgi <= phaseCfg.start) {
+          saversRatePct = 50;
+        } else if (saversAgi >= phaseCfg.end) {
+          saversRatePct = 0;
+        } else {
+          const reductionPoints = Math.floor((50 * (saversAgi - phaseCfg.start)) / (phaseCfg.end - phaseCfg.start));
+          saversRatePct = Math.max(0, 50 - reductionPoints);
+        }
+        const maxPerPerson = CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson;
+        const eligibleContrib = Math.min(saversContrib1, maxPerPerson) + (saversSpouses === 2 ? Math.min(saversContrib2, maxPerPerson) : 0);
+        const totalHouseholdContrib = saversContrib1 + (saversSpouses === 2 ? saversContrib2 : 0);
+        const matchDep = Math.round(eligibleContrib * (saversRatePct / 100));
+        setEl('saversMatchRateResult', saversRatePct + '%');
+        setEl('saversTierBadge', saversRatePct >= 50 ? '50% Full Federal Match' : saversRatePct > 0 ? (saversRatePct + '% Federal Match') : '0% Match (Above AGI Phase-Out Limit)');
         setEl('saversMatchDepositResult', '+' + fmt(matchDep));
-        setEl('saversTotalAddedResult', fmt(saversContrib + matchDep));
+        setEl('saversTotalAddedResult', fmt(totalHouseholdContrib + matchDep));
       }
 
       const presets = {
-        single: { ssYourCheck: 2150, ssSpouseCheck: 0, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 380000, withdrawalRateInput: 4.4, taxFilingStatus: 'single', filersAge65Plus: 1, taxPreTaxDraw: 16000, taxRothDraw: 4000, taxInterest: 2400, irmaa2025Income: 125000, acaMagiInput: 38000 },
-        couple400k: { ssYourCheck: 1940, ssSpouseCheck: 1160, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 400000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 0, taxPreTaxDraw: 24000, taxRothDraw: 4000, taxInterest: 3500, irmaa2025Income: 230000, acaMagiInput: 52000 },
-        latesaver: { ssYourCheck: 1850, ssSpouseCheck: 950, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, nestEggInput: 120000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 0, taxPreTaxDraw: 8000, taxRothDraw: 3000, taxInterest: 1200, irmaa2025Income: 95000, acaMagiInput: 44000 }
+        single: { ssYourCheck: 2150, ssSpouseCheck: 0, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, partDMonthlyPremiumInput: 0, nestEggInput: 380000, withdrawalRateInput: 4.4, taxFilingStatus: 'single', filersAge65Plus: 1, workerAgeSelect: '65', taxPreTaxDraw: 16000, taxRothDraw: 4000, taxInterest: 2400, irmaa2025Income: 125000, acaCurrentAge: 64, acaMagiInput: 38000, acaHouseholdSizeSelect: 1 },
+        couple400k: { ssYourCheck: 1940, ssSpouseCheck: 1160, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, partDMonthlyPremiumInput: 0, nestEggInput: 400000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 2, workerAgeSelect: '65', taxPreTaxDraw: 24000, taxRothDraw: 4000, taxInterest: 3500, irmaa2025Income: 230000, acaCurrentAge: 64, acaMagiInput: 52000, acaHouseholdSizeSelect: 2 },
+        latesaver: { ssYourCheck: 0, ssSpouseCheck: 0, colaPctInput: CONSTANTS.COLA_2027_PCT, partBIncreaseInput: 0, partDMonthlyPremiumInput: 0, nestEggInput: 120000, withdrawalRateInput: 4.5, taxFilingStatus: 'married', filersAge65Plus: 0, workerAgeSelect: '55', taxPreTaxDraw: 8000, taxRothDraw: 3000, taxInterest: 1200, irmaa2025Income: 95000, acaCurrentAge: 59, acaMagiInput: 44000, acaHouseholdSizeSelect: 2 }
       };
 
       document.querySelectorAll('.preset-btn').forEach((btn) => {
@@ -1473,7 +1611,7 @@ export function buildFullStandaloneHtml(inputConfig: AnalyticsConfig = DEFAULT_C
         });
       });
 
-      ['ssYourCheck', 'ssSpouseCheck', 'colaPctInput', 'partBIncreaseInput', 'nestEggInput', 'withdrawalRateInput', 'expHousing', 'expGroceries', 'expHealthcare', 'expCarFun', 'claimingBirthYearSelect', 'fraBenefitInput', 'lifeExpInput', 'taxFilingStatus', 'filersAge65Plus', 'taxPreTaxDraw', 'taxRothDraw', 'taxInterest', 'irmaa2025Income', 'irmaaRetiredEvent', 'acaCurrentAge', 'acaMagiInput', 'saversContributionInput', 'saversFilingStatus', 'saversContributingSpouses', 'saversAgiInput'].forEach((id) => {
+      ['ssYourCheck', 'ssSpouseCheck', 'colaPctInput', 'partBIncreaseInput', 'partDMonthlyPremiumInput', 'nestEggInput', 'withdrawalRateInput', 'expHousing', 'expGroceries', 'expHealthcare', 'expCarFun', 'claimingBirthYearSelect', 'fraBenefitInput', 'lifeExpInput', 'reachingFraThisYearSelect', 'sideGigIncome', 'sideGigHourly', 'taxFilingStatus', 'filersAge65Plus', 'workerAgeSelect', 'taxPreTaxDraw', 'taxRothDraw', 'taxInterest', 'irmaa2025Income', 'irmaaRetiredEvent', 'acaCurrentAge', 'acaMagiInput', 'acaHouseholdSizeSelect', 'saversContributionInput', 'saversSpouseContributionInput', 'saversFilingStatus', 'saversContributingSpouses', 'saversAgiInput'].forEach((id) => {
         document.getElementById(id)?.addEventListener('input', updateAllCalculations);
         document.getElementById(id)?.addEventListener('change', updateAllCalculations);
       });

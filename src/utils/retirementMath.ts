@@ -12,6 +12,7 @@ export interface RetirementInputs {
   colaPct: number;
   partBIncrease: number;
   partBBasePremium?: number;
+  partDMonthlyPremium?: number;
   bucketPresetMode?: 'standard' | 'fixed40_160_200';
   nestEgg: number;
   withdrawalRate: number;
@@ -24,6 +25,7 @@ export interface RetirementInputs {
   claimingBirthYear?: ClaimingBirthYearCohort;
   fraBenefit: number;
   lifeExpAge: number;
+  reachingFraThisYear?: 'no' | 'yes';
   sideGigIncome: number;
   sideGigHourly: number;
   mortBalance: number;
@@ -41,9 +43,11 @@ export interface RetirementInputs {
   irmaaRetiredEvent: 'yes' | 'no';
   acaCurrentAge: number;
   acaMagi: number;
+  acaHouseholdSize?: 1 | 2 | 3 | 4;
 
   // 2027 IRS Federal Saver's Match (SECURE 2.0 / IRC § 6433)
   saversContribution: number;
+  saversSpouseContribution?: number;
   saversFilingStatus: SaversFilingStatus;
   saversAgi: number;
   saversContributingSpouses?: 1 | 2;
@@ -55,6 +59,7 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
   partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
   partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
+  partDMonthlyPremium: 0,
   bucketPresetMode: 'standard',
   nestEgg: 400000,
   withdrawalRate: 4.5,
@@ -66,6 +71,7 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   claimingBirthYear: '1960+',
   fraBenefit: 2200,
   lifeExpAge: 82,
+  reachingFraThisYear: 'no',
   sideGigIncome: 30000,
   sideGigHourly: 25,
   mortBalance: 75000,
@@ -73,17 +79,19 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   hysaRate: 4.6,
 
   taxFilingStatus: 'married',
-  filersAge65Plus: 0,
+  filersAge65Plus: 2,
   taxPreTaxDraw: 24000,
   taxRothDraw: 4000,
   taxInterest: 3500,
-  workerAgeGroup: '61',
+  workerAgeGroup: '65',
   irmaa2025Income: 230000,
   irmaaRetiredEvent: 'yes',
-  acaCurrentAge: 62,
+  acaCurrentAge: 64,
   acaMagi: 52000,
+  acaHouseholdSize: 2,
 
   saversContribution: 2000,
+  saversSpouseContribution: 0,
   saversFilingStatus: 'married',
   saversAgi: 38000,
   saversContributingSpouses: 1,
@@ -108,8 +116,10 @@ export const QUICK_SCENARIO_PRESETS: Record<
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
       partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
+      partDMonthlyPremium: 0,
       bucketPresetMode: 'standard',
       taxFilingStatus: 'single',
+      acaHouseholdSize: 1,
     },
   },
   bucket400k: {
@@ -128,6 +138,7 @@ export const QUICK_SCENARIO_PRESETS: Record<
     toast: "Loaded 2027 IRS Saver's Match: $2,000 contribution = +$1,000 free federal match deposit ($3,000 total)!",
     values: {
       saversContribution: 2000,
+      saversSpouseContribution: 0,
       saversFilingStatus: 'married',
       saversAgi: 38000,
       saversContributingSpouses: 1,
@@ -152,6 +163,7 @@ export const PRESET_PROFILES: Record<
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
       partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
+      partDMonthlyPremium: 0,
       bucketPresetMode: 'standard',
       nestEgg: 380000,
       withdrawalRate: 4.4,
@@ -161,6 +173,7 @@ export const PRESET_PROFILES: Record<
       expCarFun: 450,
       fraBenefit: 2150,
       lifeExpAge: 84,
+      reachingFraThisYear: 'no',
       sideGigIncome: 22000,
       sideGigHourly: 25,
       mortBalance: 45000,
@@ -176,17 +189,19 @@ export const PRESET_PROFILES: Record<
       irmaaRetiredEvent: 'yes',
       acaCurrentAge: 64,
       acaMagi: 38000,
+      acaHouseholdSize: 1,
     },
   },
   couple400k: {
-    label: 'Couple (Age 62, $400K)',
-    toast: 'Loaded Married Couple (Age 62, $400K Nest Egg) profile.',
+    label: 'Couple (Age 66, $400K)',
+    toast: 'Loaded Married Couple (Age 66, $400K Nest Egg) profile.',
     values: {
       ssYourCheck: 1940,
       ssSpouseCheck: 1160,
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
       partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
+      partDMonthlyPremium: 0,
       bucketPresetMode: 'standard',
       nestEgg: 400000,
       withdrawalRate: 4.5,
@@ -196,32 +211,35 @@ export const PRESET_PROFILES: Record<
       expCarFun: 550,
       fraBenefit: 2200,
       lifeExpAge: 82,
+      reachingFraThisYear: 'no',
       sideGigIncome: 30000,
       sideGigHourly: 25,
       mortBalance: 75000,
       mortRate: 3.5,
       hysaRate: 4.6,
       taxFilingStatus: 'married',
-      filersAge65Plus: 0,
+      filersAge65Plus: 2,
       taxPreTaxDraw: 24000,
       taxRothDraw: 4000,
       taxInterest: 3500,
-      workerAgeGroup: '61',
+      workerAgeGroup: '65',
       irmaa2025Income: 230000,
       irmaaRetiredEvent: 'yes',
-      acaCurrentAge: 62,
+      acaCurrentAge: 64,
       acaMagi: 52000,
+      acaHouseholdSize: 2,
     },
   },
   latesaver: {
     label: 'Late Saver (Age 59, $120K)',
     toast: 'Loaded Late Saver Catch-Up (Age 59, $120K Nest Egg) profile.',
     values: {
-      ssYourCheck: 1850,
-      ssSpouseCheck: 950,
+      ssYourCheck: 0,
+      ssSpouseCheck: 0,
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
-      partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
-      partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
+      partBIncrease: 0,
+      partBBasePremium: 0,
+      partDMonthlyPremium: 0,
       bucketPresetMode: 'standard',
       nestEgg: 120000,
       withdrawalRate: 4.5,
@@ -231,6 +249,7 @@ export const PRESET_PROFILES: Record<
       expCarFun: 400,
       fraBenefit: 1950,
       lifeExpAge: 83,
+      reachingFraThisYear: 'no',
       sideGigIncome: 26500,
       sideGigHourly: 22,
       mortBalance: 62000,
@@ -241,14 +260,20 @@ export const PRESET_PROFILES: Record<
       taxPreTaxDraw: 8000,
       taxRothDraw: 3000,
       taxInterest: 1200,
-      workerAgeGroup: '61',
+      workerAgeGroup: '55',
       irmaa2025Income: 95000,
       irmaaRetiredEvent: 'no',
-      acaCurrentAge: 60,
+      acaCurrentAge: 59,
       acaMagi: 44000,
+      acaHouseholdSize: 2,
     },
   },
 };
+
+export type HoldHarmlessStatusLabel =
+  | '§ 1839(f) Cap Active'
+  | 'COLA Absorbs Hike (§ 1839(f) Eligible)'
+  | '§ 1839(f) Not Applicable';
 
 export interface RetirementMetrics {
   // Tab 1
@@ -259,12 +284,15 @@ export interface RetirementMetrics {
   grossColaRaise: number;
   newGrossSS: number;
   partBBasePerPerson: number;
+  partDMonthlyPremium: number;
+  totalPartDPremium: number;
   baseMedicareCurrent: number;
   rawMedicareHike: number;
   primaryMedicareHike: number;
   spouseMedicareHike: number;
   totalMedicareHike: number;
   holdHarmlessProtected: boolean;
+  holdHarmlessProtectedStatus: HoldHarmlessStatusLabel;
   newTotalMedicare: number;
   primaryNetSS: number;
   spouseNetSS: number;
@@ -313,8 +341,12 @@ export interface RetirementMetrics {
     claim67: number;
     claim70: number;
   }>;
+  reachingFraThisYear: 'no' | 'yes';
+  sideGigUnderFraLimit: number;
   sideGigLimit: number;
+  sideGigMonthlyLimit: number;
   sideGigFraYearLimit: number;
+  sideGigWithholdingDivisor: 2 | 3;
   sideGigExcess: number;
   sideGigPenalty: number;
   sideGigBuffer: number;
@@ -357,9 +389,12 @@ export interface RetirementMetrics {
   irmaaOverLimit: boolean;
   irmaaCanAppealWithSSA44: boolean;
   irmaaBuffer: number;
+  irmaaTier: 1 | 2 | 3 | 4 | 5 | 6;
+  irmaaSurchargePerPerson: number;
+  irmaaAnnualSurcharge: number;
   acaAge: number;
   acaMagi: number;
-  acaHouseholdSize: 1 | 2;
+  acaHouseholdSize: 1 | 2 | 3 | 4;
   acaFpl: number;
   acaCliff: number;
   acaFplRatioPct: number;
@@ -371,6 +406,7 @@ export interface RetirementMetrics {
 
   // 2027 IRS Federal Saver's Match (SECURE 2.0 / IRC § 6433)
   saversContribution: number;
+  saversSpouseContribution: number;
   saversContributingSpouses: 1 | 2;
   saversMaxEligibleContribution: number;
   saversMaxMatch: number;
@@ -400,9 +436,10 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const colaPct = Math.max(0, Number(inputs.colaPct) || 0);
   const partBHikePerPerson = Math.max(0, Number(inputs.partBIncrease) || 0);
   const partBBasePerPerson =
-    inputs.partBBasePremium !== undefined && inputs.partBBasePremium > 0
+    inputs.partBBasePremium !== undefined && inputs.partBBasePremium >= 0
       ? Number(inputs.partBBasePremium)
       : RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026;
+  const partDMonthlyPremium = Math.max(0, Number(inputs.partDMonthlyPremium) || 0);
   const nestEgg = Math.max(0, Number(inputs.nestEgg) || 0);
   const drawRate = Math.max(0, Number(inputs.withdrawalRate) || 0);
 
@@ -421,15 +458,14 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const grossColaRaise = primaryColaRaise + spouseColaRaise;
   const newGrossSS = currentGrossSS + grossColaRaise;
 
-  const baseMedicareCurrent = partBBasePerPerson * numPeople;
-  const rawMedicareHike = partBHikePerPerson * numPeople;
+  const activeMedicareEnrollees = (ssYour > 0 ? 1 : 0) + (ssSpouse > 0 ? 1 : 0);
+  const baseMedicareCurrent =
+    activeMedicareEnrollees > 0 ? partBBasePerPerson * activeMedicareEnrollees : 0;
+  const rawMedicareHike =
+    activeMedicareEnrollees > 0 ? partBHikePerPerson * activeMedicareEnrollees : partBHikePerPerson;
 
   const primaryMedicareHike =
-    ssYour > 0
-      ? Math.min(partBHikePerPerson, primaryColaRaise)
-      : ssSpouse === 0
-      ? partBHikePerPerson
-      : 0;
+    ssYour > 0 ? Math.min(partBHikePerPerson, primaryColaRaise) : 0;
   const spouseMedicareHike =
     ssSpouse > 0 ? Math.min(partBHikePerPerson, spouseColaRaise) : 0;
 
@@ -447,13 +483,25 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     ssSpouse > 0
       ? Math.max(0, ssSpouse + spouseColaRaise - (partBBasePerPerson + spouseMedicareHike))
       : 0;
-  const newNetSS = primaryNetSS + spouseNetSS;
+  const totalPartDPremium =
+    partDMonthlyPremium * (ssYour > 0 ? 1 : 0) +
+    partDMonthlyPremium * (ssSpouse > 0 ? 1 : 0);
+  const newNetSS = Math.max(
+    0,
+    primaryNetSS -
+      partDMonthlyPremium * (ssYour > 0 ? 1 : 0) +
+      spouseNetSS -
+      partDMonthlyPremium * (ssSpouse > 0 ? 1 : 0)
+  );
   const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
   const bitePct =
     grossColaRaise > 0
       ? Math.min(100, Math.round((totalMedicareHike / grossColaRaise) * 100))
       : 0;
-  const buyingPowerLoss = Math.round(currentGrossSS * 0.14);
+  // FIX 7 — Buying power citation: 13.7% loss 2016–2026 per The Senior Citizens League 2026 study
+  const buyingPowerLoss = Math.round(
+    currentGrossSS * RETIREMENT_CONSTANTS.BUYING_POWER_LOSS_PCT_2016_2026
+  );
 
   const annualPortDraw = nestEgg * (drawRate / 100);
   const monthlyPortDraw = annualPortDraw / 12;
@@ -511,13 +559,26 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     claim70: totalByAge(70, mo70, a),
   }));
 
-  // Official 2027 Social Security Retirement Earnings Test Limits
-  const sideGigLimit = RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.underFraAnnualLimit;
+  // UPGRADE 2 — Official 2027 Social Security Retirement Earnings Test Limits (Full Year vs Year Reaching FRA)
+  const reachingFraThisYear: 'no' | 'yes' =
+    inputs.reachingFraThisYear === 'yes' ? 'yes' : 'no';
+  const sideGigUnderFraLimit = RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.underFraAnnualLimit;
   const sideGigFraYearLimit = RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraAnnualLimit;
+  const sideGigLimit =
+    reachingFraThisYear === 'yes' ? sideGigFraYearLimit : sideGigUnderFraLimit;
+  const sideGigMonthlyLimit =
+    reachingFraThisYear === 'yes'
+      ? RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraMonthlyLimit
+      : RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.underFraMonthlyLimit;
+  const sideGigWithholdingDivisor: 2 | 3 =
+    reachingFraThisYear === 'yes'
+      ? RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.yearOfFraWithholdingDivisor
+      : RETIREMENT_CONSTANTS.SSA_EARNINGS_TEST_2027.underFraWithholdingDivisor;
+
   const sideGigPay = Math.max(0, Number(inputs.sideGigIncome) || 0);
   const sideGigHourly = Math.max(1, Number(inputs.sideGigHourly) || 25);
   const sideGigExcess = Math.max(0, sideGigPay - sideGigLimit);
-  const sideGigPenalty = Math.round(sideGigExcess / 2);
+  const sideGigPenalty = Math.round(sideGigExcess / sideGigWithholdingDivisor);
   const sideGigBuffer = Math.max(0, sideGigLimit - sideGigPay);
   const safeHoursPerMonth = Math.floor(sideGigLimit / 12 / sideGigHourly);
 
@@ -570,15 +631,16 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     shiftToRothNeeded = Math.round(combinedIncome - line50);
   } else {
     taxZone = '85% Zone';
-    const tier1Max = 0.5 * (line85 - line50);
+    // FIX 1 — Ghost tax tier-1 cap: tier1Max cannot exceed 50% of annualGrossSS
+    const tier1Max = Math.min(0.5 * annualGrossSS, 0.5 * (line85 - line50));
     taxableSS = Math.min(
       0.85 * annualGrossSS,
-      tier1Max + 0.85 * (combinedIncome - line85)
+      tier1Max + 0.85 * Math.max(0, combinedIncome - line85)
     );
     shiftToRothNeeded = Math.round(combinedIncome - line85);
   }
 
-  // FIX 5 — 2026 Tax Year Consistency (IRS Rev. Proc. 2025-32 + OBBBA senior deduction)
+  // 2026 Tax Year Consistency (IRS Rev. Proc. 2025-32 + OBBBA senior deduction)
   const baseStandardDed = isMarried
     ? RETIREMENT_CONSTANTS.TAX_2026.standardDeduction.married
     : RETIREMENT_CONSTANTS.TAX_2026.standardDeduction.single;
@@ -604,7 +666,47 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     ? RETIREMENT_CONSTANTS.TAX_2026.bracket12Top.married
     : RETIREMENT_CONSTANTS.TAX_2026.bracket12Top.single;
   const currentTaxable = Math.max(0, taxMagi - standardDed);
-  const rothSweetSpotRoom = Math.max(0, Math.round(bracket12Top - currentTaxable));
+
+  // FIX 5 — Roth sweet spot with Social Security tax torpedo & OBBBA phase-out (binary search)
+  const computeTaxableAfterConversion = (conv: number): number => {
+    const candCombined = halfSS + (preTaxDraw + conv) + interestInc;
+    let candTaxableSS = 0;
+    if (candCombined <= line50) {
+      candTaxableSS = 0;
+    } else if (candCombined <= line85) {
+      candTaxableSS = Math.min(0.5 * annualGrossSS, 0.5 * (candCombined - line50));
+    } else {
+      const candTier1Max = Math.min(0.5 * annualGrossSS, 0.5 * (line85 - line50));
+      candTaxableSS = Math.min(
+        0.85 * annualGrossSS,
+        candTier1Max + 0.85 * Math.max(0, candCombined - line85)
+      );
+    }
+    const candMagi = preTaxDraw + conv + interestInc + candTaxableSS;
+    const candObbbaReduction =
+      RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutRate *
+      Math.max(0, candMagi - obbbaPhaseoutStart);
+    const candObbbaDed = Math.round(
+      Math.max(0, tentativeObbbaSeniorDed - candObbbaReduction)
+    );
+    const candStdDed = baseStandardDed + extraAge65Ded + candObbbaDed;
+    return Math.max(0, candMagi - candStdDed);
+  };
+
+  let rothSweetSpotRoom = 0;
+  if (computeTaxableAfterConversion(0) <= bracket12Top) {
+    let low = 0;
+    let high = bracket12Top + baseStandardDed + extraAge65Ded + tentativeObbbaSeniorDed;
+    while (low < high) {
+      const mid = Math.floor((low + high + 1) / 2);
+      if (computeTaxableAfterConversion(mid) <= bracket12Top) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    rothSweetSpotRoom = low;
+  }
 
   // Enacted 2026 IRS 401(k)/403(b) & SECURE 2.0 Super Catch-Up Limits
   const base401kLimit = RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026.base401kLimit;
@@ -614,35 +716,63 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
       : RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026.standardCatchup50Plus;
   const total401kLimit = base401kLimit + catchupLimit;
 
-  // FIX 3 — IRMAA Thresholds (2026 official vs 2027 projected from 2025 MAGI)
+  // FIX 2 — Confirmed 2026 CMS IRMAA Thresholds & Multi-Tier Surcharges (from 2024 MAGI, Part B + Part D per person)
   const irmaaIncome = Math.max(0, Number(inputs.irmaa2025Income) || 0);
   const irmaa2026Limit = isMarried
     ? RETIREMENT_CONSTANTS.IRMAA.year2026From2024Magi.married
     : RETIREMENT_CONSTANTS.IRMAA.year2026From2024Magi.single;
-  const irmaaLimit = isMarried
-    ? RETIREMENT_CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.married
-    : RETIREMENT_CONSTANTS.IRMAA.year2027ProjectedFrom2025Magi.single;
+  const irmaaLimit = irmaa2026Limit;
   const irmaaOverLimit = irmaaIncome > irmaaLimit;
   const irmaaCanAppealWithSSA44 = irmaaOverLimit && inputs.irmaaRetiredEvent === 'yes';
   const irmaaBuffer = Math.max(0, irmaaLimit - irmaaIncome);
 
-  // FIX 2 — Pre-Medicare ACA Bridge (2026 coverage year: 400% FPL cliff + IRS Rev. Proc. 2025-25 linear bands)
-  const acaAge = Math.min(64, Math.max(55, Math.round(Number(inputs.acaCurrentAge) || 62)));
+  let irmaaTier: 1 | 2 | 3 | 4 | 5 | 6 = 1;
+  let irmaaSurchargePerPerson = 0;
+  for (const t of RETIREMENT_CONSTANTS.IRMAA.tiers2026) {
+    const tierMax = isMarried ? t.marriedMax : t.singleMax;
+    const matchesTier =
+      'exclusiveMax' in t && t.exclusiveMax
+        ? irmaaIncome < tierMax
+        : irmaaIncome <= tierMax;
+    if (matchesTier) {
+      irmaaTier = t.tier as 1 | 2 | 3 | 4 | 5 | 6;
+      irmaaSurchargePerPerson = t.annualPerPerson;
+      break;
+    }
+  }
+  const irmaaAnnualSurcharge =
+    Math.round(irmaaSurchargePerPerson * (isMarried ? 2 : 1) * 100) / 100;
+
+  // FIX 7 — Hold Harmless Eligibility Status Badge (§ 1839(f) scope)
+  let holdHarmlessProtectedStatus: HoldHarmlessStatusLabel = '§ 1839(f) Not Applicable';
+  if (currentGrossSS > 0 && !irmaaOverLimit) {
+    holdHarmlessProtectedStatus = holdHarmlessProtected
+      ? '§ 1839(f) Cap Active'
+      : 'COLA Absorbs Hike (§ 1839(f) Eligible)';
+  }
+
+  // FIX 4 — Pre-Medicare ACA Bridge (2027 ACA Coverage Year, IRS Rev. Proc. 2026-26, 2026 FPL)
+  const acaAge = Math.min(64, Math.max(55, Math.round(Number(inputs.acaCurrentAge) || 64)));
   const acaMagi = Math.max(0, Number(inputs.acaMagi) || 0);
-  const acaHouseholdSize: 1 | 2 = isMarried ? 2 : 1;
-  const acaFpl = isMarried
-    ? RETIREMENT_CONSTANTS.ACA_2026.fpl2Person
-    : RETIREMENT_CONSTANTS.ACA_2026.fpl1Person;
-  const acaCliff = isMarried
-    ? RETIREMENT_CONSTANTS.ACA_2026.cliff2Person
-    : RETIREMENT_CONSTANTS.ACA_2026.cliff1Person;
+  const rawHouseholdSize = Number(inputs.acaHouseholdSize);
+  const acaHouseholdSize: 1 | 2 | 3 | 4 =
+    rawHouseholdSize === 1 ||
+    rawHouseholdSize === 2 ||
+    rawHouseholdSize === 3 ||
+    rawHouseholdSize === 4
+      ? rawHouseholdSize
+      : isMarried
+      ? 2
+      : 1;
+  const acaFpl = RETIREMENT_CONSTANTS.ACA_2027.fplByHouseholdSize[acaHouseholdSize];
+  const acaCliff = RETIREMENT_CONSTANTS.ACA_2027.cliffByHouseholdSize[acaHouseholdSize];
   const acaFplRatioPct = acaFpl > 0 ? (acaMagi / acaFpl) * 100 : 0;
   const acaOverCliff = acaMagi > acaCliff;
   const acaDollarsOverCliff = acaOverCliff ? Math.round(acaMagi - acaCliff) : 0;
 
   let acaApplicablePct = 0;
   if (!acaOverCliff) {
-    const bands = RETIREMENT_CONSTANTS.ACA_2026.revProc2025_25Bands;
+    const bands = RETIREMENT_CONSTANTS.ACA_2027.revProc2026_26Bands;
     if (acaFplRatioPct <= 133) {
       acaApplicablePct = bands[0].startPct;
     } else if (acaFplRatioPct >= 300) {
@@ -665,7 +795,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     ? 0
     : Math.round((acaMagi * (acaApplicablePct / 100)) / 12);
 
-  // FIX 1 — 2027 IRS Federal Saver's Match (SECURE 2.0 Act § 103 / IRC § 6433) — Linear Phase-Out
+  // FIX 6 & UPGRADE 1 — 2027 IRS Federal Saver's Match (IRC § 6433 & IRS Notice 2026-48 Statutory Rounding + Per-Spouse Cap)
   const saversContribution = Math.max(0, Number(inputs.saversContribution) || 0);
   const saversFilingStatus: SaversFilingStatus =
     inputs.saversFilingStatus === 'single' || inputs.saversFilingStatus === 'hoh'
@@ -675,11 +805,25 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
 
   const saversContributingSpouses: 1 | 2 =
     saversFilingStatus === 'married' && inputs.saversContributingSpouses === 2 ? 2 : 1;
+  const saversSpouseContribution =
+    saversContributingSpouses === 2
+      ? Math.max(0, Number(inputs.saversSpouseContribution) || 0)
+      : 0;
   const saversMaxEligibleContribution =
     RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson * saversContributingSpouses;
   const saversMaxMatch =
     RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxMatchPerPerson * saversContributingSpouses;
-  const saversEligibleContribution = Math.min(saversContribution, saversMaxEligibleContribution);
+  const saversEligibleContribution =
+    Math.min(
+      saversContribution,
+      RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson
+    ) +
+    (saversContributingSpouses === 2
+      ? Math.min(
+          saversSpouseContribution,
+          RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxContributionPerPerson
+        )
+      : 0);
 
   const phaseoutCfg = RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.phaseout[saversFilingStatus];
   const saversThresholds = {
@@ -689,34 +833,37 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     phaseoutMaxAgi: phaseoutCfg.end,
   };
 
-  const rawSaversRatePct =
-    saversAgi <= saversThresholds.start
-      ? RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct
-      : saversAgi >= saversThresholds.end
-      ? 0
-      : RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct *
-        ((saversThresholds.end - saversAgi) / (saversThresholds.end - saversThresholds.start));
-
-  const clampedSaversRatePct = Math.max(
-    0,
-    Math.min(RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct, rawSaversRatePct)
-  );
-  const saversMatchRatePct = Math.round(clampedSaversRatePct * 100) / 100;
+  let saversMatchRatePct = 0;
+  if (saversAgi <= saversThresholds.start) {
+    saversMatchRatePct = RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct;
+  } else if (saversAgi >= saversThresholds.end) {
+    saversMatchRatePct = 0;
+  } else {
+    // IRC § 6433(b)(2) & IRS Notice 2026-48: statutory reduction points are rounded DOWN to the next lowest whole percentage point
+    const reductionPoints = Math.floor(
+      (RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct *
+        (saversAgi - saversThresholds.start)) /
+        (saversThresholds.end - saversThresholds.start)
+    );
+    saversMatchRatePct = Math.max(
+      0,
+      RETIREMENT_CONSTANTS.SAVERS_MATCH_2027.maxRatePct - reductionPoints
+    );
+  }
 
   let saversMatchTierLabel = '50% Full Federal Match';
   if (saversMatchRatePct >= 50) {
     saversMatchTierLabel = '50% Full Federal Match';
   } else if (saversMatchRatePct > 0) {
-    const formattedRate = Number.isInteger(saversMatchRatePct)
-      ? saversMatchRatePct.toFixed(0)
-      : saversMatchRatePct.toFixed(1);
-    saversMatchTierLabel = `${formattedRate}% Linear Phase-Out Match`;
+    saversMatchTierLabel = `${saversMatchRatePct}% Federal Match`;
   } else {
     saversMatchTierLabel = '0% Match (Above AGI Phase-Out Limit)';
   }
 
-  const saversMatchDeposit = Math.round(saversEligibleContribution * (clampedSaversRatePct / 100));
-  const saversTotalAdded = Math.round(saversContribution + saversMatchDeposit);
+  const saversMatchDeposit = Math.round(saversEligibleContribution * (saversMatchRatePct / 100));
+  const saversTotalAdded = Math.round(
+    saversContribution + saversSpouseContribution + saversMatchDeposit
+  );
 
   return {
     numPeople,
@@ -726,12 +873,15 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     grossColaRaise,
     newGrossSS,
     partBBasePerPerson,
+    partDMonthlyPremium,
+    totalPartDPremium,
     baseMedicareCurrent,
     rawMedicareHike,
     primaryMedicareHike,
     spouseMedicareHike,
     totalMedicareHike,
     holdHarmlessProtected,
+    holdHarmlessProtectedStatus,
     newTotalMedicare,
     primaryNetSS,
     spouseNetSS,
@@ -774,8 +924,12 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     total67AtTarget,
     total70AtTarget,
     breakevenSeries,
+    reachingFraThisYear,
+    sideGigUnderFraLimit,
     sideGigLimit,
+    sideGigMonthlyLimit,
     sideGigFraYearLimit,
+    sideGigWithholdingDivisor,
     sideGigExcess,
     sideGigPenalty,
     sideGigBuffer,
@@ -817,6 +971,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     irmaaOverLimit,
     irmaaCanAppealWithSSA44,
     irmaaBuffer,
+    irmaaTier,
+    irmaaSurchargePerPerson,
+    irmaaAnnualSurcharge,
     acaAge,
     acaMagi,
     acaHouseholdSize,
@@ -830,6 +987,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     acaEstimatedMonthlyPremium,
 
     saversContribution,
+    saversSpouseContribution,
     saversContributingSpouses,
     saversMaxEligibleContribution,
     saversMaxMatch,
@@ -843,3 +1001,4 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     saversThresholds,
   };
 }
+

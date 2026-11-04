@@ -67,12 +67,13 @@ export const FEATURED_YOUTUBE_VIDEOS: FeaturedVideoEpisode[] = [
     title: 'Turning 60 in 2026? The $11,250 "Super Catch-Up" Window Closing on Dec 31',
     description:
       'How workers aged 60, 61, 62, or 63 can use the SECURE 2.0 $11,250 Super Catch-Up window before December 31 ($35,750 total 401k limit) and shield their retirement savings.',
-    videoUrl: 'https://www.youtube.com/@NoSuitRetirement',
-    thumbnailUrl: 'https://i.ytimg.com/vi/XHIm3Q1OvK8/hqdefault.jpg',
+    videoUrl: 'https://youtu.be/2RCtkLFUmUc',
+    embedUrl: 'https://www.youtube.com/embed/2RCtkLFUmUc',
+    videoId: '2RCtkLFUmUc',
+    thumbnailUrl: 'https://i.ytimg.com/vi/2RCtkLFUmUc/hqdefault.jpg',
     calculatorActionLabel: '🧮 Open $11,250 Super Catch-Up Tool (Tab 3)',
     calculatorTab: 'tab-taxshield',
     workerAgeGroup: '61',
-    isChannelLinkOnly: true,
   },
 ];
 

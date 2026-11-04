@@ -12,6 +12,12 @@ export const RETIREMENT_CONSTANTS = {
   COLA_2027_PCT: 3.6,
 
   /**
+   * Source: The Senior Citizens League, 2026 Loss of Buying Power study
+   * (13.7% loss 2016-2026, using TSCL's own 70-item price index; not an official government measure).
+   */
+  BUYING_POWER_LOSS_PCT_2016_2026: 0.137,
+
+  /**
    * Medicare Part B Standard Monthly Premiums
    * Source: 2026 Medicare Trustees Report projects 2027 standard Part B premium at $209.50
    * (up $6.60 from the official 2026 standard premium of $202.90).
@@ -28,7 +34,7 @@ export const RETIREMENT_CONSTANTS = {
    * Linear phase-out from 50% at `start` to 0% at `end`:
    * rate = 50% * (end - AGI) / (end - start), clamped to [0%, 50%].
    * Match = rate * min(contribution per person, $2,000).
-   * Note: IRC §6433 statutory rounding rules may differ by ~1 percentage point (estimate).
+   * Note: IRC §6433 statutory rounding rules round reduction points down to the next lowest whole percentage point.
    */
   SAVERS_MATCH_2027: {
     maxRatePct: 50,
@@ -54,64 +60,83 @@ export const RETIREMENT_CONSTANTS = {
   },
 
   /**
-   * FIX 2 — Pre-Medicare ACA Healthcare Bridge (2026 Coverage Year)
-   * - Enhanced ARPA/IRA subsidies expired 12/31/2025; the original 400% FPL cliff applies for 2026.
-   * - 2026 plan year uses prior-year (2025) HHS contiguous-states FPL guidelines:
-   *   1 person = $15,650 (400% cliff = $62,600); 2 people = $21,150 (400% cliff = $84,600).
-   * - Applicable percentage table for 2026 per IRS Rev. Proc. 2025-25 (IRC §36B(b)(3)(A)):
-   *   <133% FPL: 2.10%
-   *   133%–150% FPL: 3.14% -> 4.19%
-   *   150%–200% FPL: 4.19% -> 6.60%
-   *   200%–250% FPL: 6.60% -> 8.44%
-   *   250%–300% FPL: 8.44% -> 9.96%
-   *   300%–400% FPL: 9.96%
+   * FIX 4 — Pre-Medicare ACA Healthcare Bridge (2027 ACA Coverage Year, IRS Rev. Proc. 2026-26, 2026 FPL)
+   * - Enhanced ARPA/IRA subsidies expired 12/31/2025; the 400% FPL cliff applies.
+   * - 2027 plan year uses prior-year (2026) HHS contiguous-states FPL guidelines:
+   *   1 = $15,960 (400% cliff = $63,840); 2 = $21,640 (400% cliff = $86,560);
+   *   3 = $27,320 (400% cliff = $109,280); 4 = $33,000 (400% cliff = $132,000).
+   * - Applicable percentage table for 2027 per IRS Rev. Proc. 2026-26 (IRC §36B(b)(3)(A)):
+   *   <133% FPL: 2.15%
+   *   133%–150% FPL: 3.23% -> 4.30%
+   *   150%–200% FPL: 4.30% -> 6.78%
+   *   200%–250% FPL: 6.78% -> 8.66%
+   *   250%–300% FPL: 8.66% -> 10.22%
+   *   300%–400% FPL: 10.22%
    *   >400% FPL: No premium tax credit (cliff).
-   *   (Verify against IRS Rev. Proc. 2025-25 if IRS issues subsequent adjustments.)
    */
-  ACA_2026: {
-    fpl1Person: 15650,
-    fpl2Person: 21150,
+  ACA_2027: {
+    label: '2027 ACA Coverage Year (IRS Rev. Proc. 2026-26)',
+    fpl1Person: 15960,
+    fpl2Person: 21640,
+    fpl3Person: 27320,
+    fpl4Person: 33000,
     cliffMultiplier: 4,
-    cliff1Person: 62600,
-    cliff2Person: 84600,
-    revProc2025_25Bands: [
-      { minFplPct: 0, maxFplPct: 133, startPct: 2.10, endPct: 2.10 },
-      { minFplPct: 133, maxFplPct: 150, startPct: 3.14, endPct: 4.19 },
-      { minFplPct: 150, maxFplPct: 200, startPct: 4.19, endPct: 6.60 },
-      { minFplPct: 200, maxFplPct: 250, startPct: 6.60, endPct: 8.44 },
-      { minFplPct: 250, maxFplPct: 300, startPct: 8.44, endPct: 9.96 },
-      { minFplPct: 300, maxFplPct: 400, startPct: 9.96, endPct: 9.96 },
+    cliff1Person: 63840,
+    cliff2Person: 86560,
+    cliff3Person: 109280,
+    cliff4Person: 132000,
+    fplByHouseholdSize: {
+      1: 15960,
+      2: 21640,
+      3: 27320,
+      4: 33000,
+    },
+    cliffByHouseholdSize: {
+      1: 63840,
+      2: 86560,
+      3: 109280,
+      4: 132000,
+    },
+    revProc2026_26Bands: [
+      { minFplPct: 0, maxFplPct: 133, startPct: 2.15, endPct: 2.15 },
+      { minFplPct: 133, maxFplPct: 150, startPct: 3.23, endPct: 4.30 },
+      { minFplPct: 150, maxFplPct: 200, startPct: 4.30, endPct: 6.78 },
+      { minFplPct: 200, maxFplPct: 250, startPct: 6.78, endPct: 8.66 },
+      { minFplPct: 250, maxFplPct: 300, startPct: 8.66, endPct: 10.22 },
+      { minFplPct: 300, maxFplPct: 400, startPct: 10.22, endPct: 10.22 },
     ],
   },
 
   /**
-   * FIX 3 — Medicare IRMAA Income-Related Monthly Adjustment Amount Thresholds (Tier 1)
-   * - 2026 premiums (based on 2024 tax return MAGI): Official CMS figures = $109,000 single / $218,000 married.
-   * - 2027 premiums (based on 2025 tax return MAGI): CMS has not published official 2027 figures yet
-   *   (expected ~November 2026). Using projected $112,000 single / $224,000 married (2026 Medicare Trustees Report / Kiplinger projection; verify with CMS in Nov 2026).
+   * FIX 2 — Medicare IRMAA (Confirmed 2026 CMS rates from 2024 MAGI, Part B + Part D per person)
+   * Note: Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.
+   * Thresholds from 2024 MAGI (Single / Married):
+   *   T1 <=109,000 / <=218,000: $0
+   *   T2 109,001-137,000 / 218,001-274,000: $95.70/mo = $1,148.40/yr (couple $2,296.80)
+   *   T3 137,001-171,000 / 274,001-342,000: $240.40/mo = $2,884.80/yr (couple $5,769.60)
+   *   T4 171,001-205,000 / 342,001-410,000: $385.00/mo = $4,620.00/yr (couple $9,240.00)
+   *   T5 205,001-500,000 / 410,001-750,000: $529.60/mo = $6,355.20/yr (couple $12,710.40)
+   *   T6 >=500,000 / >=750,000 (use >= for 500,000/750,000 per CMS): $578.00/mo = $6,936.00/yr (couple $13,872.00)
    */
   IRMAA: {
+    note: 'Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.',
     year2026From2024Magi: {
       single: 109000,
       married: 218000,
     },
-    year2027ProjectedFrom2025Magi: {
-      single: 112000,
-      married: 224000,
-      label: 'projected — CMS confirms in November 2026',
-    },
+    tiers2026: [
+      { tier: 1, singleMax: 109000, marriedMax: 218000, monthlyPerPerson: 0, annualPerPerson: 0 },
+      { tier: 2, singleMax: 137000, marriedMax: 274000, monthlyPerPerson: 95.70, annualPerPerson: 1148.40 },
+      { tier: 3, singleMax: 171000, marriedMax: 342000, monthlyPerPerson: 240.40, annualPerPerson: 2884.80 },
+      { tier: 4, singleMax: 205000, marriedMax: 410000, monthlyPerPerson: 385.00, annualPerPerson: 4620.00 },
+      { tier: 5, singleMax: 500000, marriedMax: 750000, monthlyPerPerson: 529.60, annualPerPerson: 6355.20, exclusiveMax: true },
+      { tier: 6, singleMax: 999999999, marriedMax: 999999999, monthlyPerPerson: 578.00, annualPerPerson: 6936.00 },
+    ],
   },
 
   /**
    * FIX 5 — Federal Income Tax & Senior Deductions (2026 Tax Year Consistency)
    * Source: IRS Rev. Proc. 2025-32 (2026 inflation adjustments) and OBBBA (One Big Beautiful Bill Act, P.L. 119-21, 2025–2028 senior deduction).
-   * - Standard deduction (2026): $16,100 single / $32,200 married filing jointly.
-   * - 12% federal bracket top (2026 taxable income): $50,400 single / $100,800 married filing jointly.
-   * - Additional age-65+ standard deduction (2026): $2,050 single / $1,650 per qualifying spouse married.
-   * - OBBBA senior deduction (2025–2028): $6,000 per qualifying age-65+ person, phased out by 6% of MAGI
-   *   above $75,000 (single) / $150,000 (married filing jointly).
-   * - 1984 IRS Social Security Provisional Income thresholds (IRC §86, unindexed since 1984/1993):
-   *   Single: $25,000 (50% tier) / $34,000 (85% tier). Married: $32,000 (50% tier) / $44,000 (85% tier).
    */
   TAX_2026: {
     taxYearLabel: '2026 tax year',
@@ -145,7 +170,10 @@ export const RETIREMENT_CONSTANTS = {
   SSA_EARNINGS_TEST_2027: {
     underFraAnnualLimit: 25560,
     underFraMonthlyLimit: 2130,
+    underFraWithholdingDivisor: 2,
     yearOfFraAnnualLimit: 67920,
+    yearOfFraMonthlyLimit: 5660,
+    yearOfFraWithholdingDivisor: 3,
     priorYear2026UnderFraLimit: 24480,
   },
 

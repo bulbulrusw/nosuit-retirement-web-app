@@ -97,6 +97,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
 
 interface SaversMatchSectionProps {
   saversContribution: number;
+  saversSpouseContribution: number;
   saversFilingStatus: SaversFilingStatus;
   saversAgi: number;
   saversContributingSpouses: 1 | 2;
@@ -113,6 +114,7 @@ interface SaversMatchSectionProps {
     phaseoutMaxAgi: number;
   };
   onChangeContribution: (val: number) => void;
+  onChangeSpouseContribution: (val: number) => void;
   onChangeFilingStatus: (status: SaversFilingStatus) => void;
   onChangeAgi: (val: number) => void;
   onChangeContributingSpouses: (spouses: 1 | 2) => void;
@@ -120,6 +122,7 @@ interface SaversMatchSectionProps {
 
 export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = ({
   saversContribution,
+  saversSpouseContribution,
   saversFilingStatus,
   saversAgi,
   saversContributingSpouses,
@@ -131,13 +134,14 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
   saversTotalAdded,
   saversThresholds,
   onChangeContribution,
+  onChangeSpouseContribution,
   onChangeFilingStatus,
   onChangeAgi,
   onChangeContributingSpouses,
 }) => {
-  const formattedRatePct = Number.isInteger(saversMatchRatePct)
-    ? saversMatchRatePct.toFixed(0)
-    : saversMatchRatePct.toFixed(1);
+  const formattedRatePct = Math.round(saversMatchRatePct).toString();
+  const totalHouseholdContribution =
+    saversContribution + (saversContributingSpouses === 2 ? saversSpouseContribution : 0);
 
   return (
     <section
@@ -154,7 +158,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
             2027 Federal Saver&apos;s Match Calculator (Up to $1,000/Person or $2,000/Couple Match)
           </h2>
           <p className="text-xs md:text-sm text-slate-700 max-w-4xl leading-relaxed">
-            Starting in 2027 under the <strong>SECURE 2.0 Act (IRC § 6433)</strong>, the old non-refundable Saver&apos;s Credit is replaced by the <strong>Federal Saver&apos;s Match</strong>—a direct <strong>up to 50% federal matching contribution</strong> on up to <strong>$2,000 saved per person</strong> ($1,000 max match per person; $4,000 cap / $2,000 max match for 2 contributing spouses) deposited into a pre-tax Traditional IRA or 401(k).
+            Starting in 2027 under the <strong>SECURE 2.0 Act (IRC § 6433)</strong>, the old non-refundable Saver&apos;s Credit is replaced by the <strong>Federal Saver&apos;s Match</strong>—a direct <strong>up to 50% federal matching contribution</strong> on up to <strong>$2,000 saved per person</strong> ($1,000 max match per person; $4,000 cap / $2,000 max match for 2 contributing spouses, capped individually at $2,000 per spouse) deposited into a pre-tax Traditional IRA or 401(k).
           </p>
         </div>
 
@@ -186,7 +190,9 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="saversContributionInput" className="block text-xs font-bold text-slate-800">
-                Annual Retirement Contribution ($)
+                {saversFilingStatus === 'married' && saversContributingSpouses === 2
+                  ? 'Spouse 1 Contribution ($/yr)'
+                  : 'Annual Retirement Contribution ($)'}
               </label>
               <input
                 id="saversContributionInput"
@@ -198,7 +204,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
               />
               <span className="block text-xs text-slate-600 mt-1">
-                Eligible cap: <strong className="font-num">{formatUSD(saversMaxEligibleContribution)}/yr</strong> ($2,000 per contributing person).
+                Per-person cap: <strong className="font-num">$2,000/yr</strong> ({formatUSD(saversMaxEligibleContribution)}/yr household max).
               </span>
             </div>
 
@@ -220,21 +226,43 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
           </div>
 
           {saversFilingStatus === 'married' && (
-            <div>
-              <label htmlFor="saversContributingSpouses" className="block text-xs font-bold text-slate-800">
-                Contributing Spouses (Married Filing Jointly)
-              </label>
-              <select
-                id="saversContributingSpouses"
-                value={saversContributingSpouses}
-                onChange={(e) =>
-                  onChangeContributingSpouses(Number(e.target.value) === 2 ? 2 : 1)
-                }
-                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
-              >
-                <option value={1}>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
-                <option value={2}>2 Contributing Spouses ($4,000 total cap · up to $2,000 match)</option>
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="saversContributingSpouses" className="block text-xs font-bold text-slate-800">
+                  Contributing Spouses (Married Filing Jointly)
+                </label>
+                <select
+                  id="saversContributingSpouses"
+                  value={saversContributingSpouses}
+                  onChange={(e) =>
+                    onChangeContributingSpouses(Number(e.target.value) === 2 ? 2 : 1)
+                  }
+                  className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
+                >
+                  <option value={1}>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
+                  <option value={2}>2 Contributing Spouses ($2,000/person cap · up to $2,000 match)</option>
+                </select>
+              </div>
+
+              {saversContributingSpouses === 2 && (
+                <div>
+                  <label htmlFor="saversSpouseContributionInput" className="block text-xs font-bold text-slate-800">
+                    Spouse 2 Contribution ($/yr)
+                  </label>
+                  <input
+                    id="saversSpouseContributionInput"
+                    type="number"
+                    min="0"
+                    step="250"
+                    value={saversSpouseContribution}
+                    onChange={(e) => onChangeSpouseContribution(parseFloat(e.target.value) || 0)}
+                    className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
+                  />
+                  <span className="block text-xs text-slate-600 mt-1">
+                    Capped individually at <strong className="font-num">$2,000/yr</strong> per spouse.
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -309,7 +337,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                   {formattedRatePct}%
                 </div>
                 <p className="text-xs text-emerald-100 mt-1">
-                  Linear phase-out (max 50%)
+                  IRC § 6433(b)(2) whole-% match
                 </p>
               </div>
 
@@ -339,7 +367,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                   {formatUSD(saversTotalAdded)}
                 </div>
                 <p className="text-xs text-emerald-100 mt-1">
-                  Your {formatUSD(saversContribution)} + {formatUSD(saversMatchDeposit)} Match
+                  Your {formatUSD(totalHouseholdContribution)} + {formatUSD(saversMatchDeposit)} Match
                 </p>
               </div>
             </div>
@@ -347,7 +375,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
 
           <div className="bg-[#0f291e] rounded-xl p-3.5 border border-amber-400/30 text-xs text-emerald-100 leading-relaxed space-y-1.5">
             <div>
-              <strong className="text-amber-300">Important IRC § 6433 Eligibility &amp; Tax Rules:</strong>
+              <strong className="text-amber-300">Important IRC § 6433 &amp; IRS Notice 2026-48 Rules:</strong>
             </div>
             <ul className="list-disc list-inside space-y-1 text-xs text-emerald-100">
               <li>
@@ -360,7 +388,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 <strong>Age &amp; Student Rules:</strong> You must be <strong>age 18+</strong>, <strong>not a full-time student</strong>, and <strong>not claimed as a dependent</strong> on another taxpayer&apos;s return.
               </li>
               <li>
-                <strong>Rounding Note (Estimate):</strong> Linear formula: <code className="font-mono text-amber-200">rate = 50% × (end − AGI) / (end − start)</code>. Results are estimates; IRS statutory rounding may differ by about 1 percentage point.
+                <strong>Statutory Rounding (IRC § 6433(b)(2) &amp; IRS Notice 2026-48):</strong> Reduction points <code className="font-mono text-amber-200">floor(50 × (AGI − start) / (end − start))</code> are rounded DOWN to the next lowest whole percentage point. Illustrative educational estimate; consult your tax advisor.
               </li>
             </ul>
             <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-200 border-t border-amber-400/20">
@@ -414,17 +442,17 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
 
             <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-xs text-slate-800">
               <div className="font-extrabold text-[#1b4332] uppercase tracking-wider">
-                How the Federal &ldquo;Hold Harmless&rdquo; Rule Protects Each Individual Beneficiary:
+                How the Federal &ldquo;Hold Harmless&rdquo; Rule Works (§ 1839(f)):
               </div>
+              <p className="leading-relaxed">
+                For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
+              </p>
               <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
                 <li>
                   <strong>Individual-Level Protection (§ 1839(f)):</strong> Under federal law (<em>Social Security Act § 1839(f)</em>), Hold Harmless applies <strong>individually to each qualifying beneficiary</strong>—not as an aggregate household pool. If your Medicare Part B premium is deducted directly from your Social Security benefit and your income is below the IRMAA surcharge threshold, your individual Part B dollar increase is <strong>legally capped at your individual gross COLA dollar raise</strong>.
                 </li>
                 <li>
-                  <strong>Your Net Check Cannot Drop:</strong> Even if Medicare Part B rises faster than a modest Social Security benefit&apos;s 3.6% COLA, Hold Harmless guarantees each protected beneficiary&apos;s net monthly Social Security deposit will never decrease from one year to the next due to a standard Part B hike.
-                </li>
-                <li>
-                  <strong>Who Is Excluded From Hold Harmless:</strong> New Medicare enrollees in 2027, higher-income beneficiaries paying <strong>IRMAA surcharges</strong>, and enrollees whose premiums are billed directly rather than deducted from Social Security checks pay the full standard Part B rate.
+                  <strong>Who Is Excluded From Hold Harmless:</strong> New Medicare enrollees, higher-income beneficiaries paying <strong>IRMAA surcharges</strong>, and enrollees whose premiums are billed directly rather than deducted from Social Security checks pay the full standard Part B rate.
                 </li>
               </ul>
             </div>
@@ -472,7 +500,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
             </h2>
 
             <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-              Medicare&apos;s <strong>IRMAA (Income-Related Monthly Adjustment Amount)</strong> uses a 2-year tax lookback (your <strong>2025 tax return MAGI</strong> sets your <strong>2027 Medicare Part B &amp; Part D premiums</strong>; projected 2027 threshold is <strong>$112,000 Single / $224,000 Married</strong> — CMS confirms in November 2026; 2026 official threshold from 2024 MAGI is <strong>$109,000 Single / $218,000 Married</strong>). If your income dropped because you retired, you can file <strong>Form SSA-44</strong> to erase the surcharge.
+              Medicare&apos;s <strong>IRMAA (Income-Related Monthly Adjustment Amount)</strong> uses a 2-year tax lookback (confirmed 2026 CMS threshold from 2024 MAGI is <strong>$109,000 Single / $218,000 Married</strong>; <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November</em>). If your income dropped because you retired, you can file <strong>Form SSA-44</strong> to erase the Part B &amp; Part D surcharge.
             </p>
 
             <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-xs text-slate-800">
@@ -490,7 +518,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                 <div>8. Employer Settlement Payment</div>
               </div>
               <p className="text-xs text-slate-600 pt-1 border-t border-slate-200 leading-relaxed">
-                <strong>How to File in 3 Steps:</strong> (1) Check <em>&ldquo;Work Stoppage&rdquo;</em> or <em>&ldquo;Work Reduction&rdquo;</em> in Step 1 of Form SSA-44; (2) Enter your lower 2026/2027 estimated retirement AGI + tax-exempt interest in Step 2–3; (3) Attach a copy of your retirement letter or final pay stub and mail or fax it to your local Social Security office.
+                <strong>How to File in 3 Steps:</strong> (1) Check <em>&ldquo;Work Stoppage&rdquo;</em> or <em>&ldquo;Work Reduction&rdquo;</em> in Step 1 of Form SSA-44; (2) Enter your lower estimated retirement AGI + tax-exempt interest in Step 2–3; (3) Attach a copy of your retirement letter or final pay stub and mail or fax it to your local Social Security office.
               </p>
             </div>
           </div>

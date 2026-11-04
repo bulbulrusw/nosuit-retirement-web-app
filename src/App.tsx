@@ -254,7 +254,7 @@ export default function App() {
     });
     showToast(
       video.calculatorTab === 'tab-paycheck'
-        ? 'Loaded $400K Couple (Age 62) preset in Tab 1: Net Check & $400K.'
+        ? 'Loaded $400K Couple (Age 66) preset in Tab 1: Net Check & $400K.'
         : 'Opened Tab 3: Age 60–63 $11,250 Super Catch-Up ($35,750 total 401k limit).'
     );
     window.setTimeout(() => {
@@ -616,7 +616,7 @@ export default function App() {
                     </div>
                     <div>
                       <label htmlFor="partBIncreaseInput" className="block text-xs font-bold text-slate-800">
-                        Part B/D Hike ($/mo/person)
+                        Part B Hike ($/mo/person)
                       </label>
                       <input
                         id="partBIncreaseInput"
@@ -627,21 +627,63 @@ export default function App() {
                         className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
                       />
                     </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="partDMonthlyPremiumInput" className="block text-xs font-bold text-slate-800">
+                        Part D Plan Monthly Premium ($/mo/person)
+                      </label>
+                      <input
+                        id="partDMonthlyPremiumInput"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={inputs.partDMonthlyPremium ?? 0}
+                        onChange={(e) =>
+                          updateInput('partDMonthlyPremium', Math.max(0, parseFloat(e.target.value) || 0))
+                        }
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                      />
+                    </div>
                   </div>
 
-                  <p className="text-xs text-slate-600 bg-slate-100/90 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
-                    <strong>2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)</strong> (up +$6.60 from the official 2026 base of $202.90/mo). Under Social Security Act § 1839(f), Hold Harmless caps each individual beneficiary&apos;s Part B increase at their individual COLA dollar raise.
-                  </p>
+                  <div className="bg-slate-100/90 border border-slate-200 rounded-xl p-3 space-y-2 text-xs leading-relaxed">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <strong className="text-slate-900">
+                        2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)
+                      </strong>
+                      <span
+                        id="holdHarmlessStatusBadge"
+                        className={`px-2.5 py-0.5 rounded-md font-extrabold text-xs ${
+                          metrics.holdHarmlessProtectedStatus !== '§ 1839(f) Not Applicable'
+                            ? 'bg-emerald-100 text-emerald-950 border border-emerald-400'
+                            : 'bg-amber-100 text-amber-950 border border-amber-400'
+                        }`}
+                      >
+                        {metrics.holdHarmlessProtectedStatus}
+                      </span>
+                    </div>
+                    <p className="text-slate-600">
+                      Up +$6.60 from the official 2026 base of $202.90/mo. For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
+                    </p>
+                  </div>
 
                   <div className="bg-amber-50/90 border border-amber-300 p-3.5 rounded-xl text-xs">
                     <div className="font-bold text-amber-950 flex flex-wrap items-center justify-between gap-1">
-                      <span>The &ldquo;86-Cent Dollar&rdquo; Buying Power Check:</span>
+                      <span>The &ldquo;86-Cent Dollar&rdquo; Buying Power Check (13.7% Loss):</span>
                       <span id="buyingPowerLossBadge" className="font-extrabold text-amber-950 font-num">
                         -{formatUSD(metrics.buyingPowerLoss)}/mo vs 2016
                       </span>
                     </div>
                     <p className="text-slate-700 mt-1 leading-relaxed">
-                      Because Washington uses the <strong>CPI-W</strong> instead of senior medical inflation, every $1.00 of Social Security buys <strong>86 cents</strong> of senior essentials vs. 10 years ago.
+                      Source:{' '}
+                      <a
+                        href="https://seniorsleague.org"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-semibold text-emerald-900 hover:text-emerald-700"
+                      >
+                        The Senior Citizens League
+                      </a>
+                      , 2026 Loss of Buying Power study (13.7% loss 2016-2026, using TSCL&apos;s own 70-item price index; not an official government measure).
                     </p>
                   </div>
                 </div>
@@ -814,12 +856,17 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-[#0f291e] rounded-xl p-3.5 text-xs text-amber-100 border border-amber-400/25 leading-relaxed">
-                  <strong>Chalkboard Rule:</strong> With Buckets 1 &amp; 2 holding{' '}
-                  <strong>
-                    <span id="yearsProtectedText">{metrics.yearsProtected} full years</span>
-                  </strong>{' '}
-                  of portfolio withdrawals in safe cash and bonds, a stock market crash cannot touch your monthly grocery money.
+                <div className="bg-[#0f291e] rounded-xl p-3.5 text-xs text-amber-100 border border-amber-400/25 leading-relaxed space-y-1.5">
+                  <div>
+                    <strong>Chalkboard Rule:</strong> With Buckets 1 &amp; 2 holding{' '}
+                    <strong>
+                      <span id="yearsProtectedText">{metrics.yearsProtected} full years</span>
+                    </strong>{' '}
+                    of portfolio withdrawals in safe cash and bonds, a stock market crash cannot touch your monthly grocery money.
+                  </div>
+                  <p className="text-emerald-200/90 border-t border-amber-400/20 pt-1.5">
+                    ℹ️ Baseline Guardrail Model: Assumes a 4.5% safe portfolio draw and 8 full years in cash/T-Bills to protect against sequence-of-returns risk. Not an investment guarantee.
+                  </p>
                 </div>
               </div>
 
@@ -967,13 +1014,29 @@ export default function App() {
                 {/* Side-Gig Penalty Checker */}
                 <div className="surface-card rounded-2xl p-5 space-y-4">
                   <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
-                    Part-Time / Side-Gig Penalty Checker ($25,560/yr 2027 Limit)
+                    Part-Time / Side-Gig Penalty Checker ({formatUSD(metrics.sideGigLimit)}/yr 2027 Limit)
                   </h2>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    If you claim Social Security before age 67 and work part-time, SSA withholds $1 for every $2 earned above <strong>$25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026)</strong>, or <strong>$67,920/yr</strong> in the year you reach Full Retirement Age 67.
+                    If you claim Social Security before Full Retirement Age and work part-time, SSA withholds $1 for every $2 earned above <strong>$25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026)</strong> if under FRA all year, or $1 for every $3 above <strong>$67,920/yr ($5,660/mo)</strong> in the year you reach Full Retirement Age (67).
                   </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-3">
+                      <label htmlFor="reachingFraThisYearSelect" className="block text-xs font-bold text-slate-800">
+                        Reaching Full Retirement Age (67) in 2027?
+                      </label>
+                      <select
+                        id="reachingFraThisYearSelect"
+                        value={metrics.reachingFraThisYear}
+                        onChange={(e) =>
+                          updateInput('reachingFraThisYear', e.target.value === 'yes' ? 'yes' : 'no')
+                        }
+                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-xs"
+                      >
+                        <option value="no">No — Under FRA All Year ($25,560/yr limit · $1-for-$2 withholding)</option>
+                        <option value="yes">Yes — Reaching FRA in 2027 ($67,920/yr limit · $1-for-$3 withholding)</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2">
                       <label htmlFor="sideGigIncome" className="block text-xs font-bold text-slate-800">
                         Annual Part-Time ($)
                       </label>
@@ -1006,11 +1069,15 @@ export default function App() {
                       className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-xs space-y-1"
                     >
                       <div id="sideGigPenaltyTitle" className="font-extrabold text-red-900 text-sm">
-                        ⚠️ Penalty Alert: {formatUSD(metrics.sideGigPenalty)}/yr Withheld!
+                        ⚠️ Penalty Alert: {formatUSD(metrics.sideGigPenalty)}/yr Withheld ($1-for-${metrics.sideGigWithholdingDivisor})!
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
-                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above the $25,560/yr ($2,130/mo) 2027 limit (up from $24,480/yr in 2026). Cap work at{' '}
-                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ($2,130/mo) to avoid early Social Security clawbacks.
+                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above the{' '}
+                        <span className="font-num font-bold">
+                          {formatUSD(metrics.sideGigLimit)}/yr ({formatUSD(metrics.sideGigMonthlyLimit)}/mo)
+                        </span>{' '}
+                        2027 limit ({metrics.reachingFraThisYear === 'yes' ? 'Year Reaching FRA $1-for-$3 rule' : 'Under FRA $1-for-$2 rule, up from $24,480/yr in 2026'}). Cap work at{' '}
+                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ({formatUSD(metrics.sideGigMonthlyLimit)}/mo) to avoid early Social Security clawbacks.
                       </p>
                     </div>
                   ) : (
@@ -1022,7 +1089,11 @@ export default function App() {
                         ✅ $0 Penalty (You Keep 100% of Your Check!)
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
-                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the $25,560/yr ($2,130/mo) 2027 limit. You can work up to{' '}
+                        You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the{' '}
+                        <span className="font-num font-bold">
+                          {formatUSD(metrics.sideGigLimit)}/yr ({formatUSD(metrics.sideGigMonthlyLimit)}/mo)
+                        </span>{' '}
+                        2027 limit ({metrics.reachingFraThisYear === 'yes' ? '$1-for-$3 FRA-year rule' : '$1-for-$2 under-FRA rule'}). You can work up to{' '}
                         <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> penalty-free.
                       </p>
                     </div>
@@ -1127,6 +1198,12 @@ export default function App() {
                             nextStatus === 'single' && (prev.filersAge65Plus ?? 0) > 1
                               ? 1
                               : prev.filersAge65Plus ?? 0,
+                          acaHouseholdSize:
+                            nextStatus === 'single' && (prev.acaHouseholdSize ?? 2) === 2
+                              ? 1
+                              : nextStatus === 'married' && (prev.acaHouseholdSize ?? 1) === 1
+                              ? 2
+                              : prev.acaHouseholdSize,
                         }));
                       }}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm"
@@ -1284,6 +1361,9 @@ export default function App() {
                       ' (select 1 or 2 filers age 65+ above to include the $2,050/$1,650 extra 65+ deduction and $6,000 OBBBA senior deduction).'
                     )}
                   </p>
+                  <p className="text-xs text-emerald-900 font-semibold border-t border-emerald-300/70 pt-1.5">
+                    ℹ️ Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket (IRS Rev. Proc. 2025-32) before jumping to 22%. Illustrative kitchen-table estimate; consult your CPA for full Form 1040 itemized deductions.
+                  </p>
                 </div>
 
                 <div className="bg-amber-50/90 rounded-xl p-4 border border-amber-400 space-y-2">
@@ -1326,7 +1406,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="irmaa2025Income" className="block text-xs font-bold text-slate-800">
-                        2025 MAGI (sets your 2027 Medicare premium) ($)
+                        2-Year Lookback MAGI (2024 MAGI sets 2026 Medicare premium) ($)
                       </label>
                       <input
                         id="irmaa2025Income"
@@ -1339,7 +1419,7 @@ export default function App() {
                     </div>
                     <div>
                       <label htmlFor="irmaaRetiredEvent" className="block text-xs font-bold text-slate-800">
-                        Retired Since 2025?
+                        Retired / Work Stoppage?
                       </label>
                       <select
                         id="irmaaRetiredEvent"
@@ -1355,8 +1435,8 @@ export default function App() {
 
                   <p className="text-xs text-slate-600 leading-relaxed">
                     <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included.{' '}
-                    <strong>2026 premiums (2024 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaa2026Limit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
-                    <strong>2027 premiums (2025 income):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}, <em>projected — CMS confirms in November 2026</em>).
+                    <strong>2026 threshold (2024 MAGI):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
+                    <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.</em>
                   </p>
 
                   <div
@@ -1366,25 +1446,27 @@ export default function App() {
                     {metrics.irmaaCanAppealWithSSA44 ? (
                       <>
                         <div className="font-extrabold text-emerald-950 text-sm">
-                          ✅ File Form SSA-44 Immediately (Save ~$1,800+/yr)!
+                          ✅ File Form SSA-44 Immediately: Erases your Tier {metrics.irmaaTier} surcharge to save {formatUSD(metrics.irmaaAnnualSurcharge)}/yr!
                         </div>
                         <p className="text-slate-800">
-                          Your 2025 MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the projected 2027 threshold of{' '}
-                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span> (projected — CMS confirms in November 2026). File{' '}
-                          <strong>Form SSA-44 (Work Stoppage)</strong> so Medicare drops your 2027 IRMAA surcharge!
+                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) places you in <strong>IRMAA Tier {metrics.irmaaTier}</strong> (~{formatUSD(metrics.irmaaSurchargePerPerson)}/yr per person Part B + Part D) above the confirmed 2026 CMS threshold of{' '}
+                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>. File{' '}
+                          <strong>Form SSA-44 (Work Stoppage)</strong> so Medicare drops your IRMAA surcharge!
                         </p>
                       </>
                     ) : metrics.irmaaOverLimit ? (
                       <>
-                        <div className="font-extrabold text-amber-950 text-sm">⚠️ 2027 IRMAA Surcharge Applies</div>
+                        <div className="font-extrabold text-amber-950 text-sm">
+                          ⚠️ IRMAA Tier {metrics.irmaaTier} Surcharge Applies (~{formatUSD(metrics.irmaaAnnualSurcharge)}/yr)
+                        </div>
                         <p className="text-slate-800">
-                          Your 2025 MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the projected 2027 threshold of{' '}
-                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span> (projected — CMS confirms in November 2026).
+                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the confirmed 2026 CMS threshold of{' '}
+                          <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>.
                         </p>
                       </>
                     ) : (
                       <div className="font-extrabold text-emerald-950 text-sm">
-                        🎉 $0 IRMAA Surcharge (<span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> below projected {formatUSD(metrics.irmaaLimit)} 2027 threshold — CMS confirms in November 2026)!
+                        🎉 $0 IRMAA Surcharge (Tier 1 · <span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> below confirmed {formatUSD(metrics.irmaaLimit)} 2026 CMS threshold)!
                       </div>
                     )}
                   </div>
@@ -1393,9 +1475,9 @@ export default function App() {
                 {/* ACA Bridge */}
                 <div className="surface-card rounded-2xl p-5 space-y-4">
                   <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
-                    Age 60–65 Pre-Medicare ACA Healthcare Bridge (2026 Rules)
+                    Age 60–65 Pre-Medicare ACA Bridge — 2027 ACA Coverage Year (IRS Rev. Proc. 2026-26)
                   </h2>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label htmlFor="acaCurrentAge" className="block text-xs font-bold text-slate-800">
                         Current Age (Under 65):
@@ -1406,13 +1488,13 @@ export default function App() {
                         min="55"
                         max="64"
                         value={inputs.acaCurrentAge}
-                        onChange={(e) => updateInput('acaCurrentAge', parseInt(e.target.value, 10) || 62)}
+                        onChange={(e) => updateInput('acaCurrentAge', parseInt(e.target.value, 10) || 64)}
                         className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
                       />
                     </div>
                     <div>
                       <label htmlFor="acaMagiInput" className="block text-xs font-bold text-slate-800">
-                        Planned 2026 ACA MAGI ($):
+                        Planned 2027 ACA MAGI ($):
                       </label>
                       <input
                         id="acaMagiInput"
@@ -1423,9 +1505,30 @@ export default function App() {
                         className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
                       />
                     </div>
+                    <div>
+                      <label htmlFor="acaHouseholdSizeSelect" className="block text-xs font-bold text-slate-800">
+                        ACA Household Size:
+                      </label>
+                      <select
+                        id="acaHouseholdSizeSelect"
+                        value={metrics.acaHouseholdSize}
+                        onChange={(e) =>
+                          updateInput(
+                            'acaHouseholdSize',
+                            Math.max(1, Math.min(4, parseInt(e.target.value, 10) || 1)) as 1 | 2 | 3 | 4
+                          )
+                        }
+                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 font-bold text-xs"
+                      >
+                        <option value={1}>1 Person ($15,960 FPL · $63,840 Cliff)</option>
+                        <option value={2}>2 People ($21,640 FPL · $86,560 Cliff)</option>
+                        <option value={3}>3 People ($27,320 FPL · $109,280 Cliff)</option>
+                        <option value={4}>4 People ($33,000 FPL · $132,000 Cliff)</option>
+                      </select>
+                    </div>
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025, so the <strong>400% FPL cliff ({formatUSD(metrics.acaCliff)} for a {metrics.acaHouseholdSize}-person household)</strong> applies in 2026 (IRS Rev. Proc. 2025-25).
+                    <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025, so the <strong>400% FPL cliff ({formatUSD(metrics.acaCliff)} for a {metrics.acaHouseholdSize}-person household using 2026 FPL)</strong> applies for the <strong>2027 ACA Coverage Year (IRS Rev. Proc. 2026-26)</strong>.
                   </p>
                   <div
                     id="acaBridgeResult"
@@ -1438,7 +1541,7 @@ export default function App() {
                     {metrics.acaOverCliff ? (
                       <>
                         <strong>⚠️ {metrics.acaYearsToMedicare}-Year Bridge Warning ({Math.round(metrics.acaFplRatioPct)}% of FPL):</strong>{' '}
-                        <strong>No premium tax credit — you pay the full premium.</strong> Your MAGI (<span className="font-num font-bold">{formatUSD(metrics.acaMagi)}</span>) exceeds the 2026 400% FPL cliff (<span className="font-num font-bold">{formatUSD(metrics.acaCliff)}</span>). Cut <strong className="font-num">{formatUSD(metrics.acaDollarsOverCliff)}</strong> of MAGI (using Roth/Cash instead of pre-tax 401k draws) to get back under the cliff!
+                        <strong>No premium tax credit — you pay the full premium.</strong> Your MAGI (<span className="font-num font-bold">{formatUSD(metrics.acaMagi)}</span>) exceeds the 2027 400% FPL cliff (<span className="font-num font-bold">{formatUSD(metrics.acaCliff)}</span>). Cut <strong className="font-num">{formatUSD(metrics.acaDollarsOverCliff)}</strong> of MAGI (using Roth/Cash instead of pre-tax 401k draws) to get back under the cliff!
                       </>
                     ) : (
                       <>
@@ -1692,6 +1795,7 @@ export default function App() {
         {/* DEDICATED 2027 IRS SAVER'S MATCH CALCULATOR & SECTION (SECURE 2.0 / IRC § 6433) */}
         <SaversMatchCalculatorSection
           saversContribution={metrics.saversContribution}
+          saversSpouseContribution={metrics.saversSpouseContribution}
           saversFilingStatus={metrics.saversFilingStatus}
           saversAgi={metrics.saversAgi}
           saversContributingSpouses={metrics.saversContributingSpouses}
@@ -1703,6 +1807,7 @@ export default function App() {
           saversTotalAdded={metrics.saversTotalAdded}
           saversThresholds={metrics.saversThresholds}
           onChangeContribution={(val) => updateInput('saversContribution', val)}
+          onChangeSpouseContribution={(val) => updateInput('saversSpouseContribution', val)}
           onChangeFilingStatus={(val) => updateInput('saversFilingStatus', val)}
           onChangeAgi={(val) => updateInput('saversAgi', val)}
           onChangeContributingSpouses={(val) => updateInput('saversContributingSpouses', val)}

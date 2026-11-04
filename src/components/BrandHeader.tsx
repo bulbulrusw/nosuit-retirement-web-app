@@ -244,7 +244,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                       : 'bg-emerald-900/80 text-amber-100 font-semibold hover:bg-emerald-800 border border-amber-400/30'
                   }`}
                 >
-                  Couple (Age 62, $400K)
+                  Couple (Age 66, $400K)
                 </button>
                 <button
                   type="button"
