@@ -33,7 +33,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
       {/* Top Privacy & Senior Accessibility Bar */}
       <div className="bg-[#0f291e] text-amber-100 border-b border-[#b07d4b]/60 px-4 py-2 text-sm no-print">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-emerald-100">
+          <div className="flex items-center gap-2.5 text-sm font-medium text-emerald-100 leading-normal">
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-600 text-white shrink-0">
               <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
@@ -45,15 +45,15 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center bg-[#183b2b] p-0.5 rounded-lg border border-amber-400/30">
-              <span className="text-[11px] uppercase tracking-wider text-amber-200/90 font-semibold px-2 hidden sm:inline">
+            <div className="inline-flex items-center bg-[#183b2b] p-1 rounded-lg border border-amber-400/30">
+              <span className="text-xs uppercase tracking-wider text-amber-200/95 font-semibold px-2 hidden sm:inline">
                 Text Size
               </span>
               <button
                 id="fontNormalBtn"
                 type="button"
                 onClick={() => onSetFontSize('normal')}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`min-h-[44px] px-3 py-1.5 rounded-md text-sm font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                   fontSizeScale === 'normal'
                     ? 'bg-amber-400 text-slate-950 shadow-xs'
                     : 'text-amber-100 hover:bg-emerald-800/70'
@@ -65,7 +65,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                 id="fontLargeBtn"
                 type="button"
                 onClick={() => onSetFontSize('large')}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`min-h-[44px] px-3 py-1.5 rounded-md text-sm font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                   fontSizeScale === 'large'
                     ? 'bg-amber-400 text-slate-950 shadow-xs'
                     : 'text-amber-200 hover:bg-emerald-800/70'
@@ -77,7 +77,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                 id="fontXLargeBtn"
                 type="button"
                 onClick={() => onSetFontSize('xlarge')}
-                className={`px-2.5 py-1 rounded-md text-xs font-extrabold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`min-h-[44px] px-3 py-1.5 rounded-md text-sm font-extrabold transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                   fontSizeScale === 'xlarge'
                     ? 'bg-amber-400 text-slate-950 shadow-xs'
                     : 'text-amber-300 hover:bg-emerald-800/70'
@@ -91,7 +91,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               id="toggleGuideTopBtn"
               type="button"
               onClick={onToggleGuide}
-              className="px-3 py-1.5 rounded-lg bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold text-xs transition-colors shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-lg bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold text-sm transition-colors shadow-xs whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
               How to Use (3-Min Guide)
             </button>
@@ -99,7 +99,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               id="openGlossaryBtn"
               type="button"
               onClick={onOpenGlossary}
-              className="px-3 py-1.5 rounded-lg bg-[#1c4432] hover:bg-[#255740] text-amber-200 font-bold text-xs border border-amber-400/30 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-lg bg-[#1c4432] hover:bg-[#255740] text-amber-200 font-bold text-sm border border-amber-400/30 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
             >
               No-Suit Glossary
             </button>
@@ -107,7 +107,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               id="openPrivacyBtn"
               type="button"
               onClick={onOpenPrivacy}
-              className="px-3 py-1.5 rounded-lg bg-[#1c4432] hover:bg-[#255740] text-emerald-100 font-bold text-xs border border-emerald-400/25 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-lg bg-[#1c4432] hover:bg-[#255740] text-emerald-100 font-bold text-sm border border-emerald-400/25 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
             >
               Privacy &amp; Policy
             </button>
@@ -115,9 +115,9 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               id="readAloudBtn"
               type="button"
               onClick={onReadAloud}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+              className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-colors shadow-xs whitespace-nowrap shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
             >
-              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.7.48A6.985 6.985 0 002 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0010 16.25V3.75zM15.95 5.05a.75.75 0 00-1.06 1.061 5.5 5.5 0 010 7.778.75.75 0 001.06 1.06 7 7 0 000-9.899z" />
               </svg>
               <span id="readAloudLabel">
@@ -210,7 +210,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                 data-video-id="XHIm3Q1OvK8"
                 data-video-url="https://youtu.be/XHIm3Q1OvK8"
                 data-video-title="Why Your 2027 Social Security Raise Is Already Gone (Real Medicare Math)"
-                className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.99] text-slate-950 font-extrabold text-xs sm:text-sm border border-amber-500 shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0"
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.99] text-slate-950 font-extrabold text-sm border border-amber-500 shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
                 <span>▶️ Watch Latest Video</span>
               </button>
@@ -218,7 +218,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
 
             {/* Working Preset Buttons */}
             <div className="bg-[#0f291e]/90 border border-amber-400/35 rounded-xl p-2.5 w-full sm:w-auto flex flex-col gap-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300/90 text-center xl:text-left">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-300/95 text-center xl:text-left">
                 Load Sample Household Profile:
               </span>
               <div className="flex flex-wrap sm:flex-nowrap justify-center xl:justify-start gap-1.5">
@@ -226,7 +226,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                   type="button"
                   data-preset="single"
                   onClick={() => onSelectPreset('single')}
-                  className={`preset-btn px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`preset-btn min-h-[44px] px-3 py-2 rounded-lg text-sm transition-all cursor-pointer whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                     activePreset === 'single'
                       ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                       : 'bg-emerald-900/80 text-amber-100 font-semibold hover:bg-emerald-800 border border-amber-400/30'
@@ -238,7 +238,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                   type="button"
                   data-preset="couple400k"
                   onClick={() => onSelectPreset('couple400k')}
-                  className={`preset-btn px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`preset-btn min-h-[44px] px-3 py-2 rounded-lg text-sm transition-all cursor-pointer whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                     activePreset === 'couple400k'
                       ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                       : 'bg-emerald-900/80 text-amber-100 font-semibold hover:bg-emerald-800 border border-amber-400/30'
@@ -250,7 +250,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
                   type="button"
                   data-preset="latesaver"
                   onClick={() => onSelectPreset('latesaver')}
-                  className={`preset-btn px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`preset-btn min-h-[44px] px-3 py-2 rounded-lg text-sm transition-all cursor-pointer whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none ${
                     activePreset === 'latesaver'
                       ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                       : 'bg-emerald-900/80 text-amber-100 font-semibold hover:bg-emerald-800 border border-amber-400/30'

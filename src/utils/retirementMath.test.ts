@@ -7,7 +7,7 @@ import {
   calculateRetirementMetrics,
   formatUSD,
 } from './retirementMath.ts';
-import { RETIREMENT_CONSTANTS } from '../data/retirementConstants.ts';
+import { DATA_LAST_VERIFIED, RETIREMENT_CONSTANTS } from '../data/retirementConstants.ts';
 import {
   DEFAULT_CHANNEL_CONFIG,
   DEFAULT_GA_MEASUREMENT_ID,
@@ -19,7 +19,6 @@ import {
   SITE_CANONICAL_URL,
   buildSpouseShareLinks,
 } from '../components/ConversionAndComplianceBars';
-import { buildFullStandaloneHtml } from './fullStandaloneTemplate';
 
 test('default couple400k profile computes accurate Net SS, Medicare Part B $202.90/$6.60 defaults, Hold Harmless protection, and 3-Bucket allocations', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
@@ -330,6 +329,7 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
   const resTier3Single = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'single',
+    spouseOnMedicare: false,
     irmaa2025Income: 150000,
   });
   assert.equal(resTier3Single.irmaaTier, 3);
@@ -348,6 +348,7 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
   const resTier5Single = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'single',
+    spouseOnMedicare: false,
     irmaa2025Income: 300000,
   });
   assert.equal(resTier5Single.irmaaTier, 5);
@@ -471,6 +472,7 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
   const fix2Single500k = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'single',
+    spouseOnMedicare: false,
     irmaa2025Income: 500000,
   });
   assert.equal(fix2Single500k.irmaaTier, 6);
@@ -609,33 +611,69 @@ test('Fix 6, Fix 7 & Upgrades 1–6: Standalone HTML and AdSlots synchronize all
   });
   assert.ok(links.facebookShareUrl.includes('facebook.com/sharer/sharer.php'));
   assert.ok(decodeURIComponent(links.emailShareUrl).includes('$2,793/mo'));
-
-  const html = buildFullStandaloneHtml(DEFAULT_CHANNEL_CONFIG);
-  assert.ok(html.includes("No-Suit Retirement — 2027 Social Security COLA, IRMAA &amp; Saver's Match Calculator"));
-  assert.ok(html.includes('<meta property="og:image" content="https://nosuitretirement.com/og-preview.jpg" />'));
-  assert.ok(html.includes('<meta name="twitter:image" content="https://nosuitretirement.com/og-preview.jpg" />'));
-  assert.ok(html.includes('.tab-panel:not(#tab-binder) { display: none !important; }'));
-  assert.ok(html.includes('No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)'));
-  assert.ok(html.includes('2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)'));
-  assert.ok(html.includes('Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.'));
-  assert.ok(html.includes('2027 ACA Coverage Year (IRS Rev. Proc. 2026-26)'));
-  assert.ok(html.includes('https://seniorsleague.org'));
-  assert.ok(html.includes('id="saversSpouseContributionInput"'));
-  assert.ok(html.includes('id="partDMonthlyPremiumInput"'));
-  assert.ok(html.includes('id="holdHarmlessStatusBadge"'));
-  assert.ok(html.includes('id="reachingFraThisYearSelect"'));
-  assert.ok(html.includes('id="acaHouseholdSizeSelect"'));
-  assert.ok(html.includes('Baseline Guardrail Model: Assumes a 4.5% safe portfolio draw and 8 full years in cash/T-Bills'));
-  assert.ok(html.includes('Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket (IRS Rev. Proc. 2025-32)'));
-  assert.ok(html.includes('Erases your Tier'));
-  assert.equal(html.includes('YOUR_GSC_CODE'), false);
-  assert.ok(html.includes('id="declineCookiesBtn"'));
-  assert.ok(html.includes("localStorage.getItem(COOKIE_CONSENT_KEY) === 'accepted'"));
-  assert.ok(html.includes('id="partBIncreaseInput" type="number" step="0.1" value="6.60"'));
-  assert.equal(html.includes('id="partBIncreaseInput" type="number" step="0.1" value="18"'), false);
-  assert.ok(html.includes('id="locWill" type="text" value=""'));
-  assert.ok(html.includes('id="loc401k" type="text" value=""'));
-  assert.ok(html.includes('WATCH RETIREMENT MATH IN PLAIN ENGLISH'));
 });
 
+test('Task 1 & Task 2: Medicare enrollment by toggle, IRMAA enrollee count multiplier, and DATA_LAST_VERIFIED freshness note', () => {
+  // 1. Married, SS $1,900 + $1,500, both toggles false, Part D premium 0:
+  //    baseMedicareCurrent = 0 and primaryNetSS + spouseNetSS = 3,400 x 1.036 = 3,522.40
+  const resBothOff = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    taxFilingStatus: 'married',
+    ssYourCheck: 1900,
+    ssSpouseCheck: 1500,
+    primaryOnMedicare: false,
+    spouseOnMedicare: false,
+    partDMonthlyPremium: 0,
+  });
+  assert.equal(resBothOff.activeMedicareEnrollees, 0);
+  assert.equal(resBothOff.baseMedicareCurrent, 0);
+  assert.equal(resBothOff.totalMedicareHike, 0);
+  assert.equal(resBothOff.totalPartDPremium, 0);
+  assert.ok(Math.abs(resBothOff.primaryNetSS + resBothOff.spouseNetSS - 3522.4) < 0.001);
+  assert.ok(Math.abs(resBothOff.newNetSS - 3522.4) < 0.001);
+  assert.equal(resBothOff.irmaaAnnualSurcharge, 0);
+  assert.equal(resBothOff.holdHarmlessProtectedStatus, '§ 1839(f) Not Applicable');
 
+  // 2. Married, one enrollee: irmaaAnnualSurcharge equals 1 x the per-person amount
+  const resOneEnrollee = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    taxFilingStatus: 'married',
+    primaryOnMedicare: true,
+    spouseOnMedicare: false,
+    irmaa2025Income: 230000, // Tier 2 married: $1,148.40 per person
+  });
+  assert.equal(resOneEnrollee.activeMedicareEnrollees, 1);
+  assert.equal(resOneEnrollee.irmaaSurchargePerPerson, 1148.4);
+  assert.equal(resOneEnrollee.irmaaAnnualSurcharge, 1148.4);
+  assert.equal(resOneEnrollee.baseMedicareCurrent, 202.9);
+
+  // 3. Both enrollees on: results unchanged from the current default results
+  const resBothOn = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    primaryOnMedicare: true,
+    spouseOnMedicare: true,
+  });
+  assert.equal(resBothOn.activeMedicareEnrollees, 2);
+  assert.equal(resBothOn.baseMedicareCurrent, 405.8);
+  assert.equal(resBothOn.totalMedicareHike, 13.2);
+  assert.equal(formatUSD(resBothOn.newNetSS), '$2,793');
+  assert.equal(resBothOn.irmaaSurchargePerPerson, 1148.4);
+  assert.equal(resBothOn.irmaaAnnualSurcharge, 2296.8);
+
+  // 4. Presets and DATA_LAST_VERIFIED
+  assert.equal(DEFAULT_INPUTS.primaryOnMedicare, true);
+  assert.equal(DEFAULT_INPUTS.spouseOnMedicare, true);
+  assert.equal(PRESET_PROFILES.couple400k.values.primaryOnMedicare, true);
+  assert.equal(PRESET_PROFILES.couple400k.values.spouseOnMedicare, true);
+  assert.equal(PRESET_PROFILES.single.values.primaryOnMedicare, true);
+  assert.equal(PRESET_PROFILES.single.values.spouseOnMedicare, false);
+  assert.equal(PRESET_PROFILES.latesaver.values.primaryOnMedicare, false);
+  assert.equal(PRESET_PROFILES.latesaver.values.spouseOnMedicare, false);
+  assert.ok(
+    PRESET_PROFILES.latesaver.toast.includes(
+      'Tab 1 shows $0 Social Security because benefits have not started yet at age 59.'
+    )
+  );
+  assert.equal(DATA_LAST_VERIFIED, '2026-11-07');
+  assert.equal(RETIREMENT_CONSTANTS.DATA_LAST_VERIFIED, '2026-11-07');
+});

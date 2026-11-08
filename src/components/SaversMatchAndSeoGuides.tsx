@@ -33,7 +33,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
             Click Any Real U.S. Retirement Scenario Below to Auto-Populate the Math:
           </h2>
         </div>
-        <span className="text-xs font-semibold text-slate-600">
+        <span className="text-sm font-semibold text-slate-700">
           Instant 1-Click Calculation · 100% Private
         </span>
       </div>
@@ -56,7 +56,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
               type="button"
               data-quick-scenario={key}
               onClick={() => onSelectQuickScenario(key)}
-              className={`quick-scenario-btn min-h-[44px] text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+              className={`quick-scenario-btn min-h-[44px] text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-1.5 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none ${
                 isActive
                   ? 'bg-[#1b4332] text-white border-amber-400 shadow-md'
                   : 'bg-[#f8f5ec] hover:bg-amber-50/90 text-slate-900 border-[#c5b9a5] hover:border-[#b07d4b]'
@@ -64,7 +64,7 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
             >
               <div className="flex items-start justify-between gap-2">
                 <span
-                  className={`text-xs sm:text-sm font-extrabold leading-snug ${
+                  className={`text-sm font-extrabold leading-snug ${
                     isActive ? 'text-amber-300' : 'text-slate-900'
                   }`}
                 >
@@ -81,8 +81,8 @@ export const QuickScenarioBar: React.FC<QuickScenarioBarProps> = ({
                 </span>
               </div>
               <p
-                className={`text-xs leading-relaxed ${
-                  isActive ? 'text-emerald-100' : 'text-slate-600'
+                className={`text-sm leading-relaxed ${
+                  isActive ? 'text-emerald-100' : 'text-slate-700'
                 }`}
               >
                 {item.shortDesc}
@@ -157,7 +157,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
           <h2 className="text-lg md:text-2xl font-extrabold text-slate-900">
             2027 Federal Saver&apos;s Match Calculator (Up to $1,000/Person or $2,000/Couple Match)
           </h2>
-          <p className="text-xs md:text-sm text-slate-700 max-w-4xl leading-relaxed">
+          <p className="text-sm md:text-base text-slate-800 max-w-4xl leading-relaxed">
             Starting in 2027 under the <strong>SECURE 2.0 Act (IRC § 6433)</strong>, the old non-refundable Saver&apos;s Credit is replaced by the <strong>Federal Saver&apos;s Match</strong>—a direct <strong>up to 50% federal matching contribution</strong> on up to <strong>$2,000 saved per person</strong> ($1,000 max match per person; $4,000 cap / $2,000 max match for 2 contributing spouses, capped individually at $2,000 per spouse) deposited into a pre-tax Traditional IRA or 401(k).
           </p>
         </div>
@@ -173,7 +173,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
               link_url: 'https://www.irs.gov/credits-deductions/savers-match',
             })
           }
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs border border-amber-400/50 shadow-xs transition-colors shrink-0 self-start lg:self-center"
+          className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-sm border border-amber-400/50 shadow-xs transition-colors shrink-0 self-start lg:self-center focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
         >
           <span>🏛️ Official IRS Saver&apos;s Match Guide (IRS.gov) →</span>
         </a>
@@ -183,13 +183,13 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Left 6 cols: Inputs */}
         <div className="lg:col-span-6 bg-[#f8f5ec] rounded-xl p-4 md:p-5 border border-[#c5b9a5] space-y-4">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-950 border-b border-[#d5cbb8] pb-2">
+          <div className="text-sm font-extrabold uppercase tracking-wider text-emerald-950 border-b border-[#d5cbb8] pb-2">
             Step 1 · Enter Your 2027 Contribution &amp; Income
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="saversContributionInput" className="block text-xs font-bold text-slate-800">
+              <label htmlFor="saversContributionInput" className="block text-sm font-bold text-slate-800">
                 {saversFilingStatus === 'married' && saversContributingSpouses === 2
                   ? 'Spouse 1 Contribution ($/yr)'
                   : 'Annual Retirement Contribution ($)'}
@@ -201,22 +201,22 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 step="250"
                 value={saversContribution}
                 onChange={(e) => onChangeContribution(parseFloat(e.target.value) || 0)}
-                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
+                className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3.5 py-2 font-bold font-num text-base text-slate-900"
               />
-              <span className="block text-xs text-slate-600 mt-1">
+              <span className="block text-sm text-slate-700 mt-1 leading-normal">
                 Per-person cap: <strong className="font-num">$2,000/yr</strong> ({formatUSD(saversMaxEligibleContribution)}/yr household max).
               </span>
             </div>
 
             <div>
-              <label htmlFor="saversFilingStatus" className="block text-xs font-bold text-slate-800">
+              <label htmlFor="saversFilingStatus" className="block text-sm font-bold text-slate-800">
                 Tax Filing Status
               </label>
               <select
                 id="saversFilingStatus"
                 value={saversFilingStatus}
                 onChange={(e) => onChangeFilingStatus(e.target.value as SaversFilingStatus)}
-                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
+                className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
               >
                 <option value="single">Single / MFS ($20,500 → $35,500 AGI)</option>
                 <option value="married">Married Filing Jointly ($41,000 → $71,000 AGI)</option>
@@ -228,7 +228,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
           {saversFilingStatus === 'married' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="saversContributingSpouses" className="block text-xs font-bold text-slate-800">
+                <label htmlFor="saversContributingSpouses" className="block text-sm font-bold text-slate-800">
                   Contributing Spouses (Married Filing Jointly)
                 </label>
                 <select
@@ -237,7 +237,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                   onChange={(e) =>
                     onChangeContributingSpouses(Number(e.target.value) === 2 ? 2 : 1)
                   }
-                  className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
+                  className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold text-sm text-slate-900"
                 >
                   <option value={1}>1 Contributing Spouse ($2,000 cap · up to $1,000 match)</option>
                   <option value={2}>2 Contributing Spouses ($2,000/person cap · up to $2,000 match)</option>
@@ -246,7 +246,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
 
               {saversContributingSpouses === 2 && (
                 <div>
-                  <label htmlFor="saversSpouseContributionInput" className="block text-xs font-bold text-slate-800">
+                  <label htmlFor="saversSpouseContributionInput" className="block text-sm font-bold text-slate-800">
                     Spouse 2 Contribution ($/yr)
                   </label>
                   <input
@@ -256,9 +256,9 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                     step="250"
                     value={saversSpouseContribution}
                     onChange={(e) => onChangeSpouseContribution(parseFloat(e.target.value) || 0)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
+                    className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3.5 py-2 font-bold font-num text-base text-slate-900"
                   />
-                  <span className="block text-xs text-slate-600 mt-1">
+                  <span className="block text-sm text-slate-700 mt-1 leading-normal">
                     Capped individually at <strong className="font-num">$2,000/yr</strong> per spouse.
                   </span>
                 </div>
@@ -268,10 +268,10 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
 
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="saversAgiInput" className="block text-xs font-bold text-slate-800">
+              <label htmlFor="saversAgiInput" className="block text-sm font-bold text-slate-800">
                 Estimated Modified Adjusted Gross Income (AGI) ($/yr)
               </label>
-              <span className="text-xs font-extrabold text-emerald-900 font-num">
+              <span className="text-sm font-extrabold text-emerald-900 font-num">
                 {formatUSD(saversAgi)}/yr
               </span>
             </div>
@@ -282,12 +282,12 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
               step="1000"
               value={saversAgi}
               onChange={(e) => onChangeAgi(parseFloat(e.target.value) || 0)}
-              className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num text-sm text-slate-900"
+              className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3.5 py-2 font-bold font-num text-base text-slate-900"
             />
           </div>
 
           {/* IRC §6433 Linear Phase-Out Reference Box */}
-          <div className="bg-white rounded-xl p-3.5 border border-slate-200 text-xs space-y-1.5">
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200 text-sm space-y-1.5">
             <div className="font-extrabold text-slate-900">
               2027 IRS Linear Phase-Out Thresholds ({saversFilingStatus === 'married' ? 'Married Filing Jointly' : saversFilingStatus === 'hoh' ? 'Head of Household' : 'Single / MFS'}):
             </div>
@@ -303,7 +303,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-slate-100 border border-slate-300">
-                <span className="block text-xs font-bold uppercase text-slate-700">0% Phased Out</span>
+                <span className="block text-xs font-bold uppercase text-slate-800">0% Phased Out</span>
                 <span className="font-extrabold text-slate-900">At or Above {formatUSD(saversThresholds.end)}</span>
               </div>
             </div>
@@ -311,10 +311,13 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
         </div>
 
         {/* Right 6 cols: Chalkboard Output */}
-        <div className="lg:col-span-6 chalkboard-bg rounded-xl p-4 md:p-5 text-white flex flex-col justify-between space-y-4">
+        <div
+          aria-live="polite"
+          className="lg:col-span-6 chalkboard-bg rounded-xl p-4 md:p-5 text-white flex flex-col justify-between space-y-4"
+        >
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/30 pb-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-300">
+              <span className="text-sm font-bold uppercase tracking-wider text-amber-300">
                 Step 2 · Your 2027 Federal Match Deposit (Estimate)
               </span>
               <span
@@ -336,7 +339,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   {formattedRatePct}%
                 </div>
-                <p className="text-xs text-emerald-100 mt-1">
+                <p className="text-sm text-emerald-100 mt-1">
                   IRC § 6433(b)(2) whole-% match
                 </p>
               </div>
@@ -351,7 +354,7 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   +{formatUSD(saversMatchDeposit)}
                 </div>
-                <p className="text-xs text-emerald-100 mt-1">
+                <p className="text-sm text-emerald-100 mt-1">
                   Max {formatUSD(saversMaxMatch)} ({saversContributingSpouses === 2 ? '2 spouses' : '1 person'})
                 </p>
               </div>
@@ -366,18 +369,18 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 >
                   {formatUSD(saversTotalAdded)}
                 </div>
-                <p className="text-xs text-emerald-100 mt-1">
+                <p className="text-sm text-emerald-100 mt-1">
                   Your {formatUSD(totalHouseholdContribution)} + {formatUSD(saversMatchDeposit)} Match
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0f291e] rounded-xl p-3.5 border border-amber-400/30 text-xs text-emerald-100 leading-relaxed space-y-1.5">
+          <div className="bg-[#0f291e] rounded-xl p-3.5 border border-amber-400/30 text-sm text-emerald-100 leading-relaxed space-y-1.5">
             <div>
               <strong className="text-amber-300">Important IRC § 6433 &amp; IRS Notice 2026-48 Rules:</strong>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-xs text-emerald-100">
+            <ul className="list-disc list-inside space-y-1 text-sm text-emerald-100 leading-relaxed">
               <li>
                 <strong>Pre-Tax Account Deposit:</strong> The federal match is deposited directly into a <strong>pre-tax Traditional IRA or 401(k)</strong> and is <strong>taxed at withdrawal</strong> (it cannot be deposited into a Roth account).
               </li>
@@ -391,13 +394,13 @@ export const SaversMatchCalculatorSection: React.FC<SaversMatchSectionProps> = (
                 <strong>Statutory Rounding (IRC § 6433(b)(2) &amp; IRS Notice 2026-48):</strong> Reduction points <code className="font-mono text-amber-200">floor(50 × (AGI − start) / (end − start))</code> are rounded DOWN to the next lowest whole percentage point. Illustrative educational estimate; consult your tax advisor.
               </li>
             </ul>
-            <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-200 border-t border-amber-400/20">
+            <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-sm text-amber-200 border-t border-amber-400/20">
               <span>Statutory Reference: IRC § 6433 (SECURE 2.0 Act § 103)</span>
               <a
                 href="https://www.irs.gov/credits-deductions/savers-match"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline font-bold text-amber-300 hover:text-white"
+                className="underline font-bold text-amber-300 hover:text-white focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none rounded"
               >
                 Verify at IRS.gov/credits-deductions/savers-match →
               </a>
@@ -436,11 +439,11 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
               2027 Social Security 3.6% COLA &amp; Medicare Part B &ldquo;Hold Harmless&rdquo; Guide
             </h2>
 
-            <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
+            <p className="text-sm md:text-base text-slate-800 leading-relaxed">
               The Social Security Administration announced the official <strong>3.6% Cost-of-Living Adjustment (COLA)</strong> on <strong>October 14, 2026</strong>, taking effect with January 2027 Social Security payments. However, because Medicare Part B premiums are automatically deducted from Social Security checks before they reach your bank account, your real deposit depends on the <strong>Two-Envelope Net Check Formula</strong>.
             </p>
 
-            <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-xs text-slate-800">
+            <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-sm text-slate-800 leading-relaxed">
               <div className="font-extrabold text-[#1b4332] uppercase tracking-wider">
                 How the Federal &ldquo;Hold Harmless&rdquo; Rule Works (§ 1839(f)):
               </div>
@@ -459,7 +462,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-slate-500">
+            <span className="text-sm font-semibold text-slate-700">
               No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
             </span>
             <a
@@ -473,7 +476,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                   link_url: 'https://www.ssa.gov/news/en/cola/factsheets/2027.html',
                 })
               }
-              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
             >
               <span>📄 Official 2027 SSA COLA Fact Sheet (SSA.gov) →</span>
             </a>
@@ -499,11 +502,11 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
               Form SSA-44 IRMAA Appeal: Step-by-Step Retirement Checklist
             </h2>
 
-            <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
+            <p className="text-sm md:text-base text-slate-800 leading-relaxed">
               Medicare&apos;s <strong>IRMAA (Income-Related Monthly Adjustment Amount)</strong> uses a 2-year tax lookback (confirmed 2026 CMS threshold from 2024 MAGI is <strong>$109,000 Single / $218,000 Married</strong>; <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November</em>). If your income dropped because you retired, you can file <strong>Form SSA-44</strong> to erase the Part B &amp; Part D surcharge.
             </p>
 
-            <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-xs text-slate-800">
+            <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-sm text-slate-800 leading-relaxed">
               <div className="font-extrabold text-[#1b4332] uppercase tracking-wider">
                 The 8 Official SSA Life-Changing Events (Step 1 of Form SSA-44):
               </div>
@@ -517,14 +520,14 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                 <div className="text-emerald-900 font-extrabold">4. Work Stoppage (Retirement) ★</div>
                 <div>8. Employer Settlement Payment</div>
               </div>
-              <p className="text-xs text-slate-600 pt-1 border-t border-slate-200 leading-relaxed">
+              <p className="text-sm text-slate-700 pt-1 border-t border-slate-200 leading-relaxed">
                 <strong>How to File in 3 Steps:</strong> (1) Check <em>&ldquo;Work Stoppage&rdquo;</em> or <em>&ldquo;Work Reduction&rdquo;</em> in Step 1 of Form SSA-44; (2) Enter your lower estimated retirement AGI + tax-exempt interest in Step 2–3; (3) Attach a copy of your retirement letter or final pay stub and mail or fax it to your local Social Security office.
               </p>
             </div>
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-slate-500">
+            <span className="text-sm font-semibold text-slate-700">
               No-Suit Plain-English Guide (Grounded in Official SSA &amp; CMS Statutes)
             </span>
             <a
@@ -538,7 +541,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                   link_url: 'https://www.ssa.gov/forms/ssa-44.pdf',
                 })
               }
-              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-emerald-900 focus-visible:outline-none"
             >
               <span>📥 Download Official Form SSA-44 (SSA.gov PDF) →</span>
             </a>

@@ -1,10 +1,14 @@
 /**
  * Centralized Tax, Medicare, Social Security, and ACA Constants
- * Used across both the React calculator (`src/utils/retirementMath.ts`)
- * and the standalone HTML export (`src/utils/fullStandaloneTemplate.ts`).
+ * Used across the React calculator (`src/utils/retirementMath.ts`).
  */
 
+export const DATA_LAST_VERIFIED = '2026-11-07' as const;
+
 export const RETIREMENT_CONSTANTS = {
+  /** Date all statutory figures were last verified */
+  DATA_LAST_VERIFIED,
+
   /** Google Analytics 4 Measurement ID */
   GA_MEASUREMENT_ID: 'G-66NLH28JBQ',
 

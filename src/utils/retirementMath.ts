@@ -9,6 +9,8 @@ export interface RetirementInputs {
   // Tab 1: Two-Envelope COLA & 3-Bucket Nest Egg
   ssYourCheck: number;
   ssSpouseCheck: number;
+  primaryOnMedicare?: boolean;
+  spouseOnMedicare?: boolean;
   colaPct: number;
   partBIncrease: number;
   partBBasePremium?: number;
@@ -56,6 +58,8 @@ export interface RetirementInputs {
 export const DEFAULT_INPUTS: RetirementInputs = {
   ssYourCheck: 1940,
   ssSpouseCheck: 1160,
+  primaryOnMedicare: true,
+  spouseOnMedicare: true,
   colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
   partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
   partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
@@ -160,6 +164,8 @@ export const PRESET_PROFILES: Record<
     values: {
       ssYourCheck: 2150,
       ssSpouseCheck: 0,
+      primaryOnMedicare: true,
+      spouseOnMedicare: false,
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
       partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
@@ -198,6 +204,8 @@ export const PRESET_PROFILES: Record<
     values: {
       ssYourCheck: 1940,
       ssSpouseCheck: 1160,
+      primaryOnMedicare: true,
+      spouseOnMedicare: true,
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBIncrease: RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027,
       partBBasePremium: RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026,
@@ -232,10 +240,13 @@ export const PRESET_PROFILES: Record<
   },
   latesaver: {
     label: 'Late Saver (Age 59, $120K)',
-    toast: 'Loaded Late Saver Catch-Up (Age 59, $120K Nest Egg) profile.',
+    toast:
+      'Loaded Late Saver Catch-Up (Age 59, $120K Nest Egg) profile. Tab 1 shows $0 Social Security because benefits have not started yet at age 59.',
     values: {
       ssYourCheck: 0,
       ssSpouseCheck: 0,
+      primaryOnMedicare: false,
+      spouseOnMedicare: false,
       colaPct: RETIREMENT_CONSTANTS.COLA_2027_PCT,
       partBIncrease: 0,
       partBBasePremium: 0,
@@ -278,6 +289,9 @@ export type HoldHarmlessStatusLabel =
 export interface RetirementMetrics {
   // Tab 1
   numPeople: number;
+  primaryOnMedicare: boolean;
+  spouseOnMedicare: boolean;
+  activeMedicareEnrollees: 0 | 1 | 2;
   currentGrossSS: number;
   primaryColaRaise: number;
   spouseColaRaise: number;
@@ -451,6 +465,25 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const numPeople = ssSpouse > 0 ? 2 : 1;
   const currentGrossSS = ssYour + ssSpouse;
 
+  // FIX A — Medicare enrollment by toggle, not by Social Security receipt
+  const primaryOnMedicare =
+    inputs.primaryOnMedicare !== undefined
+      ? Boolean(inputs.primaryOnMedicare)
+      : Boolean(DEFAULT_INPUTS.primaryOnMedicare ?? true);
+  const spouseOnMedicare =
+    inputs.spouseOnMedicare !== undefined
+      ? Boolean(inputs.spouseOnMedicare)
+      : Boolean(DEFAULT_INPUTS.spouseOnMedicare ?? true);
+
+  const activeMedicareEnrollees = (
+    (primaryOnMedicare ? 1 : 0) + (spouseOnMedicare ? 1 : 0)
+  ) as 0 | 1 | 2;
+
+  const primaryHasMedicareAndSS = primaryOnMedicare && ssYour > 0;
+  const spouseHasMedicareAndSS = spouseOnMedicare && ssSpouse > 0;
+  const enrolleesWithSSCount =
+    (primaryHasMedicareAndSS ? 1 : 0) + (spouseHasMedicareAndSS ? 1 : 0);
+
   // Social Security Act § 1839(f): Hold Harmless applies individually to each qualifying beneficiary,
   // not as an aggregate household pool.
   const primaryColaRaise = ssYour * (colaPct / 100);
@@ -458,40 +491,49 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const grossColaRaise = primaryColaRaise + spouseColaRaise;
   const newGrossSS = currentGrossSS + grossColaRaise;
 
-  const activeMedicareEnrollees = (ssYour > 0 ? 1 : 0) + (ssSpouse > 0 ? 1 : 0);
   const baseMedicareCurrent =
-    activeMedicareEnrollees > 0 ? partBBasePerPerson * activeMedicareEnrollees : 0;
+    enrolleesWithSSCount > 0 ? partBBasePerPerson * enrolleesWithSSCount : 0;
   const rawMedicareHike =
-    activeMedicareEnrollees > 0 ? partBHikePerPerson * activeMedicareEnrollees : partBHikePerPerson;
+    enrolleesWithSSCount > 0 ? partBHikePerPerson * enrolleesWithSSCount : 0;
 
-  const primaryMedicareHike =
-    ssYour > 0 ? Math.min(partBHikePerPerson, primaryColaRaise) : 0;
-  const spouseMedicareHike =
-    ssSpouse > 0 ? Math.min(partBHikePerPerson, spouseColaRaise) : 0;
+  const primaryMedicareHike = primaryHasMedicareAndSS
+    ? Math.min(partBHikePerPerson, primaryColaRaise)
+    : 0;
+  const spouseMedicareHike = spouseHasMedicareAndSS
+    ? Math.min(partBHikePerPerson, spouseColaRaise)
+    : 0;
 
   const totalMedicareHike = primaryMedicareHike + spouseMedicareHike;
   const holdHarmlessProtected =
-    (ssYour > 0 && partBHikePerPerson > primaryColaRaise) ||
-    (ssSpouse > 0 && partBHikePerPerson > spouseColaRaise);
+    (primaryHasMedicareAndSS && partBHikePerPerson > primaryColaRaise) ||
+    (spouseHasMedicareAndSS && partBHikePerPerson > spouseColaRaise);
 
   const newTotalMedicare = baseMedicareCurrent + totalMedicareHike;
   const primaryNetSS =
     ssYour > 0
-      ? Math.max(0, ssYour + primaryColaRaise - (partBBasePerPerson + primaryMedicareHike))
+      ? Math.max(
+          0,
+          ssYour +
+            primaryColaRaise -
+            (primaryHasMedicareAndSS ? partBBasePerPerson + primaryMedicareHike : 0)
+        )
       : 0;
   const spouseNetSS =
     ssSpouse > 0
-      ? Math.max(0, ssSpouse + spouseColaRaise - (partBBasePerPerson + spouseMedicareHike))
+      ? Math.max(
+          0,
+          ssSpouse +
+            spouseColaRaise -
+            (spouseHasMedicareAndSS ? partBBasePerPerson + spouseMedicareHike : 0)
+        )
       : 0;
-  const totalPartDPremium =
-    partDMonthlyPremium * (ssYour > 0 ? 1 : 0) +
-    partDMonthlyPremium * (ssSpouse > 0 ? 1 : 0);
+  const totalPartDPremium = partDMonthlyPremium * enrolleesWithSSCount;
   const newNetSS = Math.max(
     0,
     primaryNetSS -
-      partDMonthlyPremium * (ssYour > 0 ? 1 : 0) +
+      (primaryHasMedicareAndSS ? partDMonthlyPremium : 0) +
       spouseNetSS -
-      partDMonthlyPremium * (ssSpouse > 0 ? 1 : 0)
+      (spouseHasMedicareAndSS ? partDMonthlyPremium : 0)
   );
   const netRaise = Math.max(0, grossColaRaise - totalMedicareHike);
   const bitePct =
@@ -741,11 +783,11 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     }
   }
   const irmaaAnnualSurcharge =
-    Math.round(irmaaSurchargePerPerson * (isMarried ? 2 : 1) * 100) / 100;
+    Math.round(irmaaSurchargePerPerson * activeMedicareEnrollees * 100) / 100;
 
-  // FIX 7 — Hold Harmless Eligibility Status Badge (§ 1839(f) scope)
+  // FIX A & FIX 7 — Hold Harmless Eligibility Status Badge (§ 1839(f) scope)
   let holdHarmlessProtectedStatus: HoldHarmlessStatusLabel = '§ 1839(f) Not Applicable';
-  if (currentGrossSS > 0 && !irmaaOverLimit) {
+  if (enrolleesWithSSCount > 0 && !irmaaOverLimit) {
     holdHarmlessProtectedStatus = holdHarmlessProtected
       ? '§ 1839(f) Cap Active'
       : 'COLA Absorbs Hike (§ 1839(f) Eligible)';
@@ -867,6 +909,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
 
   return {
     numPeople,
+    primaryOnMedicare,
+    spouseOnMedicare,
+    activeMedicareEnrollees,
     currentGrossSS,
     primaryColaRaise,
     spouseColaRaise,

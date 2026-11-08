@@ -10,6 +10,7 @@ import {
   calculateRetirementMetrics,
   formatUSD,
 } from './utils/retirementMath';
+import { DATA_LAST_VERIFIED } from './data/retirementConstants';
 import { BrandHeader } from './components/BrandHeader';
 import { UserGuideSection, TabId } from './components/UserGuideSection';
 import { PaycheckCashFlowChart, BreakevenLineChart } from './components/Charts';
@@ -35,6 +36,17 @@ import {
   QuickScenarioBar,
   SaversMatchCalculatorSection,
 } from './components/SaversMatchAndSeoGuides';
+
+function formatVerifiedDate(isoDate: string): string {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return isoDate;
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
 
 const SCAM_ITEMS = [
   {
@@ -97,6 +109,9 @@ export default function App() {
   const [isGlossaryOpen, setIsGlossaryOpen] = useState<boolean>(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState<boolean>(false);
   const [activeVideoModal, setActiveVideoModal] = useState<FeaturedVideoEpisode | null>(null);
+  const [playingVideoIds, setPlayingVideoIds] = useState<Record<string, boolean>>({});
+  const [modalVideoPlaying, setModalVideoPlaying] = useState<boolean>(false);
+  const [failedThumbIds, setFailedThumbIds] = useState<Record<string, boolean>>({});
   const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [cookieConsentStatus, setCookieConsentStatus] = useState<CookieConsentStatus>(() => {
@@ -205,6 +220,7 @@ export default function App() {
 
   const handleWatchLatestVideo = () => {
     const latestVideo = FEATURED_YOUTUBE_VIDEOS[0];
+    setModalVideoPlaying(false);
     setActiveVideoModal(latestVideo);
     trackGa4Event('youtube_video_play', {
       event_category: 'hero_watch_latest_video',
@@ -403,8 +419,32 @@ export default function App() {
     { id: 'tab-binder', label: '5. Print Plan & Binder' },
   ];
 
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
+    let nextIdx: number | null = null;
+    if (e.key === 'ArrowRight') {
+      nextIdx = (idx + 1) % tabs.length;
+    } else if (e.key === 'ArrowLeft') {
+      nextIdx = (idx - 1 + tabs.length) % tabs.length;
+    } else if (e.key === 'Home') {
+      nextIdx = 0;
+    } else if (e.key === 'End') {
+      nextIdx = tabs.length - 1;
+    }
+    if (nextIdx !== null) {
+      e.preventDefault();
+      const nextTab = tabs[nextIdx];
+      setActiveTab(nextTab.id);
+      const btn = document.getElementById(`tab-btn-${nextTab.id}`);
+      btn?.focus();
+    }
+  };
+
+  const showNoPartBDeductedNote =
+    (inputs.ssYourCheck > 0 && !metrics.primaryOnMedicare) ||
+    (inputs.ssSpouseCheck > 0 && !metrics.spouseOnMedicare);
+
   return (
-    <div className="min-h-screen flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen flex flex-col pb-20 md:pb-0 text-base leading-normal">
       <BrandHeader
         fontSizeScale={fontSizeScale}
         onSetFontSize={handleSetFontSize}
@@ -459,14 +499,24 @@ export default function App() {
 
             {/* 5 Navigation Tabs */}
             <nav className="no-print" aria-label="Main Modules">
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 bg-[#ebe4d4] p-2 rounded-2xl border border-[#c5b9a5] shadow-xs">
+              <div
+                role="tablist"
+                aria-label="Retirement Calculator Modules"
+                className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 bg-[#ebe4d4] p-2 rounded-2xl border border-[#c5b9a5] shadow-xs"
+              >
                 {tabs.map((tab, idx) => {
                   const isActive = activeTab === tab.id;
                   return (
                     <button
                       key={tab.id}
+                      id={`tab-btn-${tab.id}`}
                       type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={tab.id}
+                      tabIndex={isActive ? 0 : -1}
                       data-tab={tab.id}
+                      onKeyDown={(e) => handleTabKeyDown(e, idx)}
                       onClick={() => {
                         setActiveTab(tab.id);
                         trackGa4Event('calculator_tab_switch', {
@@ -475,7 +525,7 @@ export default function App() {
                           tab_name: tab.label,
                         });
                       }}
-                      className={`nav-tab-btn py-2.5 px-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap truncate ${
+                      className={`nav-tab-btn min-h-[44px] py-2.5 px-3 rounded-xl font-bold text-sm transition-all cursor-pointer whitespace-nowrap truncate focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none ${
                         idx === 4 ? 'col-span-2 sm:col-span-1' : ''
                       } ${
                         isActive
@@ -493,42 +543,47 @@ export default function App() {
             {/* TAB 1: TWO-ENVELOPE NET CHECK & 3-BUCKET PLANNER */}
             <section
               id="tab-paycheck"
+              role="tabpanel"
+              aria-labelledby="tab-btn-tab-paycheck"
               className={`tab-panel space-y-6 ${activeTab === 'tab-paycheck' ? '' : 'hidden'}`}
             >
               {/* 4 KPI Strip */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+              <div
+                aria-live="polite"
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5"
+              >
                 <div className="surface-card rounded-2xl p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-700">
                     Green Envelope (2027 COLA)
                   </div>
                   <div id="kpiGrossCola" className="text-2xl font-extrabold text-emerald-700 mt-1 font-num">
                     +{formatUSD(metrics.grossColaRaise)}/mo
                   </div>
-                  <p id="kpiGrossCheckSub" className="text-xs text-slate-600 mt-1">
+                  <p id="kpiGrossCheckSub" className="text-sm text-slate-700 mt-1 leading-normal">
                     Gross SS climbs to <span className="font-num font-semibold">{formatUSD(metrics.newGrossSS)}/mo</span>
                   </p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-4 border border-red-300 shadow-xs">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-red-700">
+                  <div className="text-xs font-bold uppercase tracking-wider text-red-800">
                     Red Envelope (Part B/D Bite)
                   </div>
-                  <div id="kpiMedicareBite" className="text-2xl font-extrabold text-red-600 mt-1 font-num">
+                  <div id="kpiMedicareBite" className="text-2xl font-extrabold text-red-700 mt-1 font-num">
                     -{formatUSD(metrics.totalMedicareHike)}/mo
                   </div>
-                  <p id="kpiMedicareSub" className="text-xs text-slate-600 mt-1">
+                  <p id="kpiMedicareSub" className="text-sm text-slate-700 mt-1 leading-normal">
                     Takes <span className="font-num font-semibold">{metrics.bitePct}%</span> of your COLA raise
                   </p>
                 </div>
 
                 <div className="bg-[#1b4332] text-white rounded-2xl p-4 border border-amber-400/70 shadow-md">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
                     True Net Social Security
                   </div>
                   <div id="kpiNetSS" className="text-2xl font-extrabold text-white mt-1 font-num">
                     {formatUSD(metrics.newNetSS)}/mo
                   </div>
-                  <p id="kpiNetRaiseSub" className="text-xs text-emerald-200 mt-1">
+                  <p id="kpiNetRaiseSub" className="text-sm text-emerald-100 mt-1 leading-normal">
                     Real net raise:{' '}
                     <span className="font-num font-semibold">
                       {metrics.netRaise >= 0 ? '+' : ''}
@@ -538,7 +593,7 @@ export default function App() {
                 </div>
 
                 <div className="bg-amber-50/90 rounded-2xl p-4 border border-amber-400 shadow-xs">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-amber-900">
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-950">
                     Total Monthly Paycheck
                   </div>
                   <div id="kpiTotalPaycheck" className="text-2xl font-extrabold text-slate-900 mt-1 font-num">
@@ -546,7 +601,7 @@ export default function App() {
                   </div>
                   <p
                     id="kpiBudgetSurplus"
-                    className={`text-xs font-bold mt-1 font-num ${
+                    className={`text-sm font-bold mt-1 font-num leading-normal ${
                       metrics.monthlySurplus >= 0 ? 'text-emerald-800' : 'text-red-700'
                     }`}
                   >
@@ -572,7 +627,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label htmlFor="ssYourCheck" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="ssYourCheck" className="block text-sm font-bold text-slate-800">
                         Your Current Gross SS ($/mo)
                       </label>
                       <input
@@ -580,11 +635,11 @@ export default function App() {
                         type="number"
                         value={inputs.ssYourCheck}
                         onChange={(e) => updateInput('ssYourCheck', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
                       />
                     </div>
                     <div>
-                      <label htmlFor="ssSpouseCheck" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="ssSpouseCheck" className="block text-sm font-bold text-slate-800">
                         Spouse Gross SS ($/mo, 0 if single)
                       </label>
                       <input
@@ -592,11 +647,42 @@ export default function App() {
                         type="number"
                         value={inputs.ssSpouseCheck}
                         onChange={(e) => updateInput('ssSpouseCheck', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
                       />
                     </div>
+
+                    {/* FIX A: Medicare Part B Enrollment Toggles */}
+                    <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-[#f8f5ec] p-3 rounded-xl border border-[#d5cbb8]">
+                      <label
+                        htmlFor="primaryOnMedicareCheckbox"
+                        className="min-h-[44px] flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-sm font-bold text-slate-800 cursor-pointer"
+                      >
+                        <input
+                          id="primaryOnMedicareCheckbox"
+                          type="checkbox"
+                          checked={metrics.primaryOnMedicare}
+                          onChange={(e) => updateInput('primaryOnMedicare', e.target.checked)}
+                          className="w-5 h-5 accent-[#1b4332] rounded shrink-0 focus-visible:ring-2 focus-visible:ring-amber-400"
+                        />
+                        <span>I&apos;m 65+ and on Medicare Part B</span>
+                      </label>
+                      <label
+                        htmlFor="spouseOnMedicareCheckbox"
+                        className="min-h-[44px] flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-sm font-bold text-slate-800 cursor-pointer"
+                      >
+                        <input
+                          id="spouseOnMedicareCheckbox"
+                          type="checkbox"
+                          checked={metrics.spouseOnMedicare}
+                          onChange={(e) => updateInput('spouseOnMedicare', e.target.checked)}
+                          className="w-5 h-5 accent-[#1b4332] rounded shrink-0 focus-visible:ring-2 focus-visible:ring-amber-400"
+                        />
+                        <span>Spouse is 65+ and on Medicare Part B</span>
+                      </label>
+                    </div>
+
                     <div>
-                      <label htmlFor="colaPctInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="colaPctInput" className="block text-sm font-bold text-slate-800">
                         Official 2027 COLA % (
                         <span id="colaPctVal" className="font-num text-emerald-800">
                           {inputs.colaPct.toFixed(1)}
@@ -611,11 +697,11 @@ export default function App() {
                         step="0.1"
                         value={inputs.colaPct}
                         onChange={(e) => updateInput('colaPct', parseFloat(e.target.value) || 3.6)}
-                        className="mt-2.5 w-full"
+                        className="mt-2.5 w-full focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="partBIncreaseInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="partBIncreaseInput" className="block text-sm font-bold text-slate-800">
                         Part B Hike ($/mo/person)
                       </label>
                       <input
@@ -624,11 +710,11 @@ export default function App() {
                         step="0.1"
                         value={inputs.partBIncrease}
                         onChange={(e) => updateInput('partBIncrease', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label htmlFor="partDMonthlyPremiumInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="partDMonthlyPremiumInput" className="block text-sm font-bold text-slate-800">
                         Part D Plan Monthly Premium ($/mo/person)
                       </label>
                       <input
@@ -640,12 +726,12 @@ export default function App() {
                         onChange={(e) =>
                           updateInput('partDMonthlyPremium', Math.max(0, parseFloat(e.target.value) || 0))
                         }
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-slate-100/90 border border-slate-200 rounded-xl p-3 space-y-2 text-xs leading-relaxed">
+                  <div className="bg-slate-100/90 border border-slate-200 rounded-xl p-3.5 space-y-2 text-sm leading-relaxed">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <strong className="text-slate-900">
                         2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)
@@ -661,12 +747,20 @@ export default function App() {
                         {metrics.holdHarmlessProtectedStatus}
                       </span>
                     </div>
-                    <p className="text-slate-600">
+                    {showNoPartBDeductedNote && (
+                      <p
+                        id="noPartBDeductedNote"
+                        className="text-sm font-semibold text-amber-950 bg-amber-100/90 border border-amber-300 rounded-lg px-3 py-2 leading-normal"
+                      >
+                        Medicare Part B starts at age 65 (unless disabled); no Part B premium is deducted from this check.
+                      </p>
+                    )}
+                    <p className="text-slate-700 leading-relaxed">
                       Up +$6.60 from the official 2026 base of $202.90/mo. For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
                     </p>
                   </div>
 
-                  <div className="bg-amber-50/90 border border-amber-300 p-3.5 rounded-xl text-xs">
+                  <div className="bg-amber-50/90 border border-amber-300 p-3.5 rounded-xl text-sm">
                     <div className="font-bold text-amber-950 flex flex-wrap items-center justify-between gap-1">
                       <span>The &ldquo;86-Cent Dollar&rdquo; Buying Power Check (13.7% Loss):</span>
                       <span id="buyingPowerLossBadge" className="font-extrabold text-amber-950 font-num">
@@ -679,7 +773,7 @@ export default function App() {
                         href="https://seniorsleague.org"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline font-semibold text-emerald-900 hover:text-emerald-700"
+                        className="underline font-semibold text-emerald-900 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded"
                       >
                         The Senior Citizens League
                       </a>
@@ -701,7 +795,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label htmlFor="nestEggInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="nestEggInput" className="block text-sm font-bold text-slate-800">
                         Total Retirement Savings ($)
                       </label>
                       <input
@@ -710,11 +804,11 @@ export default function App() {
                         step="10000"
                         value={inputs.nestEgg}
                         onChange={(e) => updateInput('nestEgg', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
                       />
                     </div>
                     <div>
-                      <label htmlFor="withdrawalRateInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="withdrawalRateInput" className="block text-sm font-bold text-slate-800">
                         Safe Guardrail Draw Rate (
                         <span id="withdrawalRateVal" className="font-num text-emerald-800">
                           {inputs.withdrawalRate.toFixed(1)}
@@ -729,14 +823,14 @@ export default function App() {
                         step="0.1"
                         value={inputs.withdrawalRate}
                         onChange={(e) => updateInput('withdrawalRate', parseFloat(e.target.value) || 4.5)}
-                        className="mt-2.5 w-full"
+                        className="mt-2.5 w-full focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
                     <div>
-                      <label htmlFor="expHousing" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="expHousing" className="block text-sm font-bold text-slate-800">
                         Housing ($/mo)
                       </label>
                       <input
@@ -744,11 +838,11 @@ export default function App() {
                         type="number"
                         value={inputs.expHousing}
                         onChange={(e) => updateInput('expHousing', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold font-num text-xs"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-semibold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="expGroceries" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="expGroceries" className="block text-sm font-bold text-slate-800">
                         Groceries ($/mo)
                       </label>
                       <input
@@ -756,11 +850,11 @@ export default function App() {
                         type="number"
                         value={inputs.expGroceries}
                         onChange={(e) => updateInput('expGroceries', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold font-num text-xs"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-semibold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="expHealthcare" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="expHealthcare" className="block text-sm font-bold text-slate-800">
                         Medical ($/mo)
                       </label>
                       <input
@@ -768,11 +862,11 @@ export default function App() {
                         type="number"
                         value={inputs.expHealthcare}
                         onChange={(e) => updateInput('expHealthcare', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold font-num text-xs"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-semibold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="expCarFun" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="expCarFun" className="block text-sm font-bold text-slate-800">
                         Car/Fun ($/mo)
                       </label>
                       <input
@@ -780,12 +874,12 @@ export default function App() {
                         type="number"
                         value={inputs.expCarFun}
                         onChange={(e) => updateInput('expCarFun', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold font-num text-xs"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-semibold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-emerald-50/90 border border-emerald-300 rounded-xl p-3.5 text-xs">
+                  <div className="bg-emerald-50/90 border border-emerald-300 rounded-xl p-3.5 text-sm">
                     <div className="font-bold text-emerald-950">
                       Why{' '}
                       <span id="equivRetireAnnual" className="font-num">
@@ -805,7 +899,10 @@ export default function App() {
               </div>
 
               {/* 3-Bucket Nest Egg Shield */}
-              <div className="chalkboard-bg rounded-2xl p-5 text-white space-y-4">
+              <div
+                aria-live="polite"
+                className="chalkboard-bg rounded-2xl p-5 text-white space-y-4"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/30 pb-3">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
@@ -830,7 +927,7 @@ export default function App() {
                     <div id="bucket1Amt" className="text-xl font-extrabold text-amber-300 mt-2 font-num">
                       {formatUSD(metrics.bucket1)}
                     </div>
-                    <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+                    <p className="text-sm text-emerald-100 mt-1 leading-relaxed">
                       24 months of draws locked in safe 4.5% HYSA.
                     </p>
                   </div>
@@ -840,7 +937,7 @@ export default function App() {
                     <div id="bucket2Amt" className="text-xl font-extrabold text-amber-300 mt-2 font-num">
                       {formatUSD(metrics.bucket2)}
                     </div>
-                    <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+                    <p className="text-sm text-emerald-100 mt-1 leading-relaxed">
                       6 years of steady income so you never sell stocks low.
                     </p>
                   </div>
@@ -850,13 +947,13 @@ export default function App() {
                     <div id="bucket3Amt" className="text-xl font-extrabold text-amber-300 mt-2 font-num">
                       {formatUSD(metrics.bucket3)}
                     </div>
-                    <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+                    <p className="text-sm text-emerald-100 mt-1 leading-relaxed">
                       Long-term inflation growth untouched for 8 years.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-[#0f291e] rounded-xl p-3.5 text-xs text-amber-100 border border-amber-400/25 leading-relaxed space-y-1.5">
+                <div className="bg-[#0f291e] rounded-xl p-3.5 text-sm text-amber-100 border border-amber-400/25 leading-relaxed space-y-1.5">
                   <div>
                     <strong>Chalkboard Rule:</strong> With Buckets 1 &amp; 2 holding{' '}
                     <strong>
@@ -864,7 +961,7 @@ export default function App() {
                     </strong>{' '}
                     of portfolio withdrawals in safe cash and bonds, a stock market crash cannot touch your monthly grocery money.
                   </div>
-                  <p className="text-emerald-200/90 border-t border-amber-400/20 pt-1.5">
+                  <p className="text-emerald-200/95 border-t border-amber-400/20 pt-1.5">
                     ℹ️ Baseline Guardrail Model: Assumes a 4.5% safe portfolio draw and 8 full years in cash/T-Bills to protect against sequence-of-returns risk. Not an investment guarantee.
                   </p>
                 </div>
@@ -881,7 +978,7 @@ export default function App() {
                   slowgoSpend={metrics.slowgoSpend}
                   nogoSpend={metrics.nogoSpend}
                 />
-                <div className="grid grid-cols-3 gap-2.5 text-center text-xs pt-1">
+                <div className="grid grid-cols-3 gap-2.5 text-center text-sm pt-1">
                   <div className="bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200">
                     <div className="font-bold text-emerald-900">Go-Go (Age 62–70)</div>
                     <div id="gogoSpendText" className="font-extrabold text-slate-900 mt-0.5 font-num">
@@ -907,6 +1004,8 @@ export default function App() {
             {/* TAB 2: CLAIMING AGE & WORKING RULES */}
             <section
               id="tab-claiming"
+              role="tabpanel"
+              aria-labelledby="tab-btn-tab-claiming"
               className={`tab-panel space-y-6 ${activeTab === 'tab-claiming' ? '' : 'hidden'}`}
             >
               <div className="surface-card rounded-2xl p-5 space-y-4">
@@ -924,7 +1023,7 @@ export default function App() {
                       onChange={(e) =>
                         updateInput('claimingBirthYear', e.target.value as ClaimingBirthYearCohort)
                       }
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold text-sm"
                     >
                       <option value="1960+">Born 1960 or Later (FRA 67)</option>
                       <option value="1959">Born 1959 (FRA 66 + 10 mos)</option>
@@ -944,7 +1043,7 @@ export default function App() {
                       step="50"
                       value={inputs.fraBenefit}
                       onChange={(e) => updateInput('fraBenefit', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus:outline-none px-3.5 py-2 font-bold font-num"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3.5 py-2 font-bold font-num text-base"
                     />
                   </div>
                   <div>
@@ -962,12 +1061,15 @@ export default function App() {
                       step="1"
                       value={inputs.lifeExpAge}
                       onChange={(e) => updateInput('lifeExpAge', parseInt(e.target.value, 10) || 82)}
-                      className="mt-2.5 w-full"
+                      className="mt-2.5 w-full focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                <div
+                  aria-live="polite"
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center"
+                >
                   <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-300">
                     <div className="text-xs font-bold uppercase text-amber-900">
                       Claim Early at 62 ({metrics.claim62PctLabel})
@@ -975,7 +1077,7 @@ export default function App() {
                     <div id="claim62Mo" className="text-xl font-extrabold text-slate-900 mt-1 font-num">
                       {formatUSD(metrics.mo62)}/mo
                     </div>
-                    <div id="claim62Total" className="text-xs font-semibold text-slate-700 mt-1 font-num">
+                    <div id="claim62Total" className="text-sm font-semibold text-slate-700 mt-1 font-num">
                       Total by {metrics.targetAge}: {formatUSD(metrics.total62AtTarget)}
                     </div>
                   </div>
@@ -986,7 +1088,7 @@ export default function App() {
                     <div id="claim67Mo" className="text-xl font-extrabold text-emerald-900 mt-1 font-num">
                       {formatUSD(metrics.mo67)}/mo
                     </div>
-                    <div id="claim67Total" className="text-xs font-semibold text-slate-700 mt-1 font-num">
+                    <div id="claim67Total" className="text-sm font-semibold text-slate-700 mt-1 font-num">
                       Total by {metrics.targetAge}: {formatUSD(metrics.total67AtTarget)}
                     </div>
                   </div>
@@ -997,7 +1099,7 @@ export default function App() {
                     <div id="claim70Mo" className="text-xl font-extrabold text-sky-900 mt-1 font-num">
                       {formatUSD(metrics.mo70)}/mo
                     </div>
-                    <div id="claim70Total" className="text-xs font-semibold text-slate-700 mt-1 font-num">
+                    <div id="claim70Total" className="text-sm font-semibold text-slate-700 mt-1 font-num">
                       Total by {metrics.targetAge}: {formatUSD(metrics.total70AtTarget)}
                     </div>
                   </div>
@@ -1005,7 +1107,7 @@ export default function App() {
 
                 <BreakevenLineChart series={metrics.breakevenSeries} targetAge={metrics.targetAge} />
 
-                <div className="bg-[#1b4332] text-amber-100 p-4 rounded-xl text-xs md:text-sm leading-relaxed">
+                <div className="bg-[#1b4332] text-amber-100 p-4 rounded-xl text-sm leading-relaxed">
                   <strong>Chalkboard Verdict ({metrics.claimingBirthYear} Cohort):</strong> Claiming at FRA ({metrics.fraShortLabel}) beats claiming at 62 once you live past <strong>{metrics.breakevenFraVs62Label}</strong>. Claiming at 70 beats FRA after <strong>{metrics.breakeven70VsFraLabel}</strong>.
                 </div>
               </div>
@@ -1016,13 +1118,13 @@ export default function App() {
                   <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
                     Part-Time / Side-Gig Penalty Checker ({formatUSD(metrics.sideGigLimit)}/yr 2027 Limit)
                   </h2>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    If you claim Social Security before Full Retirement Age and work part-time, SSA withholds $1 for every $2 earned above <strong>$25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026)</strong> if under FRA all year, or $1 for every $3 above <strong>$67,920/yr ($5,660/mo)</strong> in the year you reach Full Retirement Age (67).
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    If you claim Social Security before Full Retirement Age and work part-time, SSA withholds $1 for every $2 earned above <strong>$25,560/yr ($2,130/mo) in 2027 (up from $24,480/yr in 2026)</strong> if under FRA all year, or $1 for every $3 above <strong>$67,920/yr ($5,660/mo)</strong> in the year you reach Full Retirement Age (66 and 2 months to 67 depending on birth year; 67 if born 1960 or later).
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-3">
-                      <label htmlFor="reachingFraThisYearSelect" className="block text-xs font-bold text-slate-800">
-                        Reaching Full Retirement Age (67) in 2027?
+                      <label htmlFor="reachingFraThisYearSelect" className="block text-sm font-bold text-slate-800">
+                        Reaching your Full Retirement Age in 2027?
                       </label>
                       <select
                         id="reachingFraThisYearSelect"
@@ -1030,14 +1132,14 @@ export default function App() {
                         onChange={(e) =>
                           updateInput('reachingFraThisYear', e.target.value === 'yes' ? 'yes' : 'no')
                         }
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus:outline-none px-3 py-2 font-bold text-xs"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold text-sm"
                       >
                         <option value="no">No — Under FRA All Year ($25,560/yr limit · $1-for-$2 withholding)</option>
                         <option value="yes">Yes — Reaching FRA in 2027 ($67,920/yr limit · $1-for-$3 withholding)</option>
                       </select>
                     </div>
                     <div className="sm:col-span-2">
-                      <label htmlFor="sideGigIncome" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="sideGigIncome" className="block text-sm font-bold text-slate-800">
                         Annual Part-Time ($)
                       </label>
                       <input
@@ -1046,11 +1148,11 @@ export default function App() {
                         step="1000"
                         value={inputs.sideGigIncome}
                         onChange={(e) => updateInput('sideGigIncome', parseFloat(e.target.value) || 0)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-base focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="sideGigHourly" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="sideGigHourly" className="block text-sm font-bold text-slate-800">
                         Hourly Rate ($/hr)
                       </label>
                       <input
@@ -1058,7 +1160,7 @@ export default function App() {
                         type="number"
                         value={inputs.sideGigHourly}
                         onChange={(e) => updateInput('sideGigHourly', parseFloat(e.target.value) || 25)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-base focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1066,12 +1168,13 @@ export default function App() {
                   {metrics.sideGigExcess > 0 ? (
                     <div
                       id="sideGigResultBox"
-                      className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-xs space-y-1"
+                      aria-live="polite"
+                      className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-sm space-y-1"
                     >
                       <div id="sideGigPenaltyTitle" className="font-extrabold text-red-900 text-sm">
                         ⚠️ Penalty Alert: {formatUSD(metrics.sideGigPenalty)}/yr Withheld ($1-for-${metrics.sideGigWithholdingDivisor})!
                       </div>
-                      <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
+                      <p id="sideGigPenaltyDesc" className="text-slate-800 leading-relaxed">
                         You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above the{' '}
                         <span className="font-num font-bold">
                           {formatUSD(metrics.sideGigLimit)}/yr ({formatUSD(metrics.sideGigMonthlyLimit)}/mo)
@@ -1083,12 +1186,13 @@ export default function App() {
                   ) : (
                     <div
                       id="sideGigResultBox"
-                      className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs space-y-1"
+                      aria-live="polite"
+                      className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-sm space-y-1"
                     >
                       <div id="sideGigPenaltyTitle" className="font-extrabold text-emerald-950 text-sm">
                         ✅ $0 Penalty (You Keep 100% of Your Check!)
                       </div>
-                      <p id="sideGigPenaltyDesc" className="text-slate-700 leading-relaxed">
+                      <p id="sideGigPenaltyDesc" className="text-slate-800 leading-relaxed">
                         You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the{' '}
                         <span className="font-num font-bold">
                           {formatUSD(metrics.sideGigLimit)}/yr ({formatUSD(metrics.sideGigMonthlyLimit)}/mo)
@@ -1107,7 +1211,7 @@ export default function App() {
                   </h2>
                   <div className="grid grid-cols-3 gap-2.5">
                     <div>
-                      <label htmlFor="mortBalance" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="mortBalance" className="block text-sm font-bold text-slate-800">
                         Balance ($)
                       </label>
                       <input
@@ -1116,11 +1220,11 @@ export default function App() {
                         step="5000"
                         value={inputs.mortBalance}
                         onChange={(e) => updateInput('mortBalance', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="mortRate" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="mortRate" className="block text-sm font-bold text-slate-800">
                         Mortgage (%)
                       </label>
                       <input
@@ -1129,11 +1233,11 @@ export default function App() {
                         step="0.1"
                         value={inputs.mortRate}
                         onChange={(e) => updateInput('mortRate', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="hysaRate" className="block text-xs font-bold text-slate-700">
+                      <label htmlFor="hysaRate" className="block text-sm font-bold text-slate-800">
                         Safe CD (%)
                       </label>
                       <input
@@ -1142,14 +1246,15 @@ export default function App() {
                         step="0.1"
                         value={inputs.hysaRate}
                         onChange={(e) => updateInput('hysaRate', parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div
                     id="mortVerdictBox"
-                    className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-slate-800 leading-relaxed"
+                    aria-live="polite"
+                    className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-sm text-slate-800 leading-relaxed"
                   >
                     {metrics.keepCashAdvantage ? (
                       <>
@@ -1174,6 +1279,8 @@ export default function App() {
             {/* TAB 3: 1984 GHOST TAX, ROTH SWEET SPOT, IRMAA & ACA BRIDGE */}
             <section
               id="tab-taxshield"
+              role="tabpanel"
+              aria-labelledby="tab-btn-tab-taxshield"
               className={`tab-panel space-y-6 ${activeTab === 'tab-taxshield' ? '' : 'hidden'}`}
             >
               <div className="surface-card rounded-2xl p-5 space-y-4">
@@ -1206,7 +1313,7 @@ export default function App() {
                               : prev.acaHouseholdSize,
                         }));
                       }}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     >
                       <option value="married">Married Filing Jointly ($32K / $44K)</option>
                       <option value="single">Single Individual ($25K / $34K)</option>
@@ -1225,7 +1332,7 @@ export default function App() {
                           Math.max(0, Math.min(2, parseInt(e.target.value, 10) || 0)) as 0 | 1 | 2
                         )
                       }
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold bg-white text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     >
                       <option value={0}>0 Filers Age 65+ (Under 65)</option>
                       <option value={1}>1 Filer Age 65+</option>
@@ -1244,7 +1351,7 @@ export default function App() {
                       step="1000"
                       value={inputs.taxPreTaxDraw}
                       onChange={(e) => updateInput('taxPreTaxDraw', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -1257,7 +1364,7 @@ export default function App() {
                       step="1000"
                       value={inputs.taxRothDraw}
                       onChange={(e) => updateInput('taxRothDraw', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-emerald-800 text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-emerald-800 text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -1270,14 +1377,14 @@ export default function App() {
                       step="500"
                       value={inputs.taxInterest}
                       onChange={(e) => updateInput('taxInterest', parseFloat(e.target.value) || 0)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="chalkboard-bg rounded-xl p-4 text-white space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold uppercase text-amber-300">
+                    <span className="text-sm font-bold uppercase text-amber-300">
                       Your IRS Combined (Provisional) Income:
                     </span>
                     <span id="combinedIncomeValue" className="text-2xl font-extrabold text-white font-num">
@@ -1299,7 +1406,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="flex justify-between text-xs text-emerald-200 font-semibold font-num">
+                  <div className="flex justify-between text-sm text-emerald-200 font-semibold font-num">
                     <span>0% Tax Zone</span>
                     <span id="taxLine50Label">50% Line ({formatUSD(metrics.line50)})</span>
                     <span id="taxLine85Label">85% Line ({formatUSD(metrics.line85)})</span>
@@ -1307,7 +1414,8 @@ export default function App() {
 
                   <div
                     id="ghostTaxStatusText"
-                    className="bg-[#0f291e] p-3.5 rounded-lg text-xs md:text-sm text-amber-100 border border-amber-400/30 leading-relaxed"
+                    aria-live="polite"
+                    className="bg-[#0f291e] p-3.5 rounded-lg text-sm text-amber-100 border border-amber-400/30 leading-relaxed"
                   >
                     {metrics.taxZone === '0% Zone' && (
                       <>
@@ -1337,18 +1445,19 @@ export default function App() {
 
                 <div
                   id="rothSweetSpotBox"
-                  className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-xs md:text-sm text-slate-800 space-y-1.5 leading-relaxed"
+                  aria-live="polite"
+                  className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-sm text-slate-800 space-y-1.5 leading-relaxed"
                 >
                   <div className="font-extrabold text-emerald-950">
                     🎯 Your Annual Roth Conversion &ldquo;Sweet Spot&rdquo; (2026 Tax Year · Before Age 73 RMDs):{' '}
                     <span className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}/yr</span>
                   </div>
-                  <p className="text-xs text-slate-700">
+                  <p className="text-sm text-slate-700 leading-relaxed">
                     For the <strong>2026 tax year</strong> (IRS Rev. Proc. 2025-32, computed using baseline 2026 Social Security benefits of <span className="font-num font-semibold">{formatUSD(metrics.annualGrossSS)}/yr</span> rather than 2027 COLA projections), you can convert up to{' '}
                     <strong className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}</strong> from your Traditional 401(k)/IRA into a Roth IRA while staying inside the 12% federal bracket (top:{' '}
                     <span className="font-num font-bold">{formatUSD(metrics.bracket12Top)}</span> taxable income).
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-sm text-slate-700 leading-relaxed">
                     <strong>2026 Deductions Applied ({formatUSD(metrics.standardDed)} total):</strong> Base standard deduction{' '}
                     <span className="font-num font-semibold">{formatUSD(metrics.baseStandardDed)}</span>
                     {metrics.filersAge65Plus > 0 ? (
@@ -1361,28 +1470,28 @@ export default function App() {
                       ' (select 1 or 2 filers age 65+ above to include the $2,050/$1,650 extra 65+ deduction and $6,000 OBBBA senior deduction).'
                     )}
                   </p>
-                  <p className="text-xs text-emerald-900 font-semibold border-t border-emerald-300/70 pt-1.5">
+                  <p className="text-sm text-emerald-900 font-semibold border-t border-emerald-300/70 pt-1.5 leading-relaxed">
                     ℹ️ Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket (IRS Rev. Proc. 2025-32) before jumping to 22%. Illustrative kitchen-table estimate; consult your CPA for full Form 1040 itemized deductions.
                   </p>
                 </div>
 
                 <div className="bg-amber-50/90 rounded-xl p-4 border border-amber-400 space-y-2">
-                  <div className="text-xs font-bold uppercase text-amber-900">
+                  <label htmlFor="workerAgeSelect" className="block text-sm font-bold uppercase text-amber-900">
                     Enacted 2026 IRS SECURE 2.0 Super Catch-Up (Ages 60–63 · 2027+ COLA Indexed)
-                  </div>
+                  </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                     <select
                       id="workerAgeSelect"
                       aria-label="Worker Age Catch-Up Group"
                       value={inputs.workerAgeGroup}
                       onChange={(e) => updateInput('workerAgeGroup', e.target.value as '55' | '61' | '65')}
-                      className="rounded-lg border border-slate-300 px-2.5 py-2 font-bold text-sm bg-white"
+                      className="min-h-[44px] rounded-lg border border-slate-300 px-2.5 py-2 font-bold text-sm bg-white focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     >
                       <option value="55">Age 50–59 ($8,000 Catch-Up · $32,500 Total)</option>
                       <option value="61">Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
                       <option value="65">Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
                     </select>
-                    <div id="superCatchupOutput" className="text-xs text-slate-800 font-semibold leading-relaxed">
+                    <div id="superCatchupOutput" aria-live="polite" className="text-sm text-slate-800 font-semibold leading-relaxed">
                       {inputs.workerAgeGroup === '61' ? (
                         <>
                           🎉 <strong>Age 60–63 Super Catch-Up:</strong> Up to <strong className="font-num">$35,750 ($24,500 base + $11,250 catch-up)</strong> enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">$150,000</strong>.
@@ -1405,7 +1514,7 @@ export default function App() {
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="irmaa2025Income" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="irmaa2025Income" className="block text-sm font-bold text-slate-800">
                         2-Year Lookback MAGI (2024 MAGI sets 2026 Medicare premium) ($)
                       </label>
                       <input
@@ -1414,18 +1523,18 @@ export default function App() {
                         step="5000"
                         value={inputs.irmaa2025Income}
                         onChange={(e) => updateInput('irmaa2025Income', parseFloat(e.target.value) || 0)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="irmaaRetiredEvent" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="irmaaRetiredEvent" className="block text-sm font-bold text-slate-800">
                         Retired / Work Stoppage?
                       </label>
                       <select
                         id="irmaaRetiredEvent"
                         value={inputs.irmaaRetiredEvent}
                         onChange={(e) => updateInput('irmaaRetiredEvent', e.target.value as 'yes' | 'no')}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-2.5 py-2 font-bold bg-white text-xs"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-2.5 py-2 font-bold bg-white text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       >
                         <option value="yes">Yes — Retired / Cut Hours</option>
                         <option value="no">No — Income Unchanged</option>
@@ -1433,7 +1542,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-700 leading-relaxed">
                     <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included.{' '}
                     <strong>2026 threshold (2024 MAGI):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
                     <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.</em>
@@ -1441,14 +1550,15 @@ export default function App() {
 
                   <div
                     id="irmaaVerdictBox"
-                    className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-400 text-xs space-y-1 leading-relaxed"
+                    aria-live="polite"
+                    className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-400 text-sm space-y-1 leading-relaxed"
                   >
                     {metrics.irmaaCanAppealWithSSA44 ? (
                       <>
                         <div className="font-extrabold text-emerald-950 text-sm">
                           ✅ File Form SSA-44 Immediately: Erases your Tier {metrics.irmaaTier} surcharge to save {formatUSD(metrics.irmaaAnnualSurcharge)}/yr!
                         </div>
-                        <p className="text-slate-800">
+                        <p className="text-slate-800 leading-relaxed">
                           Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) places you in <strong>IRMAA Tier {metrics.irmaaTier}</strong> (~{formatUSD(metrics.irmaaSurchargePerPerson)}/yr per person Part B + Part D) above the confirmed 2026 CMS threshold of{' '}
                           <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>. File{' '}
                           <strong>Form SSA-44 (Work Stoppage)</strong> so Medicare drops your IRMAA surcharge!
@@ -1459,7 +1569,7 @@ export default function App() {
                         <div className="font-extrabold text-amber-950 text-sm">
                           ⚠️ IRMAA Tier {metrics.irmaaTier} Surcharge Applies (~{formatUSD(metrics.irmaaAnnualSurcharge)}/yr)
                         </div>
-                        <p className="text-slate-800">
+                        <p className="text-slate-800 leading-relaxed">
                           Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the confirmed 2026 CMS threshold of{' '}
                           <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>.
                         </p>
@@ -1479,7 +1589,7 @@ export default function App() {
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label htmlFor="acaCurrentAge" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="acaCurrentAge" className="block text-sm font-bold text-slate-800">
                         Current Age (Under 65):
                       </label>
                       <input
@@ -1489,11 +1599,11 @@ export default function App() {
                         max="64"
                         value={inputs.acaCurrentAge}
                         onChange={(e) => updateInput('acaCurrentAge', parseInt(e.target.value, 10) || 64)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="acaMagiInput" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="acaMagiInput" className="block text-sm font-bold text-slate-800">
                         Planned 2027 ACA MAGI ($):
                       </label>
                       <input
@@ -1502,11 +1612,11 @@ export default function App() {
                         step="2000"
                         value={inputs.acaMagi}
                         onChange={(e) => updateInput('acaMagi', parseFloat(e.target.value) || 0)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 font-bold font-num text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label htmlFor="acaHouseholdSizeSelect" className="block text-xs font-bold text-slate-800">
+                      <label htmlFor="acaHouseholdSizeSelect" className="block text-sm font-bold text-slate-800">
                         ACA Household Size:
                       </label>
                       <select
@@ -1518,7 +1628,7 @@ export default function App() {
                             Math.max(1, Math.min(4, parseInt(e.target.value, 10) || 1)) as 1 | 2 | 3 | 4
                           )
                         }
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 font-bold text-xs"
+                        className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 font-bold text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                       >
                         <option value={1}>1 Person ($15,960 FPL · $63,840 Cliff)</option>
                         <option value={2}>2 People ($21,640 FPL · $86,560 Cliff)</option>
@@ -1527,12 +1637,13 @@ export default function App() {
                       </select>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-700 leading-relaxed">
                     <strong>Note:</strong> ACA MAGI includes <strong>100% of Social Security benefits</strong> (unlike IRMAA). Enhanced subsidies expired 12/31/2025, so the <strong>400% FPL cliff ({formatUSD(metrics.acaCliff)} for a {metrics.acaHouseholdSize}-person household using 2026 FPL)</strong> applies for the <strong>2027 ACA Coverage Year (IRS Rev. Proc. 2026-26)</strong>.
                   </p>
                   <div
                     id="acaBridgeResult"
-                    className={`p-3.5 rounded-xl border text-xs leading-relaxed ${
+                    aria-live="polite"
+                    className={`p-3.5 rounded-xl border text-sm leading-relaxed ${
                       metrics.acaOverCliff
                         ? 'bg-red-50 border-red-300 text-red-950'
                         : 'bg-sky-50 border-sky-300 text-slate-800'
@@ -1558,6 +1669,8 @@ export default function App() {
             {/* TAB 4: SENIOR SCAM RADAR & DEC 7 MEDICARE AUDIT */}
             <section
               id="tab-safety"
+              role="tabpanel"
+              aria-labelledby="tab-btn-tab-safety"
               className={`tab-panel space-y-6 ${activeTab === 'tab-safety' ? '' : 'hidden'}`}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1569,13 +1682,15 @@ export default function App() {
                     {SCAM_ITEMS.map((item) => (
                       <label
                         key={item.id}
-                        className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer text-xs sm:text-sm ${
+                        htmlFor={item.id}
+                        className={`min-h-[44px] flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer text-sm ${
                           checkedScams[item.id]
                             ? 'bg-red-50/90 border-red-400'
                             : 'border-slate-200 hover:bg-red-50/40'
                         }`}
                       >
                         <input
+                          id={item.id}
                           type="checkbox"
                           checked={!!checkedScams[item.id]}
                           onChange={(e) =>
@@ -1584,9 +1699,9 @@ export default function App() {
                               [item.id]: e.target.checked,
                             }))
                           }
-                          className="scam-check mt-1 w-5 h-5 accent-red-600 shrink-0"
+                          className="scam-check mt-1 w-5 h-5 accent-red-600 shrink-0 focus-visible:ring-2 focus-visible:ring-amber-400"
                         />
-                        <span className="leading-relaxed">
+                        <span className="leading-relaxed text-slate-800">
                           <strong>{item.title}</strong> {item.desc}
                         </span>
                       </label>
@@ -1596,22 +1711,24 @@ export default function App() {
                   {scamCount === 0 ? (
                     <div
                       id="scamAlertBanner"
+                      aria-live="polite"
                       className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-sm"
                     >
                       <div className="font-extrabold text-emerald-950">🛡️ No Red Flags Checked Yet</div>
-                      <p className="text-xs text-slate-700 mt-1 leading-relaxed">
+                      <p className="text-sm text-slate-700 mt-1 leading-relaxed">
                         Social Security, the IRS, and Medicare will NEVER call, text, or email you to demand fees or bank passwords.
                       </p>
                     </div>
                   ) : (
                     <div
                       id="scamAlertBanner"
+                      aria-live="polite"
                       className="p-4 rounded-xl bg-red-100 border-2 border-red-600 text-sm"
                     >
                       <div className="font-extrabold text-red-950">
                         🚨 100% SCAM DETECTED ({scamCount} Red Flag{scamCount > 1 ? 's' : ''}) — HANG UP OR DELETE IMMEDIATELY!
                       </div>
-                      <p className="text-xs text-red-900 mt-1 leading-relaxed">
+                      <p className="text-sm text-red-900 mt-1 leading-relaxed">
                         Do NOT click any links or share your Medicare/SSN. Call Social Security directly at <strong>1-800-772-1213</strong> or report at <strong>OIG.SSA.GOV</strong>.
                       </p>
                     </div>
@@ -1631,17 +1748,19 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="space-y-2.5 text-xs sm:text-sm">
+                  <div className="space-y-2.5 text-sm">
                     {AUDIT_ITEMS.map((item) => (
                       <label
                         key={item.id}
-                        className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                        htmlFor={item.id}
+                        className={`min-h-[44px] flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
                           checkedAudits[item.id]
                             ? 'bg-emerald-50/80 border-emerald-400'
                             : 'border-slate-200 hover:bg-emerald-50/30'
                         }`}
                       >
                         <input
+                          id={item.id}
                           type="checkbox"
                           checked={!!checkedAudits[item.id]}
                           onChange={(e) => {
@@ -1654,9 +1773,9 @@ export default function App() {
                               showToast('🎉 All 5 November Protection Steps Completed!');
                             }
                           }}
-                          className="audit-check mt-1 w-5 h-5 accent-emerald-700 shrink-0"
+                          className="audit-check mt-1 w-5 h-5 accent-emerald-700 shrink-0 focus-visible:ring-2 focus-visible:ring-amber-400"
                         />
-                        <span className="leading-relaxed">
+                        <span className="leading-relaxed text-slate-800">
                           <strong>{item.title}</strong> {item.desc}
                         </span>
                       </label>
@@ -1669,6 +1788,8 @@ export default function App() {
             {/* TAB 5: PRINTABLE PLAN & SPOUSE EMERGENCY BINDER */}
             <section
               id="tab-binder"
+              role="tabpanel"
+              aria-labelledby="tab-btn-tab-binder"
               className={`tab-panel space-y-6 ${activeTab === 'tab-binder' ? '' : 'hidden'}`}
             >
               <div className="surface-card rounded-2xl p-6 space-y-6">
@@ -1677,7 +1798,7 @@ export default function App() {
                     <h2 className="text-xl font-extrabold text-slate-900">
                       1-Page Printable Retirement Plan &amp; Family Emergency Locator
                     </h2>
-                    <p className="text-xs text-slate-600 mt-0.5">
+                    <p className="text-sm text-slate-700 mt-0.5 leading-relaxed">
                       Never enter passwords or account numbers here—just record <em>where</em> physical folders are kept at home.
                     </p>
                   </div>
@@ -1686,7 +1807,7 @@ export default function App() {
                       id="copySummaryBtn"
                       type="button"
                       onClick={handleCopySummary}
-                      className="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-amber-200 font-bold text-sm shadow-xs transition-colors cursor-pointer"
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-amber-200 font-bold text-sm shadow-xs transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
                     >
                       📋 Copy Plan Summary
                     </button>
@@ -1694,39 +1815,42 @@ export default function App() {
                       id="printPlanBtn"
                       type="button"
                       onClick={() => window.print()}
-                      className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm shadow-xs transition-colors cursor-pointer"
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm shadow-xs transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-800 focus-visible:outline-none"
                     >
                       🖨️ Print My 1-Page Plan
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-[#f8f5ec] rounded-xl p-5 border-2 border-[#1b4332] space-y-3">
+                <div
+                  aria-live="polite"
+                  className="bg-[#f8f5ec] rounded-xl p-5 border-2 border-[#1b4332] space-y-3"
+                >
                   <h3 className="text-sm font-extrabold text-[#1b4332] uppercase tracking-wider border-b border-slate-300 pb-2">
                     Your Personalized No-Suit Retirement Snapshot
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 text-sm">
                     <div className="bg-white p-3.5 rounded-xl border border-slate-300">
-                      <div className="text-xs text-slate-500 font-bold">2027 Net Social Security</div>
+                      <div className="text-sm text-slate-700 font-bold">2027 Net Social Security</div>
                       <div id="printNetSS" className="text-lg font-extrabold text-emerald-800 mt-0.5 font-num">
                         {formatUSD(metrics.newNetSS)}/mo
                       </div>
                     </div>
                     <div className="bg-white p-3.5 rounded-xl border border-slate-300">
-                      <div className="text-xs text-slate-500 font-bold">Portfolio Safe Monthly Draw</div>
+                      <div className="text-sm text-slate-700 font-bold">Portfolio Safe Monthly Draw</div>
                       <div id="printPortDraw" className="text-lg font-extrabold text-slate-900 mt-0.5 font-num">
                         {formatUSD(metrics.monthlyPortDraw)}/mo ({metrics.drawRate.toFixed(1)}%)
                       </div>
                     </div>
                     <div className="bg-white p-3.5 rounded-xl border border-slate-300">
-                      <div className="text-xs text-slate-500 font-bold">3-Bucket Allocation</div>
-                      <div id="printBuckets" className="text-xs font-bold text-slate-800 mt-1 font-num">
+                      <div className="text-sm text-slate-700 font-bold">3-Bucket Allocation</div>
+                      <div id="printBuckets" className="text-sm font-bold text-slate-800 mt-1 font-num">
                         Cash: {formatUSD(metrics.bucket1)} · Bonds: {formatUSD(metrics.bucket2)} · Growth: {formatUSD(metrics.bucket3)}
                       </div>
                     </div>
                     <div className="bg-white p-3.5 rounded-xl border border-slate-300">
-                      <div className="text-xs text-slate-500 font-bold">1984 IRS Tax Status</div>
-                      <div id="printTaxStatus" className="text-xs font-bold text-red-700 mt-1 font-num">
+                      <div className="text-sm text-slate-700 font-bold">1984 IRS Tax Status</div>
+                      <div id="printTaxStatus" className="text-sm font-bold text-red-700 mt-1 font-num">
                         Combined: {formatUSD(metrics.combinedIncome)} ({metrics.taxZone})
                       </div>
                     </div>
@@ -1735,7 +1859,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="locWill" className="block text-xs font-bold text-slate-700">
+                    <label htmlFor="locWill" className="block text-sm font-bold text-slate-800">
                       Where Original Will, Trust &amp; Power of Attorney Are Kept:
                     </label>
                     <input
@@ -1744,11 +1868,11 @@ export default function App() {
                       value={locWill}
                       placeholder="e.g., Home safe or filing cabinet folder"
                       onChange={(e) => setLocWill(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label htmlFor="loc401k" className="block text-xs font-bold text-slate-700">
+                    <label htmlFor="loc401k" className="block text-sm font-bold text-slate-800">
                       401(k) / IRA / Pension Institution Names (No Account #s):
                     </label>
                     <input
@@ -1757,11 +1881,11 @@ export default function App() {
                       value={loc401k}
                       placeholder="e.g., Institution names only (no account numbers)"
                       onChange={(e) => setLoc401k(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label htmlFor="locInsurance" className="block text-xs font-bold text-slate-700">
+                    <label htmlFor="locInsurance" className="block text-sm font-bold text-slate-800">
                       Medicare Supplement / Life Insurance &amp; Home Deed Location:
                     </label>
                     <input
@@ -1770,11 +1894,11 @@ export default function App() {
                       value={locInsurance}
                       placeholder="e.g., Desk drawer or family document binder"
                       onChange={(e) => setLocInsurance(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label htmlFor="locContacts" className="block text-xs font-bold text-slate-700">
+                    <label htmlFor="locContacts" className="block text-sm font-bold text-slate-800">
                       Trusted CPA / Tax Preparer / Family Contact Name &amp; Phone:
                     </label>
                     <input
@@ -1783,7 +1907,7 @@ export default function App() {
                       value={locContacts}
                       placeholder="e.g., Tax preparer name & SSA (1-800-772-1213)"
                       onChange={(e) => setLocContacts(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium"
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1841,7 +1965,7 @@ export default function App() {
                 <h2 className="text-xl md:text-2xl font-extrabold text-white mt-1">
                   Watch Plain-English Chalkboard Retirement Breakdowns
                 </h2>
-                <p className="text-xs md:text-sm text-emerald-100 mt-1 max-w-2xl">
+                <p className="text-sm text-emerald-100 mt-1 max-w-2xl leading-relaxed">
                   Step-by-step kitchen-table videos walking through real $300K–$500K retirement budgets, 2027 Social Security COLA math, Medicare Part B traps, and the Age 60–63 $11,250 Super Catch-Up.
                 </p>
               </div>
@@ -1850,105 +1974,8 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {FEATURED_YOUTUBE_VIDEOS.map((video) => {
-                if (video.isChannelLinkOnly) {
-                  return (
-                    <div
-                      key={video.id}
-                      id={`videoCard-${video.position}`}
-                      onClick={() => {
-                        window.open(video.videoUrl, '_blank', 'noopener,noreferrer');
-                      }}
-                      role="link"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          window.open(video.videoUrl, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                      className="chalk-card rounded-2xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-4 cursor-pointer"
-                    >
-                      <div className="space-y-3">
-                        <a
-                          href={video.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          data-ga-event="youtube_video_play"
-                          data-video-title={video.title}
-                          className="block relative aspect-video w-full rounded-xl overflow-hidden bg-[#0f291e] border border-amber-400/40 flex flex-col items-center justify-center p-4 text-center group-hover:border-amber-300 transition-colors"
-                        >
-                          <img
-                            src={video.thumbnailUrl}
-                            alt={video.title}
-                            width="480"
-                            height="270"
-                            loading="lazy"
-                            decoding="async"
-                            className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none"
-                          />
-                          <div className="relative z-10 w-12 h-12 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg mb-2 group-hover:scale-105 transition-transform">
-                            <svg className="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </div>
-                          <div className="relative z-10 text-[11px] font-extrabold uppercase tracking-wider text-amber-300">
-                            @NoSuitRetirement Channel Spotlight
-                          </div>
-                          <div className="relative z-10 text-xs font-bold text-emerald-100 mt-0.5">
-                            Age 60–63 SECURE 2.0 $11,250 Super Catch-Up
-                          </div>
-                        </a>
-
-                        <div className="space-y-1.5">
-                          <div className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
-                            {video.badge}
-                          </div>
-                          <a
-                            href={video.videoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            data-ga-event="youtube_video_play"
-                            data-video-title={video.title}
-                            className="block text-sm md:text-base font-extrabold text-white group-hover:text-amber-200 transition-colors leading-snug"
-                          >
-                            {video.title}
-                          </a>
-                          <p className="text-xs text-emerald-100/90 leading-relaxed">
-                            {video.description}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-2 pt-2 border-t border-amber-400/20">
-                        <a
-                          id={`watchVideoBtn-${video.position}`}
-                          href={video.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          data-ga-event="youtube_video_play"
-                          data-video-title={video.title}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm transition-colors"
-                        >
-                          <span>▶ Watch Video</span>
-                        </a>
-                        <button
-                          id={`calcActionBtn-${video.position}`}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleVideoCalculatorAction(video);
-                          }}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 transition-colors cursor-pointer"
-                        >
-                          <span>{video.calculatorActionLabel}</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                }
+                const isPlaying = !!playingVideoIds[video.id];
+                const thumbFailed = !!failedThumbIds[video.id];
 
                 return (
                   <div
@@ -1957,28 +1984,58 @@ export default function App() {
                     className="chalk-card rounded-2xl p-4 hover:border-amber-400 transition-all group flex flex-col justify-between gap-4"
                   >
                     <div className="space-y-3">
-                      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-amber-400/40">
-                        <img
-                          src={video.thumbnailUrl}
-                          alt={video.title}
-                          width="480"
-                          height="270"
-                          loading="lazy"
-                          decoding="async"
-                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                        />
-                        <iframe
-                          src={video.embedUrl!}
-                          title={video.title}
-                          loading="lazy"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                          className="relative z-10 w-full h-full border-0"
-                        />
+                      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-[#0f291e] border border-amber-400/40">
+                        {isPlaying ? (
+                          <iframe
+                            src={`https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1`}
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            title={video.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="relative z-10 w-full h-full border-0"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            aria-label={`Play video: ${video.title}`}
+                            onClick={() =>
+                              setPlayingVideoIds((prev) => ({ ...prev, [video.id]: true }))
+                            }
+                            className="relative w-full h-full flex flex-col items-center justify-center bg-[#0f291e] text-white cursor-pointer group/play focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
+                          >
+                            {!thumbFailed && (
+                              <img
+                                src={video.thumbnailUrl}
+                                alt={video.title}
+                                width="480"
+                                height="270"
+                                loading="lazy"
+                                decoding="async"
+                                onError={() =>
+                                  setFailedThumbIds((prev) => ({ ...prev, [video.id]: true }))
+                                }
+                                className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover/play:opacity-95 transition-opacity"
+                              />
+                            )}
+                            <span className="relative z-10 w-16 h-16 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg group-hover/play:scale-105 transition-transform">
+                              <svg
+                                className="w-8 h-8 ml-1"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden="true"
+                              >
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </span>
+                            <span className="relative z-10 mt-2 px-2.5 py-1 rounded-md bg-black/75 text-xs font-bold text-amber-200">
+                              Click to Load &amp; Play Video
+                            </span>
+                          </button>
+                        )}
                       </div>
 
                       <div className="space-y-1.5">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                        <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
                           {video.badge}
                         </div>
                         <a
@@ -1987,11 +2044,11 @@ export default function App() {
                           rel="noopener noreferrer"
                           data-ga-event="youtube_video_play"
                           data-video-title={video.title}
-                          className="block text-sm md:text-base font-extrabold text-white hover:text-amber-200 transition-colors leading-snug"
+                          className="block text-sm md:text-base font-extrabold text-white hover:text-amber-200 transition-colors leading-snug focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded-sm"
                         >
                           {video.title}
                         </a>
-                        <p className="text-xs text-emerald-100/90 leading-relaxed">
+                        <p className="text-sm text-emerald-100/95 leading-relaxed">
                           {video.description}
                         </p>
                       </div>
@@ -2005,7 +2062,7 @@ export default function App() {
                         rel="noopener noreferrer"
                         data-ga-event="youtube_video_play"
                         data-video-title={video.title}
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm transition-colors"
+                        className="min-h-[44px] w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
                       >
                         <span>▶ Watch Video</span>
                       </a>
@@ -2013,7 +2070,7 @@ export default function App() {
                         id={`calcActionBtn-${video.position}`}
                         type="button"
                         onClick={() => handleVideoCalculatorAction(video)}
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 transition-colors cursor-pointer"
+                        className="min-h-[44px] w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                       >
                         <span>{video.calculatorActionLabel}</span>
                       </button>
@@ -2024,16 +2081,16 @@ export default function App() {
             </div>
 
             {/* Vet-Checked Senior Tools & Official Links (Tracked via GA4 Custom Events) */}
-            <div className="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-amber-400/25 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 text-sm">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-amber-200/90 font-semibold">Senior Tools &amp; Official Links:</span>
+                <span className="text-amber-200 font-semibold">Senior Tools &amp; Official Links:</span>
                 <a
                   href="https://www.treasurydirect.gov/"
                   target="_blank"
                   rel="noopener noreferrer"
                   data-ga-event="affiliate_click"
                   data-affiliate="TreasuryDirect Bucket 2 T-Bills"
-                  className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+                  className="affiliate-link min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
                 >
                   🏦 Bucket 2 T-Bill &amp; HYSA Rates →
                 </a>
@@ -2043,7 +2100,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   data-ga-event="affiliate_click"
                   data-affiliate="Official IRS/SSA Form SSA-44 PDF"
-                  className="affiliate-link px-3 py-1.5 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold"
+                  className="affiliate-link min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg bg-[#0f291e] hover:bg-emerald-950 text-amber-200 border border-amber-400/30 font-bold text-sm focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
                 >
                   📄 Official Form SSA-44 (PDF) →
                 </a>
@@ -2061,7 +2118,10 @@ export default function App() {
           aria-modal="true"
           aria-labelledby="featuredVideoModalTitle"
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 no-print"
-          onClick={() => setActiveVideoModal(null)}
+          onClick={() => {
+            setActiveVideoModal(null);
+            setModalVideoPlaying(false);
+          }}
         >
           <div
             className="bg-[#143325] text-white rounded-2xl max-w-3xl w-full p-5 md:p-6 border-2 border-amber-400 shadow-2xl space-y-4"
@@ -2079,21 +2139,65 @@ export default function App() {
               <button
                 id="closeFeaturedVideoModalBtn"
                 type="button"
-                onClick={() => setActiveVideoModal(null)}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs cursor-pointer shrink-0"
+                onClick={() => {
+                  setActiveVideoModal(null);
+                  setModalVideoPlaying(false);
+                }}
+                className="min-h-[44px] px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-sm cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
               >
                 ✕ Close
               </button>
             </div>
 
-            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-amber-400/40">
-              <iframe
-                src={activeVideoModal.embedUrl}
-                title={activeVideoModal.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full border-0"
-              />
+            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-[#0f291e] border border-amber-400/40">
+              {modalVideoPlaying ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${activeVideoModal.videoId}?autoplay=1`}
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  title={activeVideoModal.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Play video: ${activeVideoModal.title}`}
+                  onClick={() => setModalVideoPlaying(true)}
+                  className="relative w-full h-full flex flex-col items-center justify-center bg-[#0f291e] text-white cursor-pointer group/play focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
+                >
+                  {!failedThumbIds[activeVideoModal.id] && (
+                    <img
+                      src={activeVideoModal.thumbnailUrl}
+                      alt={activeVideoModal.title}
+                      width="480"
+                      height="270"
+                      loading="lazy"
+                      decoding="async"
+                      onError={() =>
+                        setFailedThumbIds((prev) => ({
+                          ...prev,
+                          [activeVideoModal.id]: true,
+                        }))
+                      }
+                      className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover/play:opacity-95 transition-opacity"
+                    />
+                  )}
+                  <span className="relative z-10 w-16 h-16 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg group-hover/play:scale-105 transition-transform">
+                    <svg
+                      className="w-8 h-8 ml-1"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </span>
+                  <span className="relative z-10 mt-2 px-2.5 py-1 rounded-md bg-black/75 text-xs font-bold text-amber-200">
+                    Click to Load &amp; Play Video
+                  </span>
+                </button>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -2103,14 +2207,14 @@ export default function App() {
                 rel="noopener noreferrer"
                 data-ga-event="youtube_video_play"
                 data-video-title={activeVideoModal.title}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-xs shadow-sm"
+                className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF0000] hover:bg-[#cc0000] text-white font-extrabold text-sm shadow-sm focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
               >
                 <span>▶ Watch Directly on YouTube ({activeVideoModal.videoId}) →</span>
               </a>
               <button
                 type="button"
                 onClick={() => handleVideoCalculatorAction(activeVideoModal)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 cursor-pointer"
+                className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
               >
                 <span>{activeVideoModal.calculatorActionLabel}</span>
               </button>
@@ -2123,16 +2227,16 @@ export default function App() {
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
 
       {/* Footer with YouTube Channel CTA & Official Disclaimers */}
-      <footer className="bg-[#0f291e] text-emerald-100 border-t-2 border-[#b07d4b] py-6 px-4 mt-8 text-xs no-print">
+      <footer className="bg-[#0f291e] text-emerald-100 border-t-2 border-[#b07d4b] py-6 px-4 mt-8 text-sm no-print">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-5">
-          <div className="space-y-1.5 text-center lg:text-left max-w-3xl leading-relaxed">
+          <div className="space-y-2 text-center lg:text-left max-w-3xl leading-relaxed">
             <div>
               <strong className="text-white">Educational &amp; Non-Affiliation Disclaimer:</strong> Independent educational calculator for illustrative purposes only; not personal financial, tax, legal, or Medicare advice. Not affiliated with or endorsed by the U.S. Government, SSA (
               <a
                 href="https://www.ssa.gov"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-amber-300 hover:text-amber-200"
+                className="underline text-amber-300 hover:text-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded-sm"
               >
                 ssa.gov
               </a>
@@ -2141,7 +2245,7 @@ export default function App() {
                 href="https://www.medicare.gov"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-amber-300 hover:text-amber-200"
+                className="underline text-amber-300 hover:text-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded-sm"
               >
                 medicare.gov
               </a>
@@ -2150,11 +2254,17 @@ export default function App() {
                 href="https://www.irs.gov"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-amber-300 hover:text-amber-200"
+                className="underline text-amber-300 hover:text-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded-sm"
               >
                 irs.gov
               </a>
               ).
+            </div>
+            <div className="text-emerald-200 font-semibold">
+              Figures last verified {formatVerifiedDate(DATA_LAST_VERIFIED)}. 2027 Medicare Part B and IRMAA amounts are pending CMS official confirmation (expected mid-November).
+            </div>
+            <div className="text-amber-200/95">
+              Videos load from YouTube only after you click play; Google Analytics 4 loads only after you accept cookies.
             </div>
           </div>
 
@@ -2164,13 +2274,13 @@ export default function App() {
               id="openPrivacyFooterBtn"
               type="button"
               onClick={() => setIsPrivacyOpen(true)}
-              className="underline text-amber-300 hover:text-amber-200 font-bold cursor-pointer"
+              className="min-h-[44px] px-2 underline text-amber-300 hover:text-amber-200 font-bold cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded-sm"
             >
               Privacy Policy &amp; Data Safety
             </button>
             <span
               title="No-Suit Retirement Edition"
-              className="text-[11px] text-emerald-300/70 select-none"
+              className="text-xs text-emerald-300/80 select-none"
             >
               v2027.5
             </span>

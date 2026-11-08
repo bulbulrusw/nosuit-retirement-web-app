@@ -87,13 +87,13 @@ export const SpouseShareBar: React.FC<SpouseShareBarProps> = ({
       className="no-print surface-card rounded-2xl p-4 md:p-5 border-2 border-[#b07d4b] shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4"
     >
       <div className="space-y-1">
-        <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-900 bg-emerald-100/80 px-2.5 py-0.5 rounded-md border border-emerald-300">
+        <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-900 bg-emerald-100/80 px-2.5 py-0.5 rounded-md border border-emerald-300">
           <span>🤝 Kitchen-Table Family Planning</span>
         </div>
         <h2 className="text-base md:text-lg font-extrabold text-slate-900">
           Share With Your Spouse or Retirement Friend
         </h2>
-        <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+        <p className="text-sm text-slate-700 max-w-2xl leading-relaxed">
           Send your personalized 2027 Social Security &amp; 3-Bucket snapshot to your spouse by email, or share this free private calculator with a friend retiring soon.
         </p>
       </div>
@@ -111,7 +111,7 @@ export const SpouseShareBar: React.FC<SpouseShareBarProps> = ({
               link_url: copyUrl,
             })
           }
-          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-extrabold text-xs shadow-xs transition-colors whitespace-nowrap"
+          className="min-h-[44px] flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-extrabold text-sm shadow-xs transition-colors whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
         >
           <span>📘 Facebook Share</span>
         </a>
@@ -126,7 +126,7 @@ export const SpouseShareBar: React.FC<SpouseShareBarProps> = ({
               link_url: copyUrl,
             })
           }
-          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-xs border border-amber-400/50 shadow-xs transition-colors whitespace-nowrap"
+          className="min-h-[44px] flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] hover:bg-emerald-900 text-amber-300 font-extrabold text-sm border border-amber-400/50 shadow-xs transition-colors whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
         >
           <span>✉️ Email to Spouse</span>
         </a>
@@ -135,7 +135,7 @@ export const SpouseShareBar: React.FC<SpouseShareBarProps> = ({
           id="copyWebsiteLinkBtn"
           type="button"
           onClick={handleCopyWebsiteLink}
-          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+          className="min-h-[44px] flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 shadow-xs transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-emerald-900 focus-visible:outline-none"
         >
           <span id="copyWebsiteLinkLabel">
             {copied ? '✓ Link Copied!' : '🔗 Copy Website Link'}
@@ -166,10 +166,10 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
       id="cookieConsentBanner"
       role="region"
       aria-label="Cookie and Privacy Consent"
-      className="no-print fixed bottom-14 md:bottom-0 inset-x-0 z-50 bg-[#0f291e] text-amber-100 border-t-2 border-amber-400 shadow-2xl px-4 py-3.5"
+      className="no-print fixed bottom-16 md:bottom-0 inset-x-0 z-50 bg-[#0f291e] text-amber-100 border-t-2 border-amber-400 shadow-2xl px-4 py-3.5"
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <div className="text-xs leading-relaxed max-w-4xl">
+        <div className="text-sm leading-relaxed max-w-4xl">
           <strong className="text-amber-300 font-extrabold uppercase tracking-wide">
             🍪 Cookie &amp; Privacy Notice:
           </strong>{' '}
@@ -184,7 +184,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
             id="cookiePrivacyPolicyBtn"
             type="button"
             onClick={onOpenPrivacy}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs border border-amber-400/40 transition-colors cursor-pointer whitespace-nowrap"
+            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-sm border border-amber-400/40 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
           >
             Privacy Policy
           </button>
@@ -192,7 +192,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
             id="declineCookiesBtn"
             type="button"
             onClick={onDecline}
-            className="px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs border border-slate-500 transition-colors cursor-pointer whitespace-nowrap"
+            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm border border-slate-500 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
           >
             Decline
           </button>
@@ -200,7 +200,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
             id="acceptCookiesBtn"
             type="button"
             onClick={onAccept}
-            className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-md transition-colors cursor-pointer whitespace-nowrap"
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 shadow-md transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
           >
             Accept Cookies
           </button>
@@ -225,14 +225,14 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
     <nav
       id="mobileBottomNavBar"
       aria-label="Mobile Quick Navigation"
-      className="no-print md:hidden fixed bottom-0 inset-x-0 z-40 h-14 bg-[#143325] border-t-2 border-amber-400 shadow-2xl px-2 flex items-center"
+      className="no-print md:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-[#143325] border-t-2 border-amber-400 shadow-2xl px-2 flex items-center"
     >
       <div className="grid grid-cols-3 gap-1.5 max-w-md w-full mx-auto">
         <button
           id="mobileNavCalculatorBtn"
           type="button"
           onClick={onGoCalculator}
-          className="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-amber-200 font-extrabold text-xs border border-amber-400/30 transition-colors cursor-pointer whitespace-nowrap"
+          className="min-h-[44px] flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-amber-200 font-extrabold text-sm border border-amber-400/30 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
         >
           <span>🧮 Calculator</span>
         </button>
@@ -241,7 +241,7 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
           id="mobileNavVideosBtn"
           type="button"
           onClick={onGoVideos}
-          className="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-white font-extrabold text-xs border border-amber-400/30 transition-colors cursor-pointer whitespace-nowrap"
+          className="min-h-[44px] flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#1b4332] hover:bg-emerald-800 text-white font-extrabold text-sm border border-amber-400/30 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
         >
           <span>▶️ 3 Videos</span>
         </button>
@@ -250,7 +250,7 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
           id="mobileNavBinderBtn"
           type="button"
           onClick={onGoBinder}
-          className="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs border border-amber-500 shadow-sm transition-colors cursor-pointer whitespace-nowrap"
+          className="min-h-[44px] flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm border border-amber-500 shadow-sm transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
         >
           <span>🖨️ Print Binder</span>
         </button>

@@ -29,12 +29,12 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
             id="closeGlossaryBtn"
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
+            className="min-h-[44px] px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
           >
             ✕ Close
           </button>
         </div>
-        <div className="space-y-3 text-sm text-slate-800">
+        <div className="space-y-3 text-sm md:text-base text-slate-800 leading-relaxed">
           <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200">
             <strong className="text-emerald-950">COLA (Cost-of-Living Adjustment):</strong> Your annual Social Security inflation raise announced every October and paid starting in January.
           </div>
@@ -85,12 +85,12 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
             id="closePrivacyBtn"
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
+            className="min-h-[44px] px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
           >
             ✕ Close
           </button>
         </div>
-        <div className="space-y-3 text-xs md:text-sm text-slate-800 leading-relaxed">
+        <div className="space-y-3 text-sm md:text-base text-slate-800 leading-relaxed">
           <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300">
             <div className="font-extrabold text-emerald-950">1. 100% Local Retirement Math — Zero Financial Data Collection</div>
             <p className="mt-1">
@@ -100,7 +100,8 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
           <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
             <div className="font-extrabold text-amber-950">2. Cookie Consent &amp; Anonymous Google Analytics 4 Disclosure</div>
             <p className="mt-1">
-              To keep this senior retirement calculator 100% free and improve our plain-English retirement guides, this website uses anonymous Google Analytics 4 traffic measurement (<code className="font-mono">G-66NLH28JBQ</code>) and standard browser cookies. Your cookie consent choice is stored locally in your browser&apos;s <code className="font-mono">localStorage</code>.
+              To keep this senior retirement calculator 100% free and improve our plain-English retirement guides, this website uses anonymous Google Analytics 4 traffic measurement (<code className="font-mono">G-66NLH28JBQ</code>) and standard browser cookies. Your cookie consent choice is stored locally in your browser&apos;s <code className="font-mono">localStorage</code>.{' '}
+              <strong>Videos load from YouTube only after you click play; Google Analytics 4 loads only after you accept cookies.</strong>
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-300">
