@@ -26,6 +26,7 @@ export interface FeaturedVideoEpisode {
   calculatorTab: TabId;
   calculatorPreset?: 'couple400k' | 'single' | 'latesaver';
   workerAgeGroup?: '55' | '61' | '65';
+  planYear?: 2026 | 2027;
   isChannelLinkOnly?: boolean;
 }
 
@@ -71,9 +72,10 @@ export const FEATURED_YOUTUBE_VIDEOS: FeaturedVideoEpisode[] = [
     embedUrl: 'https://www.youtube-nocookie.com/embed/2RCtkLFUmUc?autoplay=1',
     videoId: '2RCtkLFUmUc',
     thumbnailUrl: '/thumbs/video-3.jpg',
-    calculatorActionLabel: '🧮 Open $11,250 Super Catch-Up Tool (Tab 3)',
+    calculatorActionLabel: '🧮 Open the 2026 $11,250 Super Catch-Up Tool (Tab 3)',
     calculatorTab: 'tab-taxshield',
     workerAgeGroup: '61',
+    planYear: 2026,
   },
 ];
 

@@ -48,7 +48,7 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
             <strong className="text-sky-950">IRMAA &amp; Form SSA-44:</strong> Extra Medicare surcharge based on your tax return from 2 years ago. File Form SSA-44 after retiring to remove it.
           </div>
           <div className="p-3.5 rounded-xl bg-purple-50/80 border border-purple-200">
-            <strong className="text-purple-950">SECURE 2.0 Super Catch-Up (Ages 60–63):</strong> Enacted 2026 IRS 401(k) limits (indexed for inflation in 2027+) allow $35,750 ($24,500 base + $11,250 catch-up) for ages 60–63 and $32,500 ($24,500 base + $8,000 catch-up) for ages 50–59 &amp; 64+. Catch-up contributions require Roth treatment if prior-year FICA wages exceed $150,000.
+            <strong className="text-purple-950">SECURE 2.0 Super Catch-Up (Ages 60–63):</strong> 2026: $24,500, super catch-up $11,250 (total $35,750; ages 50–59 &amp; 64+ catch-up $8,000, total $32,500; Roth catch-up threshold $150,000). 2027: $25,500, super catch-up $11,750 (total $37,250; ages 50–59 &amp; 64+ catch-up $8,500, total $34,000; Roth catch-up threshold $155,000).
           </div>
         </div>
       </div>

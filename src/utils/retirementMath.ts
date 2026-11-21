@@ -35,6 +35,7 @@ export interface RetirementInputs {
   hysaRate: number;
 
   // Tab 3: 1984 Ghost Tax, Roth Sweet Spot, SECURE 2.0, IRMAA & ACA
+  planYear: 2026 | 2027;
   taxFilingStatus: 'married' | 'single';
   filersAge65Plus?: 0 | 1 | 2;
   taxPreTaxDraw: number;
@@ -82,6 +83,7 @@ export const DEFAULT_INPUTS: RetirementInputs = {
   mortRate: 3.5,
   hysaRate: 4.6,
 
+  planYear: 2027,
   taxFilingStatus: 'married',
   filersAge65Plus: 2,
   taxPreTaxDraw: 24000,
@@ -113,7 +115,7 @@ export const QUICK_SCENARIO_PRESETS: Record<
   avgSenior: {
     label: `👤 Average Senior ($2,000/mo SS Benefit, $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)} Part B)`,
     shortDesc: `1-Person $2,000/mo Social Security check with $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)} standard Medicare Part B and ${RETIREMENT_CONSTANTS.COLA_2027_PCT}% official 2027 COLA`,
-    toast: `Loaded Average Senior Scenario: $2,000/mo Social Security & $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)} Medicare Part B (+$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)} projected 2027 hike).`,
+    toast: `Loaded Average Senior Scenario: $2,000/mo Social Security & $${RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026.toFixed(2)} Medicare Part B (+$${RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027.toFixed(2)} official 2027 hike).`,
     values: {
       ssYourCheck: 2000,
       ssSpouseCheck: 0,
@@ -372,6 +374,8 @@ export interface RetirementMetrics {
   keepCashAdvantage: boolean;
 
   // Tab 3
+  planYear: 2026 | 2027;
+  taxYearLabel: string;
   isMarried: boolean;
   filersAge65Plus: 0 | 1 | 2;
   preTaxDraw: number;
@@ -397,8 +401,9 @@ export interface RetirementMetrics {
   base401kLimit: number;
   catchupLimit: number;
   total401kLimit: number;
+  mandatoryRothPriorWageThreshold: number;
   irmaaIncome: number;
-  irmaa2026Limit: number;
+  irmaa2027Limit: number;
   irmaaLimit: number;
   irmaaOverLimit: boolean;
   irmaaCanAppealWithSSA44: boolean;
@@ -631,7 +636,16 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const mortAnnualDiff = Math.round(mortBal * (Math.abs(hysaRate - mortRate) / 100));
   const keepCashAdvantage = hysaRate >= mortRate;
 
-  // Tab 3: 1984 Ghost Tax, 2026 Tax Year Roth Sweet Spot, IRMAA & ACA Bridge
+  // Tab 3: 1984 Ghost Tax, Roth Sweet Spot (planYear: 2026 | 2027), IRMAA & ACA Bridge
+  const planYear: 2026 | 2027 = inputs.planYear === 2026 ? 2026 : 2027;
+  const taxConstants =
+    planYear === 2026 ? RETIREMENT_CONSTANTS.TAX_2026 : RETIREMENT_CONSTANTS.TAX_2027;
+  const catchupConstants =
+    planYear === 2026
+      ? RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026
+      : RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2027;
+  const taxYearLabel = taxConstants.taxYearLabel;
+
   const isMarried = inputs.taxFilingStatus === 'married';
   const rawFilers65 = Number(inputs.filersAge65Plus ?? 0);
   const filersAge65Plus = (
@@ -644,19 +658,17 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   const rothDraw = Math.max(0, Number(inputs.taxRothDraw) || 0);
   const interestInc = Math.max(0, Number(inputs.taxInterest) || 0);
 
-  // Separate 2026 Tax Year from 2027 Benefit Projections:
-  // Compute 2026 taxable Social Security using baseline 2026 benefits (currentGrossSS * 12),
-  // NOT the 2027 COLA-adjusted benefit.
+  // Separate baseline SS from 2027 COLA raise in Ghost Tax / Roth Sweet Spot calculation
   const annualGrossSS = currentGrossSS * 12;
   const halfSS = annualGrossSS * 0.5;
   const combinedIncome = halfSS + preTaxDraw + interestInc;
 
   const line50 = isMarried
-    ? RETIREMENT_CONSTANTS.TAX_2026.ghostTax1984.married.line50
-    : RETIREMENT_CONSTANTS.TAX_2026.ghostTax1984.single.line50;
+    ? taxConstants.ghostTax1984.married.line50
+    : taxConstants.ghostTax1984.single.line50;
   const line85 = isMarried
-    ? RETIREMENT_CONSTANTS.TAX_2026.ghostTax1984.married.line85
-    : RETIREMENT_CONSTANTS.TAX_2026.ghostTax1984.single.line85;
+    ? taxConstants.ghostTax1984.married.line85
+    : taxConstants.ghostTax1984.single.line85;
   const meterPct = Math.min(100, Math.max(6, Math.round((combinedIncome / (line85 * 1.35)) * 100)));
 
   let taxZone: '0% Zone' | '50% Zone' | '85% Zone' = '0% Zone';
@@ -682,22 +694,22 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     shiftToRothNeeded = Math.round(combinedIncome - line85);
   }
 
-  // 2026 Tax Year Consistency (IRS Rev. Proc. 2025-32 + OBBBA senior deduction)
+  // Tax Year Standard Deduction, Age 65+ Extra Deduction & OBBBA Senior Deduction
   const baseStandardDed = isMarried
-    ? RETIREMENT_CONSTANTS.TAX_2026.standardDeduction.married
-    : RETIREMENT_CONSTANTS.TAX_2026.standardDeduction.single;
+    ? taxConstants.standardDeduction.married
+    : taxConstants.standardDeduction.single;
   const extraAge65Ded = isMarried
-    ? filersAge65Plus * RETIREMENT_CONSTANTS.TAX_2026.extraAge65Deduction.marriedPerSpouse
-    : filersAge65Plus * RETIREMENT_CONSTANTS.TAX_2026.extraAge65Deduction.single;
+    ? filersAge65Plus * taxConstants.extraAge65Deduction.marriedPerSpouse
+    : filersAge65Plus * taxConstants.extraAge65Deduction.single;
 
   const taxMagi = preTaxDraw + interestInc + taxableSS;
   const obbbaPhaseoutStart = isMarried
-    ? RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutStart.married
-    : RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutStart.single;
+    ? taxConstants.obbbaSeniorDeduction.phaseoutStart.married
+    : taxConstants.obbbaSeniorDeduction.phaseoutStart.single;
   const tentativeObbbaSeniorDed =
-    filersAge65Plus * RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.perPerson;
+    filersAge65Plus * taxConstants.obbbaSeniorDeduction.perPerson;
   const obbbaPhaseoutReduction =
-    RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutRate *
+    taxConstants.obbbaSeniorDeduction.phaseoutRate *
     Math.max(0, taxMagi - obbbaPhaseoutStart);
   const obbbaSeniorDed = Math.round(
     Math.max(0, tentativeObbbaSeniorDed - obbbaPhaseoutReduction)
@@ -705,8 +717,8 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
 
   const standardDed = baseStandardDed + extraAge65Ded + obbbaSeniorDed;
   const bracket12Top = isMarried
-    ? RETIREMENT_CONSTANTS.TAX_2026.bracket12Top.married
-    : RETIREMENT_CONSTANTS.TAX_2026.bracket12Top.single;
+    ? taxConstants.bracket12Top.married
+    : taxConstants.bracket12Top.single;
   const currentTaxable = Math.max(0, taxMagi - standardDed);
 
   // FIX 5 — Roth sweet spot with Social Security tax torpedo & OBBBA phase-out (binary search)
@@ -726,7 +738,7 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     }
     const candMagi = preTaxDraw + conv + interestInc + candTaxableSS;
     const candObbbaReduction =
-      RETIREMENT_CONSTANTS.TAX_2026.obbbaSeniorDeduction.phaseoutRate *
+      taxConstants.obbbaSeniorDeduction.phaseoutRate *
       Math.max(0, candMagi - obbbaPhaseoutStart);
     const candObbbaDed = Math.round(
       Math.max(0, tentativeObbbaSeniorDed - candObbbaReduction)
@@ -750,27 +762,28 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     rothSweetSpotRoom = low;
   }
 
-  // Enacted 2026 IRS 401(k)/403(b) & SECURE 2.0 Super Catch-Up Limits
-  const base401kLimit = RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026.base401kLimit;
+  // IRS 401(k)/403(b) & SECURE 2.0 Super Catch-Up Limits for selected planYear
+  const base401kLimit = catchupConstants.base401kLimit;
   const catchupLimit =
     inputs.workerAgeGroup === '61'
-      ? RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026.superCatchup60To63
-      : RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026.standardCatchup50Plus;
+      ? catchupConstants.superCatchup60To63
+      : catchupConstants.standardCatchup50Plus;
   const total401kLimit = base401kLimit + catchupLimit;
+  const mandatoryRothPriorWageThreshold = catchupConstants.mandatoryRothPriorWageThreshold;
 
-  // FIX 2 — Confirmed 2026 CMS IRMAA Thresholds & Multi-Tier Surcharges (from 2024 MAGI, Part B + Part D per person)
+  // FIX 2 — Official 2027 CMS IRMAA Thresholds & Multi-Tier Surcharges (from 2025 MAGI, Part B + Part D per person)
   const irmaaIncome = Math.max(0, Number(inputs.irmaa2025Income) || 0);
-  const irmaa2026Limit = isMarried
-    ? RETIREMENT_CONSTANTS.IRMAA.year2026From2024Magi.married
-    : RETIREMENT_CONSTANTS.IRMAA.year2026From2024Magi.single;
-  const irmaaLimit = irmaa2026Limit;
+  const irmaa2027Limit = isMarried
+    ? RETIREMENT_CONSTANTS.IRMAA.year2027From2025Magi.married
+    : RETIREMENT_CONSTANTS.IRMAA.year2027From2025Magi.single;
+  const irmaaLimit = irmaa2027Limit;
   const irmaaOverLimit = irmaaIncome > irmaaLimit;
   const irmaaCanAppealWithSSA44 = irmaaOverLimit && inputs.irmaaRetiredEvent === 'yes';
   const irmaaBuffer = Math.max(0, irmaaLimit - irmaaIncome);
 
   let irmaaTier: 1 | 2 | 3 | 4 | 5 | 6 = 1;
   let irmaaSurchargePerPerson = 0;
-  for (const t of RETIREMENT_CONSTANTS.IRMAA.tiers2026) {
+  for (const t of RETIREMENT_CONSTANTS.IRMAA.tiers2027) {
     const tierMax = isMarried ? t.marriedMax : t.singleMax;
     const matchesTier =
       'exclusiveMax' in t && t.exclusiveMax
@@ -985,6 +998,8 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     mortAnnualDiff,
     keepCashAdvantage,
 
+    planYear,
+    taxYearLabel,
     isMarried,
     filersAge65Plus,
     preTaxDraw,
@@ -1010,8 +1025,9 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
     base401kLimit,
     catchupLimit,
     total401kLimit,
+    mandatoryRothPriorWageThreshold,
     irmaaIncome,
-    irmaa2026Limit,
+    irmaa2027Limit,
     irmaaLimit,
     irmaaOverLimit,
     irmaaCanAppealWithSSA44,

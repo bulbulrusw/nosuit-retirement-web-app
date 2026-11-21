@@ -10,7 +10,7 @@ import {
   calculateRetirementMetrics,
   formatUSD,
 } from './utils/retirementMath';
-import { DATA_LAST_VERIFIED } from './data/retirementConstants';
+import { DATA_LAST_VERIFIED, RETIREMENT_CONSTANTS } from './data/retirementConstants';
 import { BrandHeader } from './components/BrandHeader';
 import { UserGuideSection, TabId } from './components/UserGuideSection';
 import { PaycheckCashFlowChart, BreakevenLineChart } from './components/Charts';
@@ -255,10 +255,11 @@ export default function App() {
         ...profile.values,
       }));
     }
-    if (video.workerAgeGroup) {
+    if (video.workerAgeGroup || video.planYear) {
       setInputs((prev) => ({
         ...prev,
-        workerAgeGroup: video.workerAgeGroup!,
+        ...(video.workerAgeGroup ? { workerAgeGroup: video.workerAgeGroup } : {}),
+        ...(video.planYear ? { planYear: video.planYear } : {}),
       }));
     }
     setActiveTab(video.calculatorTab);
@@ -590,6 +591,14 @@ export default function App() {
                       {formatUSD(metrics.netRaise)}/mo
                     </span>
                   </p>
+                  <p className="text-xs text-emerald-100/90 mt-2 pt-2 border-t border-emerald-700/80 leading-snug">
+                    This net deposit subtracts Part B (and Part D if entered). If your 2025 income triggers IRMAA (see Tab 3), that surcharge is also withheld from your check and is not included here.
+                  </p>
+                  {metrics.irmaaTier > 1 && (
+                    <p id="kpiNetIrmaaNote" className="text-xs font-bold text-amber-200 mt-1 leading-snug">
+                      Estimated IRMAA withheld: about {formatUSD(metrics.irmaaAnnualSurcharge / 12)}/month (see Tab 3)
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-amber-50/90 rounded-2xl p-4 border border-amber-400 shadow-xs">
@@ -734,7 +743,7 @@ export default function App() {
                   <div className="bg-slate-100/90 border border-slate-200 rounded-xl p-3.5 space-y-2 text-sm leading-relaxed">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <strong className="text-slate-900">
-                        2027 Part B Premium: $209.50 (Medicare Trustees Projection — CMS official confirmation pending)
+                        2027 Part B Premium: $209.40 (official, CMS, Nov 17, 2026)
                       </strong>
                       <span
                         id="holdHarmlessStatusBadge"
@@ -756,7 +765,7 @@ export default function App() {
                       </p>
                     )}
                     <p className="text-slate-700 leading-relaxed">
-                      Up +$6.60 from the official 2026 base of $202.90/mo. For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
+                      Up +$6.50 from the official 2026 base of $202.90/mo. For most beneficiaries the 3.6% COLA raise exceeds the $6.50 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$180/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
                     </p>
                   </div>
 
@@ -1172,7 +1181,7 @@ export default function App() {
                       className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-sm space-y-1"
                     >
                       <div id="sideGigPenaltyTitle" className="font-extrabold text-red-900 text-sm">
-                        ⚠️ Penalty Alert: {formatUSD(metrics.sideGigPenalty)}/yr Withheld ($1-for-${metrics.sideGigWithholdingDivisor})!
+                        ⚠️ Benefits Withheld: {formatUSD(metrics.sideGigPenalty)}/yr ($1-for-${metrics.sideGigWithholdingDivisor})
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-800 leading-relaxed">
                         You are <span className="font-num font-bold">{formatUSD(metrics.sideGigExcess)}</span> above the{' '}
@@ -1180,7 +1189,7 @@ export default function App() {
                           {formatUSD(metrics.sideGigLimit)}/yr ({formatUSD(metrics.sideGigMonthlyLimit)}/mo)
                         </span>{' '}
                         2027 limit ({metrics.reachingFraThisYear === 'yes' ? 'Year Reaching FRA $1-for-$3 rule' : 'Under FRA $1-for-$2 rule, up from $24,480/yr in 2026'}). Cap work at{' '}
-                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ({formatUSD(metrics.sideGigMonthlyLimit)}/mo) to avoid early Social Security clawbacks.
+                        <strong className="font-num">{metrics.safeHoursPerMonth} hrs/mo</strong> ({formatUSD(metrics.sideGigMonthlyLimit)}/mo) to avoid having benefits withheld. Withheld benefits are not lost: Social Security recalculates your benefit at Full Retirement Age to credit them back.
                       </p>
                     </div>
                   ) : (
@@ -1190,7 +1199,7 @@ export default function App() {
                       className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-sm space-y-1"
                     >
                       <div id="sideGigPenaltyTitle" className="font-extrabold text-emerald-950 text-sm">
-                        ✅ $0 Penalty (You Keep 100% of Your Check!)
+                        ✅ $0 Withheld (You Keep 100% of Your Check)
                       </div>
                       <p id="sideGigPenaltyDesc" className="text-slate-800 leading-relaxed">
                         You are <span className="font-num font-bold">{formatUSD(metrics.sideGigBuffer)}</span> below the{' '}
@@ -1284,9 +1293,49 @@ export default function App() {
               className={`tab-panel space-y-6 ${activeTab === 'tab-taxshield' ? '' : 'hidden'}`}
             >
               <div className="surface-card rounded-2xl p-5 space-y-4">
-                <h2 className="text-lg font-extrabold text-slate-900 border-b border-slate-200 pb-2.5">
-                  1984 IRS &ldquo;Ghost Tax&rdquo; Speedometer &amp; Roth Conversion Sweet Spot
-                </h2>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-2.5">
+                  <h2 className="text-lg font-extrabold text-slate-900">
+                    1984 IRS &ldquo;Ghost Tax&rdquo; Speedometer &amp; Roth Conversion Sweet Spot
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span id="taxPlanYearLabel" className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
+                      Plan year
+                    </span>
+                    <div
+                      role="group"
+                      aria-labelledby="taxPlanYearLabel"
+                      className="inline-flex rounded-lg border border-slate-300 bg-slate-100 p-0.5"
+                    >
+                      {([2026, 2027] as const).map((yr) => {
+                        const active = metrics.planYear === yr;
+                        return (
+                          <button
+                            key={yr}
+                            id={`taxPlanYear-${yr}`}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => updateInput('planYear', yr)}
+                            className={`px-3 py-1.5 min-h-[36px] text-xs font-extrabold rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none ${
+                              active
+                                ? 'bg-[#1b4332] text-white shadow-sm'
+                                : 'text-slate-700 hover:bg-white/80'
+                            }`}
+                          >
+                            {yr}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                {metrics.planYear === 2026 && (
+                  <p
+                    id="planYear2026DeadlineTax"
+                    className="text-sm font-semibold text-amber-950 bg-amber-50 border border-amber-300 rounded-xl px-3.5 py-2"
+                  >
+                    2026 contributions and Roth conversions must be completed by Dec 31, 2026.
+                  </p>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div>
@@ -1449,16 +1498,16 @@ export default function App() {
                   className="p-4 rounded-xl bg-emerald-50 border border-emerald-400 text-sm text-slate-800 space-y-1.5 leading-relaxed"
                 >
                   <div className="font-extrabold text-emerald-950">
-                    🎯 Your Annual Roth Conversion &ldquo;Sweet Spot&rdquo; (2026 Tax Year · Before Age 73 RMDs):{' '}
+                    🎯 Your Annual Roth Conversion &ldquo;Sweet Spot&rdquo; ({metrics.planYear} Tax Year · Before RMDs Begin (Age 73, or 75 if Born 1960 or Later)):{' '}
                     <span className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}/yr</span>
                   </div>
                   <p className="text-sm text-slate-700 leading-relaxed">
-                    For the <strong>2026 tax year</strong> (IRS Rev. Proc. 2025-32, computed using baseline 2026 Social Security benefits of <span className="font-num font-semibold">{formatUSD(metrics.annualGrossSS)}/yr</span> rather than 2027 COLA projections), you can convert up to{' '}
+                    For the <strong>{metrics.taxYearLabel}</strong> ({metrics.planYear === 2026 ? 'IRS Rev. Proc. 2025-32' : 'IRS Rev. Proc. 2026-35'}, computed using baseline Social Security benefits of <span className="font-num font-semibold">{formatUSD(metrics.annualGrossSS)}/yr</span>), you can convert up to{' '}
                     <strong className="font-num">{formatUSD(metrics.rothSweetSpotRoom)}</strong> from your Traditional 401(k)/IRA into a Roth IRA while staying inside the 12% federal bracket (top:{' '}
                     <span className="font-num font-bold">{formatUSD(metrics.bracket12Top)}</span> taxable income).
                   </p>
                   <p className="text-sm text-slate-700 leading-relaxed">
-                    <strong>2026 Deductions Applied ({formatUSD(metrics.standardDed)} total):</strong> Base standard deduction{' '}
+                    <strong>{metrics.planYear} Deductions Applied ({formatUSD(metrics.standardDed)} total):</strong> Base standard deduction{' '}
                     <span className="font-num font-semibold">{formatUSD(metrics.baseStandardDed)}</span>
                     {metrics.filersAge65Plus > 0 ? (
                       <>
@@ -1467,43 +1516,99 @@ export default function App() {
                         <span className="font-num font-semibold">{formatUSD(metrics.obbbaSeniorDed)}</span>
                       </>
                     ) : (
-                      ' (select 1 or 2 filers age 65+ above to include the $2,050/$1,650 extra 65+ deduction and $6,000 OBBBA senior deduction).'
+                      ` (select 1 or 2 filers age 65+ above to include the ${metrics.planYear === 2026 ? '$2,050/$1,650' : '$2,100/$1,700'} extra 65+ deduction and $6,000 OBBBA senior deduction).`
                     )}
                   </p>
                   <p className="text-sm text-emerald-900 font-semibold border-t border-emerald-300/70 pt-1.5 leading-relaxed">
-                    ℹ️ Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket (IRS Rev. Proc. 2025-32) before jumping to 22%. Illustrative kitchen-table estimate; consult your CPA for full Form 1040 itemized deductions.
+                    ℹ️ Sweet Spot Bracket Analysis: Estimates remaining room in the 12% federal bracket ({metrics.planYear === 2026 ? 'IRS Rev. Proc. 2025-32' : 'IRS Rev. Proc. 2026-35'}) before jumping to 22%. Illustrative kitchen-table estimate; consult your CPA for full Form 1040 itemized deductions.
                   </p>
                 </div>
 
-                <div className="bg-amber-50/90 rounded-xl p-4 border border-amber-400 space-y-2">
-                  <label htmlFor="workerAgeSelect" className="block text-sm font-bold uppercase text-amber-900">
-                    Enacted 2026 IRS SECURE 2.0 Super Catch-Up (Ages 60–63 · 2027+ COLA Indexed)
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                    <select
-                      id="workerAgeSelect"
-                      aria-label="Worker Age Catch-Up Group"
-                      value={inputs.workerAgeGroup}
-                      onChange={(e) => updateInput('workerAgeGroup', e.target.value as '55' | '61' | '65')}
-                      className="min-h-[44px] rounded-lg border border-slate-300 px-2.5 py-2 font-bold text-sm bg-white focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
-                    >
-                      <option value="55">Age 50–59 ($8,000 Catch-Up · $32,500 Total)</option>
-                      <option value="61">Age 60–63 ($11,250 Super Catch-Up · $35,750 Total)</option>
-                      <option value="65">Age 64+ ($8,000 Catch-Up · $32,500 Total)</option>
-                    </select>
-                    <div id="superCatchupOutput" aria-live="polite" className="text-sm text-slate-800 font-semibold leading-relaxed">
-                      {inputs.workerAgeGroup === '61' ? (
-                        <>
-                          🎉 <strong>Age 60–63 Super Catch-Up:</strong> Up to <strong className="font-num">$35,750 ($24,500 base + $11,250 catch-up)</strong> enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">$150,000</strong>.
-                        </>
-                      ) : (
-                        <>
-                          📌 <strong>Age 50+ Standard Catch-Up:</strong> Up to <strong className="font-num">$32,500 ($24,500 base + $8,000 catch-up)</strong> enacted 2026 IRS limit (indexed for inflation in 2027+). Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">$150,000</strong>.
-                        </>
+                {(() => {
+                  const activeCatchup =
+                    metrics.planYear === 2026
+                      ? RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2026
+                      : RETIREMENT_CONSTANTS.SECURE_2_0_CATCHUP_2027;
+                  const stdTotal = activeCatchup.base401kLimit + activeCatchup.standardCatchup50Plus;
+                  const superTotal = activeCatchup.base401kLimit + activeCatchup.superCatchup60To63;
+                  return (
+                    <div className="bg-amber-50/90 rounded-xl p-4 border border-amber-400 space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label htmlFor="workerAgeSelect" className="block text-sm font-bold uppercase text-amber-900">
+                          {metrics.planYear} IRS SECURE 2.0 Super Catch-Up (Ages 60–63 · {metrics.planYear === 2026 ? '2026 Limit' : 'IRS Notice 2026-66'})
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span id="catchupPlanYearLabel" className="text-xs font-extrabold uppercase tracking-wide text-amber-950">
+                            Plan year
+                          </span>
+                          <div
+                            role="group"
+                            aria-labelledby="catchupPlanYearLabel"
+                            className="inline-flex rounded-lg border border-amber-300 bg-white p-0.5"
+                          >
+                            {([2026, 2027] as const).map((yr) => {
+                              const active = metrics.planYear === yr;
+                              return (
+                                <button
+                                  key={yr}
+                                  id={`catchupPlanYear-${yr}`}
+                                  type="button"
+                                  aria-pressed={active}
+                                  onClick={() => updateInput('planYear', yr)}
+                                  className={`px-3 py-1.5 min-h-[36px] text-xs font-extrabold rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none ${
+                                    active
+                                      ? 'bg-[#1b4332] text-white shadow-sm'
+                                      : 'text-slate-700 hover:bg-amber-50'
+                                  }`}
+                                >
+                                  {yr}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      {metrics.planYear === 2026 && (
+                        <p
+                          id="planYear2026Deadline401k"
+                          className="text-sm font-semibold text-amber-950 bg-white/90 border border-amber-300 rounded-lg px-3 py-1.5"
+                        >
+                          2026 contributions and Roth conversions must be completed by Dec 31, 2026.
+                        </p>
                       )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                        <select
+                          id="workerAgeSelect"
+                          aria-label="Worker Age Catch-Up Group"
+                          value={inputs.workerAgeGroup}
+                          onChange={(e) => updateInput('workerAgeGroup', e.target.value as '55' | '61' | '65')}
+                          className="min-h-[44px] rounded-lg border border-slate-300 px-2.5 py-2 font-bold text-sm bg-white focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none"
+                        >
+                          <option value="55">
+                            Age 50–59 ({formatUSD(activeCatchup.standardCatchup50Plus)} Catch-Up · {formatUSD(stdTotal)} Total)
+                          </option>
+                          <option value="61">
+                            Age 60–63 ({formatUSD(activeCatchup.superCatchup60To63)} Super Catch-Up · {formatUSD(superTotal)} Total)
+                          </option>
+                          <option value="65">
+                            Age 64+ ({formatUSD(activeCatchup.standardCatchup50Plus)} Catch-Up · {formatUSD(stdTotal)} Total)
+                          </option>
+                        </select>
+                        <div id="superCatchupOutput" aria-live="polite" className="text-sm text-slate-800 font-semibold leading-relaxed">
+                          {inputs.workerAgeGroup === '61' ? (
+                            <>
+                              🎉 <strong>Age 60–63 Super Catch-Up:</strong> Up to <strong className="font-num">{formatUSD(metrics.total401kLimit)} ({formatUSD(metrics.base401kLimit)} base + {formatUSD(metrics.catchupLimit)} catch-up)</strong> {metrics.planYear} IRS limit. Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">{formatUSD(metrics.mandatoryRothPriorWageThreshold)}</strong>.
+                            </>
+                          ) : (
+                            <>
+                              📌 <strong>Age 50+ Standard Catch-Up:</strong> Up to <strong className="font-num">{formatUSD(metrics.total401kLimit)} ({formatUSD(metrics.base401kLimit)} base + {formatUSD(metrics.catchupLimit)} catch-up)</strong> {metrics.planYear} IRS limit. Mandatory <strong>Roth catch-up</strong> applies if prior-year FICA wages exceed <strong className="font-num">{formatUSD(metrics.mandatoryRothPriorWageThreshold)}</strong>.
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1515,7 +1620,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="irmaa2025Income" className="block text-sm font-bold text-slate-800">
-                        2-Year Lookback MAGI (2024 MAGI sets 2026 Medicare premium) ($)
+                        2-Year Lookback MAGI (2025 MAGI sets your 2027 Medicare premium)
                       </label>
                       <input
                         id="irmaa2025Income"
@@ -1544,8 +1649,8 @@ export default function App() {
 
                   <p className="text-sm text-slate-700 leading-relaxed">
                     <strong>Note:</strong> IRMAA MAGI = AGI + tax-exempt interest; untaxed Social Security is not included.{' '}
-                    <strong>2026 threshold (2024 MAGI):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
-                    <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.</em>
+                    <strong>2027 threshold (2025 MAGI):</strong> <span className="font-num font-semibold">{formatUSD(metrics.irmaaLimit)}</span> ({metrics.isMarried ? 'married' : 'single'}).{' '}
+                    <em>Official 2027 CMS rates (announced Nov 17, 2026).</em>
                   </p>
 
                   <div
@@ -1559,7 +1664,7 @@ export default function App() {
                           ✅ File Form SSA-44 Immediately: Erases your Tier {metrics.irmaaTier} surcharge to save {formatUSD(metrics.irmaaAnnualSurcharge)}/yr!
                         </div>
                         <p className="text-slate-800 leading-relaxed">
-                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) places you in <strong>IRMAA Tier {metrics.irmaaTier}</strong> (~{formatUSD(metrics.irmaaSurchargePerPerson)}/yr per person Part B + Part D) above the confirmed 2026 CMS threshold of{' '}
+                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) places you in <strong>IRMAA Tier {metrics.irmaaTier}</strong> (~{formatUSD(metrics.irmaaSurchargePerPerson)}/yr per person Part B + Part D) above the official 2027 CMS threshold of{' '}
                           <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>. File{' '}
                           <strong>Form SSA-44 (Work Stoppage)</strong> so Medicare drops your IRMAA surcharge!
                         </p>
@@ -1570,13 +1675,13 @@ export default function App() {
                           ⚠️ IRMAA Tier {metrics.irmaaTier} Surcharge Applies (~{formatUSD(metrics.irmaaAnnualSurcharge)}/yr)
                         </div>
                         <p className="text-slate-800 leading-relaxed">
-                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the confirmed 2026 CMS threshold of{' '}
+                          Your lookback MAGI (<span className="font-num font-bold">{formatUSD(metrics.irmaaIncome)}</span>) exceeds the official 2027 CMS threshold of{' '}
                           <span className="font-num font-bold">{formatUSD(metrics.irmaaLimit)}</span>.
                         </p>
                       </>
                     ) : (
                       <div className="font-extrabold text-emerald-950 text-sm">
-                        🎉 $0 IRMAA Surcharge (Tier 1 · <span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> below confirmed {formatUSD(metrics.irmaaLimit)} 2026 CMS threshold)!
+                        🎉 $0 IRMAA Surcharge (Tier 1 · <span className="font-num">{formatUSD(metrics.irmaaBuffer)}</span> below official {formatUSD(metrics.irmaaLimit)} 2027 CMS threshold)!
                       </div>
                     )}
                   </div>
@@ -2261,7 +2366,7 @@ export default function App() {
               ).
             </div>
             <div className="text-emerald-200 font-semibold">
-              Figures last verified {formatVerifiedDate(DATA_LAST_VERIFIED)}. 2027 Medicare Part B and IRMAA amounts are pending CMS official confirmation (expected mid-November).
+              Figures last verified {formatVerifiedDate(DATA_LAST_VERIFIED)} against CMS (Nov 17), IRS Rev. Proc. 2026-35 and IRS Notice 2026-66.
             </div>
             <div className="text-amber-200/95">
               Videos load from YouTube only after you click play; Google Analytics 4 loads only after you accept cookies.

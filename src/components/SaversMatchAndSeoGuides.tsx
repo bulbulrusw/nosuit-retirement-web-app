@@ -448,7 +448,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
                 How the Federal &ldquo;Hold Harmless&rdquo; Rule Works (§ 1839(f)):
               </div>
               <p className="leading-relaxed">
-                For most beneficiaries the 3.6% COLA raise exceeds the $6.60 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$183/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
+                For most beneficiaries the 3.6% COLA raise exceeds the $6.50 Part B increase, so the raise absorbs it. Section 1839(f) only limits the increase for people whose COLA dollar raise is smaller than the increase (roughly benefits under ~$180/month), and does not apply to new enrollees, premiums not deducted from Social Security, or IRMAA payers.
               </p>
               <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
                 <li>
@@ -503,7 +503,7 @@ export const HighIntentSeoGuidesSection: React.FC = () => {
             </h2>
 
             <p className="text-sm md:text-base text-slate-800 leading-relaxed">
-              Medicare&apos;s <strong>IRMAA (Income-Related Monthly Adjustment Amount)</strong> uses a 2-year tax lookback (confirmed 2026 CMS threshold from 2024 MAGI is <strong>$109,000 Single / $218,000 Married</strong>; <em>Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November</em>). If your income dropped because you retired, you can file <strong>Form SSA-44</strong> to erase the Part B &amp; Part D surcharge.
+              Medicare&apos;s <strong>IRMAA (Income-Related Monthly Adjustment Amount)</strong> uses a 2-year tax lookback (official 2027 CMS threshold based on 2025 MAGI: <strong>$112,000 Single / $224,000 Married</strong>). If your income dropped because you retired, you can file <strong>Form SSA-44</strong> to erase the Part B &amp; Part D surcharge.
             </p>
 
             <div className="bg-[#f8f5ec] rounded-xl p-4 border border-[#d5cbb8] space-y-2 text-sm text-slate-800 leading-relaxed">

@@ -20,25 +20,27 @@ import {
   buildSpouseShareLinks,
 } from '../components/ConversionAndComplianceBars';
 
-test('default couple400k profile computes accurate Net SS, Medicare Part B $202.90/$6.60 defaults, Hold Harmless protection, and 3-Bucket allocations', () => {
+test('default couple400k profile computes accurate Net SS, Medicare Part B $202.90/$6.50 defaults, Hold Harmless protection, and 3-Bucket allocations', () => {
   const res = calculateRetirementMetrics(DEFAULT_INPUTS);
 
   // Verify shared constants for Medicare Part B
   assert.equal(RETIREMENT_CONSTANTS.MEDICARE_PART_B.base2026, 202.9);
-  assert.equal(RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, 6.6);
+  assert.equal(RETIREMENT_CONSTANTS.MEDICARE_PART_B.official2027, 209.4);
+  assert.equal(RETIREMENT_CONSTANTS.MEDICARE_PART_B.defaultIncrease2027, 6.5);
+  assert.equal(RETIREMENT_CONSTANTS.MEDICARE_PART_B.deductible2027, 292);
   assert.equal(DEFAULT_INPUTS.partBBasePremium, 202.9);
-  assert.equal(DEFAULT_INPUTS.partBIncrease, 6.6);
+  assert.equal(DEFAULT_INPUTS.partBIncrease, 6.5);
 
   // $1,940 + $1,160 = $3,100 gross SS
   assert.equal(res.currentGrossSS, 3100);
   // 3.6% COLA on $3,100 = $111.60 -> formatted +$112/mo
   assert.equal(formatUSD(res.grossColaRaise), '$112');
-  // 2 people * $6.60 hike = $13.20/mo Medicare bite
-  assert.ok(Math.abs(res.totalMedicareHike - 13.2) < 0.001);
-  // Net SS = ($3,100 + $111.60) - ($405.80 + $13.20) = $2,792.60 -> $2,793/mo
+  // 2 people * $6.50 hike = $13.00/mo Medicare bite
+  assert.ok(Math.abs(res.totalMedicareHike - 13.0) < 0.001);
+  // Net SS = ($3,100 + $111.60) - ($405.80 + $13.00) = $2,792.80 -> $2,793/mo
   assert.equal(formatUSD(res.newNetSS), '$2,793');
-  // Net Raise = $111.60 - $13.20 = $98.40 -> $98/mo
-  assert.equal(formatUSD(res.netRaise), '$98');
+  // Net Raise = $111.60 - $13.00 = $98.60 -> $99/mo
+  assert.equal(formatUSD(res.netRaise), '$99');
 
   // Federal Hold Harmless rule (Social Security Act § 1839(f)) caps Part B hike individually per beneficiary
   const resHoldHarmless = calculateRetirementMetrics({
@@ -54,21 +56,21 @@ test('default couple400k profile computes accurate Net SS, Medicare Part B $202.
   assert.equal(resHoldHarmless.netRaise, 0);
 
   // Individual-level Hold Harmless test for married couple with asymmetric benefits:
-  // Primary: $2,500 * 3.6% = $90.00 COLA -> $6.60 Part B hike (not capped)
-  // Spouse: $150 * 3.6% = $5.40 COLA -> $6.60 Part B hike capped individually at $5.40!
-  // Total household Medicare hike = $6.60 + $5.40 = $12.00 (would have been $13.20 under aggregate pooling)
+  // Primary: $2,500 * 3.6% = $90.00 COLA -> $6.50 Part B hike (not capped)
+  // Spouse: $150 * 3.6% = $5.40 COLA -> $6.50 Part B hike capped individually at $5.40!
+  // Total household Medicare hike = $6.50 + $5.40 = $11.90 (would have been $13.00 under aggregate pooling)
   const resIndividualHoldHarmless = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     ssYourCheck: 2500,
     ssSpouseCheck: 150,
     colaPct: 3.6,
-    partBIncrease: 6.6,
+    partBIncrease: 6.5,
   });
   assert.ok(Math.abs(resIndividualHoldHarmless.primaryColaRaise - 90) < 0.001);
   assert.ok(Math.abs(resIndividualHoldHarmless.spouseColaRaise - 5.4) < 0.001);
-  assert.ok(Math.abs(resIndividualHoldHarmless.primaryMedicareHike - 6.6) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.primaryMedicareHike - 6.5) < 0.001);
   assert.ok(Math.abs(resIndividualHoldHarmless.spouseMedicareHike - 5.4) < 0.001);
-  assert.ok(Math.abs(resIndividualHoldHarmless.totalMedicareHike - 12.0) < 0.001);
+  assert.ok(Math.abs(resIndividualHoldHarmless.totalMedicareHike - 11.9) < 0.001);
   assert.equal(resIndividualHoldHarmless.holdHarmlessProtected, true);
 
   // $400,000 * 4.5% = $18,000/yr ($1,500/mo)
@@ -79,12 +81,12 @@ test('default couple400k profile computes accurate Net SS, Medicare Part B $202.
   assert.equal(res.yearsProtected, 8);
 });
 
-test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax / Roth Sweet Spot + Age 65+ Extra Deduction + OBBBA $6,000 Senior Deduction & Phaseout', () => {
+test('Fix 5 & Audit Item 3: 2026 Plan-Year Ghost Tax / Roth Sweet Spot + Age 65+ Extra Deduction + OBBBA $6,000 Senior Deduction & Phaseout', () => {
   // Default couple400k has filersAge65Plus = 2 (Age 66 couple per Fix 3) ->
   // baseStandardDed = $32,200, extraAge65Ded = $3,300, obbbaSeniorDed = $12,000, standardDed = $47,500, bracket12Top = $100,800
   // 2026 baseline SS = $3,100 * 12 = $37,200/yr (halfSS = $18,600)
   // combinedIncome = $18,600 + $24,000 + $3,500 = $46,100
-  const resDefault = calculateRetirementMetrics(DEFAULT_INPUTS);
+  const resDefault = calculateRetirementMetrics({ ...DEFAULT_INPUTS, planYear: 2026 });
   assert.equal(resDefault.baseStandardDed, 32200);
   assert.equal(resDefault.extraAge65Ded, 3300);
   assert.equal(resDefault.obbbaSeniorDed, 12000);
@@ -108,6 +110,7 @@ test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax
   // Base $32,200 + Extra 65+ (2 * $1,650 = $3,300) + OBBBA (2 * $6,000 = $12,000) = $47,500
   const resMarried2Seniors = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     filersAge65Plus: 2,
   });
   assert.equal(resMarried2Seniors.baseStandardDed, 32200);
@@ -120,6 +123,7 @@ test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax
   const resSingleSenior = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     ...PRESET_PROFILES.single.values,
+    planYear: 2026,
     filersAge65Plus: 1,
   });
   assert.equal(resSingleSenior.baseStandardDed, 16100);
@@ -132,6 +136,7 @@ test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax
   // At $125,000 MAGI ($50,000 over $75,000), reduction = 6% * $50,000 = $3,000 -> OBBBA = $3,000
   const resSinglePhaseout = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     taxFilingStatus: 'single',
     ssYourCheck: 0,
     ssSpouseCheck: 0,
@@ -147,6 +152,7 @@ test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax
   // reduction = 6% * $50,000 = $3,000 applied once -> OBBBA = $9,000 (not $6,000).
   const resMarriedPhaseout = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     taxFilingStatus: 'married',
     ssYourCheck: 0,
     ssSpouseCheck: 0,
@@ -159,14 +165,14 @@ test('Fix 5 & Audit Item 3: 2026 Tax-Year Separation from 2027 COLA in Ghost Tax
 });
 
 test('Fix 1: 2027 IRS Saver\'s Match (IRC §6433) linear phase-out and 1 vs 2 contributing spouses', () => {
-  // Preset 1: Average Senior ($2,000/mo SS Benefit, $202.90 Part B, $6.60 hike)
+  // Preset 1: Average Senior ($2,000/mo SS Benefit, $202.90 Part B, $6.50 hike)
   const avgSeniorRes = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     ...QUICK_SCENARIO_PRESETS.avgSenior.values,
   });
   assert.equal(avgSeniorRes.currentGrossSS, 2000);
   assert.equal(avgSeniorRes.baseMedicareCurrent, 202.9);
-  assert.equal(avgSeniorRes.totalMedicareHike, 6.6);
+  assert.equal(avgSeniorRes.totalMedicareHike, 6.5);
   assert.equal(Math.round(avgSeniorRes.grossColaRaise), 72);
 
   // Single filer: $20,500 -> $35,500 linear phase-out
@@ -309,14 +315,14 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
   assert.equal(resSingleAca.acaOverCliff, true);
   assert.equal(resSingleAca.acaDollarsOverCliff, 6160);
 
-  // Upgrade 3 & Fix 2: Confirmed 2026 CMS Multi-Tier IRMAA surcharges (Tiers 1–6, Part B + Part D per person)
-  // Default couple400k has $230,000 MAGI (Married Tier 2: $218,001–$274,000 -> $1,148.40/person -> $2,296.80/yr couple)
+  // Upgrade 3 & Fix 2: Official 2027 CMS Multi-Tier IRMAA surcharges (Tiers 1–6, Part B + Part D per person)
+  // Default couple400k has $230,000 MAGI (Married Tier 2: $224,001–$282,000 -> $1,189.20/person -> $2,378.40/yr couple)
   assert.equal(resDefault.irmaaTier, 2);
-  assert.equal(resDefault.irmaaSurchargePerPerson, 1148.4);
-  assert.equal(resDefault.irmaaAnnualSurcharge, 2296.8);
+  assert.equal(resDefault.irmaaSurchargePerPerson, 1189.2);
+  assert.equal(resDefault.irmaaAnnualSurcharge, 2378.4);
   assert.equal(resDefault.holdHarmlessProtectedStatus, '§ 1839(f) Not Applicable');
 
-  // Tier 1 Married (<= $218,000): $0 surcharge & COLA Absorbs Hike (§ 1839(f) Eligible)
+  // Tier 1 Married (<= $224,000): $0 surcharge & COLA Absorbs Hike (§ 1839(f) Eligible)
   const resTier1 = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     irmaa2025Income: 180000,
@@ -325,7 +331,7 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
   assert.equal(resTier1.irmaaAnnualSurcharge, 0);
   assert.equal(resTier1.holdHarmlessProtectedStatus, 'COLA Absorbs Hike (§ 1839(f) Eligible)');
 
-  // Tier 3 Single ($137,001–$171,000): $2,884.80/yr ($240.40/mo)
+  // Tier 3 Single ($141,001–$177,000): $2,989.20/yr ($249.10/mo)
   const resTier3Single = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'single',
@@ -333,18 +339,18 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
     irmaa2025Income: 150000,
   });
   assert.equal(resTier3Single.irmaaTier, 3);
-  assert.equal(resTier3Single.irmaaAnnualSurcharge, 2884.8);
+  assert.equal(resTier3Single.irmaaAnnualSurcharge, 2989.2);
 
-  // Tier 4 Married ($342,001–$410,000): $4,620.00 * 2 = $9,240.00/yr ($385.00/mo/person)
+  // Tier 4 Married ($354,001–$424,000): $4,788.00 * 2 = $9,576.00/yr ($399.00/mo/person)
   const resTier4Married = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'married',
     irmaa2025Income: 380000,
   });
   assert.equal(resTier4Married.irmaaTier, 4);
-  assert.equal(resTier4Married.irmaaAnnualSurcharge, 9240);
+  assert.equal(resTier4Married.irmaaAnnualSurcharge, 9576);
 
-  // Tier 5 Single ($205,001–<$500,000): $6,355.20/yr ($529.60/mo)
+  // Tier 5 Single ($212,001–<$500,000): $6,586.80/yr ($548.90/mo)
   const resTier5Single = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'single',
@@ -352,16 +358,16 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
     irmaa2025Income: 300000,
   });
   assert.equal(resTier5Single.irmaaTier, 5);
-  assert.equal(resTier5Single.irmaaAnnualSurcharge, 6355.2);
+  assert.equal(resTier5Single.irmaaAnnualSurcharge, 6586.8);
 
-  // Tier 6 Married (>=$750,000): $6,936.00 * 2 = $13,872.00/yr ($578.00/mo/person)
+  // Tier 6 Married (>=$750,000): $7,185.60 * 2 = $14,371.20/yr ($598.80/mo/person)
   const resTier6Married = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
     taxFilingStatus: 'married',
     irmaa2025Income: 800000,
   });
   assert.equal(resTier6Married.irmaaTier, 6);
-  assert.equal(resTier6Married.irmaaAnnualSurcharge, 13872);
+  assert.equal(resTier6Married.irmaaAnnualSurcharge, 14371.2);
 
   // Upgrade 4: Medicare Part D monthly premium deduction ($35/mo/person * 2 spouses = $70/mo deducted from Net SS)
   const resWithPartD = calculateRetirementMetrics({
@@ -373,8 +379,8 @@ test('Upgrade 3, Upgrade 4 & Upgrade 5: Multi-Tier IRMAA (Tiers 1–6), Medicare
 });
 
 test('Upgrade 2: Official 2027 side-gig $25,560/yr (1-for-2) vs FRA-year $67,920/yr (1-for-3) earnings test, dynamic FRA claiming ages, and SECURE 2.0 $11,250 Super Catch-Up', () => {
-  // Default reachingFraThisYear = 'no' -> $25,560/yr limit, $1-for-$2 withholding
-  const res = calculateRetirementMetrics(DEFAULT_INPUTS);
+  // Default reachingFraThisYear = 'no' -> $25,560/yr limit, $1-for-$2 withholding (planYear 2026 for 2026 401(k) assertions below)
+  const res = calculateRetirementMetrics({ ...DEFAULT_INPUTS, planYear: 2026 });
   assert.equal(res.reachingFraThisYear, 'no');
   assert.equal(res.sideGigLimit, 25560);
   assert.equal(res.sideGigMonthlyLimit, 2130);
@@ -442,16 +448,17 @@ test('Upgrade 2: Official 2027 side-gig $25,560/yr (1-for-2) vs FRA-year $67,920
   assert.equal(res.total401kLimit, 32500);
   assert.equal(res.irmaaCanAppealWithSSA44, true);
 
-  // Age 60-63 ('61') SECURE 2.0 Super Catch-Up ($11,250 catch-up, $35,750 total)
+  // Age 60-63 ('61') SECURE 2.0 Super Catch-Up ($11,250 catch-up, $35,750 total in 2026)
   const resSuperCatchup = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     workerAgeGroup: '61',
   });
   assert.equal(resSuperCatchup.catchupLimit, 11250);
   assert.equal(resSuperCatchup.total401kLimit, 35750);
 });
 
-test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, Medicare Realism, ACA 2027 Cliff, Roth Sweet Spot Torpedo Binary Search, Saver\'s Match Per-Spouse Cap, and TSCL 13.7% Buying Power & Hold Harmless Scope', () => {
+test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Official 2027 IRMAA Boundaries, Medicare Realism, ACA 2027 Cliff, Roth Sweet Spot Torpedo Binary Search, Saver\'s Match Per-Spouse Cap, and TSCL 13.7% Buying Power & Hold Harmless Scope', () => {
   // FIX 1: Ghost tax tier-1 cap (single, SS $500/mo, pre-tax draw $32,000, interest $0 => taxableSS = 3850)
   // annualGrossSS = $6,000, halfSS = $3,000, combinedIncome = $35,000 (> $34,000 line85)
   // tier1Max = min(0.5 * 6000, 0.5 * (34000 - 25000)) = min(3000, 4500) = 3000
@@ -468,25 +475,44 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
   assert.equal(fix1Res.combinedIncome, 35000);
   assert.equal(fix1Res.taxableSS, 3850);
 
-  // FIX 2: Confirmed 2026 CMS IRMAA boundaries (>= 500,000 single and >= 750,000 married in Tier 6)
-  const fix2Single500k = calculateRetirementMetrics({
-    ...DEFAULT_INPUTS,
-    taxFilingStatus: 'single',
-    spouseOnMedicare: false,
-    irmaa2025Income: 500000,
-  });
-  assert.equal(fix2Single500k.irmaaTier, 6);
-  assert.equal(fix2Single500k.irmaaSurchargePerPerson, 6936);
-  assert.equal(fix2Single500k.irmaaAnnualSurcharge, 6936);
+  // FIX 2: Official 2027 CMS IRMAA boundaries (from 2025 MAGI, Part B + Part D per person)
+  const singleIrmaaCases: Array<[number, 1 | 2 | 3 | 4 | 5 | 6, number]> = [
+    [112000, 1, 0],
+    [112001, 2, 1189.2],
+    [141001, 3, 2989.2],
+    [177001, 4, 4788],
+    [212001, 5, 6586.8],
+    [499999, 5, 6586.8],
+    [500000, 6, 7185.6],
+  ];
+  for (const [magi, expectedTier, expectedAnnual] of singleIrmaaCases) {
+    const r = calculateRetirementMetrics({
+      ...DEFAULT_INPUTS,
+      taxFilingStatus: 'single',
+      spouseOnMedicare: false,
+      irmaa2025Income: magi,
+    });
+    assert.equal(r.irmaaTier, expectedTier);
+    assert.equal(r.irmaaSurchargePerPerson, expectedAnnual);
+    assert.equal(r.irmaaAnnualSurcharge, expectedAnnual);
+  }
 
-  const fix2Married750k = calculateRetirementMetrics({
-    ...DEFAULT_INPUTS,
-    taxFilingStatus: 'married',
-    irmaa2025Income: 750000,
-  });
-  assert.equal(fix2Married750k.irmaaTier, 6);
-  assert.equal(fix2Married750k.irmaaSurchargePerPerson, 6936);
-  assert.equal(fix2Married750k.irmaaAnnualSurcharge, 13872);
+  const marriedIrmaaCases: Array<[number, 1 | 2 | 3 | 4 | 5 | 6, number, number]> = [
+    [224000, 1, 0, 0],
+    [224001, 2, 1189.2, 2378.4],
+    [749999, 5, 6586.8, 13173.6],
+    [750000, 6, 7185.6, 14371.2],
+  ];
+  for (const [magi, expectedTier, expectedPerPerson, expectedCouple] of marriedIrmaaCases) {
+    const r = calculateRetirementMetrics({
+      ...DEFAULT_INPUTS,
+      taxFilingStatus: 'married',
+      irmaa2025Income: magi,
+    });
+    assert.equal(r.irmaaTier, expectedTier);
+    assert.equal(r.irmaaSurchargePerPerson, expectedPerPerson);
+    assert.equal(r.irmaaAnnualSurcharge, expectedCouple);
+  }
 
   // FIX 3: Medicare realism on presets couple400k (Age 66) and latesaver (Age 59)
   assert.equal(PRESET_PROFILES.couple400k.label, 'Couple (Age 66, $400K)');
@@ -523,11 +549,12 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
   assert.equal(fix4OverCliff.acaOverCliff, true);
   assert.equal(fix4OverCliff.acaDollarsOverCliff, 1);
 
-  // FIX 5: Roth sweet spot with tax torpedo binary search
+  // FIX 5: Roth sweet spot with tax torpedo binary search (2026 planYear)
   // Married, SS $2,000 + $1,500/mo ($42,000/yr), pre-tax draw $20,000, interest $2,000, both 65+:
   // Taxable income after converting rothSweetSpotRoom must be <= 100,800 (and +1 exceeds 100,800)
   const fix5Base = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     taxFilingStatus: 'married',
     ssYourCheck: 2000,
     ssSpouseCheck: 1500,
@@ -538,6 +565,7 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
   assert.ok(fix5Base.rothSweetSpotRoom > 0);
   const fix5AfterConversion = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     taxFilingStatus: 'married',
     ssYourCheck: 2000,
     ssSpouseCheck: 1500,
@@ -551,6 +579,7 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
   );
   const fix5AfterPlusOne = calculateRetirementMetrics({
     ...DEFAULT_INPUTS,
+    planYear: 2026,
     taxFilingStatus: 'married',
     ssYourCheck: 2000,
     ssSpouseCheck: 1500,
@@ -582,15 +611,15 @@ test('Audit Fixes 1–7: Ghost Tax Tier-1 Cap, Confirmed 2026 IRMAA Boundaries, 
     ...DEFAULT_INPUTS,
     ssYourCheck: 150,
     ssSpouseCheck: 0,
-    colaPct: 3.6, // $5.40 raise < $6.60 Part B hike
-    partBIncrease: 6.6,
+    colaPct: 3.6, // $5.40 raise < $6.50 Part B hike
+    partBIncrease: 6.5,
     irmaa2025Income: 80000,
   });
   assert.equal(hhCapActive.holdHarmlessProtected, true);
   assert.equal(hhCapActive.holdHarmlessProtectedStatus, '§ 1839(f) Cap Active');
 });
 
-test('Fix 6, Fix 7 & Upgrades 1–6: Standalone HTML and AdSlots synchronize all statutory formulas, inputs, disclaimers, and print/consent rules', () => {
+test('AdSlots and Compliance Helpers: GA4 config, featured videos, cookie consent key, canonical URL, and spouse share links', () => {
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, 'G-66NLH28JBQ');
   assert.equal(DEFAULT_CHANNEL_CONFIG.gaMeasurementId, DEFAULT_GA_MEASUREMENT_ID);
   assert.equal(extractGaMeasurementId(''), 'G-66NLH28JBQ');
@@ -599,6 +628,14 @@ test('Fix 6, Fix 7 & Upgrades 1–6: Standalone HTML and AdSlots synchronize all
 
   assert.equal(FEATURED_YOUTUBE_VIDEOS.length, 3);
   assert.equal(FEATURED_YOUTUBE_VIDEOS[0].calculatorActionLabel, '📑 Load 2027 COLA Math (Tab 0)');
+  const video3 = FEATURED_YOUTUBE_VIDEOS.find((v) => v.id === 'video-3');
+  assert.ok(video3);
+  assert.equal(video3.planYear, 2026);
+  assert.equal(video3.workerAgeGroup, '61');
+  assert.equal(
+    video3.calculatorActionLabel,
+    '🧮 Open the 2026 $11,250 Super Catch-Up Tool (Tab 3)'
+  );
 
   assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'nosuit_cookie_consent_v1');
   assert.equal(SITE_CANONICAL_URL, 'https://nosuitretirement.com/');
@@ -640,11 +677,11 @@ test('Task 1 & Task 2: Medicare enrollment by toggle, IRMAA enrollee count multi
     taxFilingStatus: 'married',
     primaryOnMedicare: true,
     spouseOnMedicare: false,
-    irmaa2025Income: 230000, // Tier 2 married: $1,148.40 per person
+    irmaa2025Income: 230000, // Tier 2 married: $1,189.20 per person
   });
   assert.equal(resOneEnrollee.activeMedicareEnrollees, 1);
-  assert.equal(resOneEnrollee.irmaaSurchargePerPerson, 1148.4);
-  assert.equal(resOneEnrollee.irmaaAnnualSurcharge, 1148.4);
+  assert.equal(resOneEnrollee.irmaaSurchargePerPerson, 1189.2);
+  assert.equal(resOneEnrollee.irmaaAnnualSurcharge, 1189.2);
   assert.equal(resOneEnrollee.baseMedicareCurrent, 202.9);
 
   // 3. Both enrollees on: results unchanged from the current default results
@@ -655,10 +692,10 @@ test('Task 1 & Task 2: Medicare enrollment by toggle, IRMAA enrollee count multi
   });
   assert.equal(resBothOn.activeMedicareEnrollees, 2);
   assert.equal(resBothOn.baseMedicareCurrent, 405.8);
-  assert.equal(resBothOn.totalMedicareHike, 13.2);
+  assert.equal(resBothOn.totalMedicareHike, 13.0);
   assert.equal(formatUSD(resBothOn.newNetSS), '$2,793');
-  assert.equal(resBothOn.irmaaSurchargePerPerson, 1148.4);
-  assert.equal(resBothOn.irmaaAnnualSurcharge, 2296.8);
+  assert.equal(resBothOn.irmaaSurchargePerPerson, 1189.2);
+  assert.equal(resBothOn.irmaaAnnualSurcharge, 2378.4);
 
   // 4. Presets and DATA_LAST_VERIFIED
   assert.equal(DEFAULT_INPUTS.primaryOnMedicare, true);
@@ -674,6 +711,141 @@ test('Task 1 & Task 2: Medicare enrollment by toggle, IRMAA enrollee count multi
       'Tab 1 shows $0 Social Security because benefits have not started yet at age 59.'
     )
   );
-  assert.equal(DATA_LAST_VERIFIED, '2026-11-07');
-  assert.equal(RETIREMENT_CONSTANTS.DATA_LAST_VERIFIED, '2026-11-07');
+  assert.equal(DATA_LAST_VERIFIED, '2026-11-21');
+  assert.equal(RETIREMENT_CONSTANTS.DATA_LAST_VERIFIED, '2026-11-21');
 });
+
+test('Plan year 2027 vs 2026: IRS Rev. Proc. 2026-35 standard deductions, Roth sweet spot ceilings, and IRS Notice 2026-66 401(k) catch-up limits', () => {
+  assert.equal(DEFAULT_INPUTS.planYear, 2027);
+
+  // 2027 single age 65+ standard deduction = 16,600 + 2,100 = 18,700 (plus $6,000 OBBBA when below $75K MAGI)
+  const single2027 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'single',
+    spouseOnMedicare: false,
+    ssYourCheck: 1500,
+    ssSpouseCheck: 0,
+    taxPreTaxDraw: 12000,
+    taxInterest: 1000,
+    filersAge65Plus: 1,
+  });
+  assert.equal(single2027.planYear, 2027);
+  assert.equal(single2027.taxYearLabel, '2027 tax year');
+  assert.equal(single2027.baseStandardDed, 16600);
+  assert.equal(single2027.extraAge65Ded, 2100);
+  assert.equal(single2027.baseStandardDed + single2027.extraAge65Ded, 18700);
+  assert.equal(single2027.bracket12Top, 52025);
+
+  // 2027 single Roth sweet spot ceiling check (taxable after conversion <= 52025, +1 > 52025)
+  assert.ok(single2027.rothSweetSpotRoom > 0);
+  const single2027After = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'single',
+    spouseOnMedicare: false,
+    ssYourCheck: 1500,
+    ssSpouseCheck: 0,
+    taxPreTaxDraw: 12000 + single2027.rothSweetSpotRoom,
+    taxInterest: 1000,
+    filersAge65Plus: 1,
+  });
+  assert.ok(single2027After.currentTaxable <= 52025);
+  const single2027PlusOne = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'single',
+    spouseOnMedicare: false,
+    ssYourCheck: 1500,
+    ssSpouseCheck: 0,
+    taxPreTaxDraw: 12000 + single2027.rothSweetSpotRoom + 1,
+    taxInterest: 1000,
+    filersAge65Plus: 1,
+  });
+  assert.ok(single2027PlusOne.currentTaxable > 52025);
+
+  // 2027 married both 65+ standard deduction = 33,200 + 3,400 = 36,600 (plus $12,000 OBBBA when below $150K MAGI)
+  const married2027 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'married',
+    ssYourCheck: 2000,
+    ssSpouseCheck: 1500,
+    taxPreTaxDraw: 20000,
+    taxInterest: 2000,
+    filersAge65Plus: 2,
+  });
+  assert.equal(married2027.baseStandardDed, 33200);
+  assert.equal(married2027.extraAge65Ded, 3400);
+  assert.equal(married2027.baseStandardDed + married2027.extraAge65Ded, 36600);
+  assert.equal(married2027.bracket12Top, 104050);
+
+  // 2027 married Roth sweet spot ceiling check (taxable after conversion <= 104050, +1 > 104050)
+  assert.ok(married2027.rothSweetSpotRoom > 0);
+  const married2027After = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'married',
+    ssYourCheck: 2000,
+    ssSpouseCheck: 1500,
+    taxPreTaxDraw: 20000 + married2027.rothSweetSpotRoom,
+    taxInterest: 2000,
+    filersAge65Plus: 2,
+  });
+  assert.ok(married2027After.currentTaxable <= 104050);
+  const married2027PlusOne = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    taxFilingStatus: 'married',
+    ssYourCheck: 2000,
+    ssSpouseCheck: 1500,
+    taxPreTaxDraw: 20000 + married2027.rothSweetSpotRoom + 1,
+    taxInterest: 2000,
+    filersAge65Plus: 2,
+  });
+  assert.ok(married2027PlusOne.currentTaxable > 104050);
+
+  // 2027 401(k) limits (IRS Notice 2026-66): ages 60-63 = 25,500 + 11,750 = 37,250; ages 50+ (not 60-63) = 25,500 + 8,500 = 34,000
+  const k401_2027_super = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    workerAgeGroup: '61',
+  });
+  assert.equal(k401_2027_super.base401kLimit, 25500);
+  assert.equal(k401_2027_super.catchupLimit, 11750);
+  assert.equal(k401_2027_super.total401kLimit, 37250);
+  assert.equal(k401_2027_super.mandatoryRothPriorWageThreshold, 155000);
+
+  const k401_2027_std55 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    workerAgeGroup: '55',
+  });
+  assert.equal(k401_2027_std55.base401kLimit, 25500);
+  assert.equal(k401_2027_std55.catchupLimit, 8500);
+  assert.equal(k401_2027_std55.total401kLimit, 34000);
+
+  const k401_2027_std65 = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2027,
+    workerAgeGroup: '65',
+  });
+  assert.equal(k401_2027_std65.total401kLimit, 34000);
+
+  // 2026 401(k) values unchanged (35,750 / 32,500)
+  const k401_2026_super = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2026,
+    workerAgeGroup: '61',
+  });
+  assert.equal(k401_2026_super.total401kLimit, 35750);
+  assert.equal(k401_2026_super.mandatoryRothPriorWageThreshold, 150000);
+
+  const k401_2026_std = calculateRetirementMetrics({
+    ...DEFAULT_INPUTS,
+    planYear: 2026,
+    workerAgeGroup: '65',
+  });
+  assert.equal(k401_2026_std.total401kLimit, 32500);
+});
+

@@ -3,7 +3,7 @@
  * Used across the React calculator (`src/utils/retirementMath.ts`).
  */
 
-export const DATA_LAST_VERIFIED = '2026-11-07' as const;
+export const DATA_LAST_VERIFIED = '2026-11-21' as const;
 
 export const RETIREMENT_CONSTANTS = {
   /** Date all statutory figures were last verified */
@@ -23,14 +23,15 @@ export const RETIREMENT_CONSTANTS = {
 
   /**
    * Medicare Part B Standard Monthly Premiums
-   * Source: 2026 Medicare Trustees Report projects 2027 standard Part B premium at $209.50
-   * (up $6.60 from the official 2026 standard premium of $202.90).
-   * Note: Final 2027 Part B premium is announced by CMS (usually November) — verify at cms.gov / medicare.gov.
+   * Source: Official 2027 CMS announcement (Nov 17, 2026; Federal Register Nov 19, 2026):
+   * 2027 standard Part B premium is $209.40 (up $6.50 from the official 2026 standard premium of $202.90);
+   * 2027 Part B annual deductible is $292.
    */
   MEDICARE_PART_B: {
     base2026: 202.90,
-    projected2027: 209.50,
-    defaultIncrease2027: 6.60,
+    official2027: 209.40,
+    defaultIncrease2027: 6.50,
+    deductible2027: 292,
   },
 
   /**
@@ -112,29 +113,29 @@ export const RETIREMENT_CONSTANTS = {
   },
 
   /**
-   * FIX 2 — Medicare IRMAA (Confirmed 2026 CMS rates from 2024 MAGI, Part B + Part D per person)
-   * Note: Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.
-   * Thresholds from 2024 MAGI (Single / Married):
-   *   T1 <=109,000 / <=218,000: $0
-   *   T2 109,001-137,000 / 218,001-274,000: $95.70/mo = $1,148.40/yr (couple $2,296.80)
-   *   T3 137,001-171,000 / 274,001-342,000: $240.40/mo = $2,884.80/yr (couple $5,769.60)
-   *   T4 171,001-205,000 / 342,001-410,000: $385.00/mo = $4,620.00/yr (couple $9,240.00)
-   *   T5 205,001-500,000 / 410,001-750,000: $529.60/mo = $6,355.20/yr (couple $12,710.40)
-   *   T6 >=500,000 / >=750,000 (use >= for 500,000/750,000 per CMS): $578.00/mo = $6,936.00/yr (couple $13,872.00)
+   * FIX 2 — Medicare IRMAA (Official 2027 CMS rates from 2025 MAGI, announced Nov 17, 2026; Part B + Part D per person)
+   * Note: Official 2027 CMS rates (announced Nov 17, 2026).
+   * Thresholds from 2025 MAGI (Single / Married):
+   *   T1 <=112,000 / <=224,000: $0
+   *   T2 112,001-141,000 / 224,001-282,000: $99.10/mo = $1,189.20/yr (couple $2,378.40)
+   *   T3 141,001-177,000 / 282,001-354,000: $249.10/mo = $2,989.20/yr (couple $5,978.40)
+   *   T4 177,001-212,000 / 354,001-424,000: $399.00/mo = $4,788.00/yr (couple $9,576.00)
+   *   T5 212,001-<500,000 / 424,001-<750,000: $548.90/mo = $6,586.80/yr (couple $13,173.60)
+   *   T6 >=500,000 / >=750,000 (use >= for 500,000/750,000 per CMS): $598.80/mo = $7,185.60/yr (couple $14,371.20)
    */
   IRMAA: {
-    note: 'Confirmed 2026 CMS rates; 2027 CMS announcement expected mid-November.',
-    year2026From2024Magi: {
-      single: 109000,
-      married: 218000,
+    note: 'Official 2027 CMS rates (announced Nov 17, 2026)',
+    year2027From2025Magi: {
+      single: 112000,
+      married: 224000,
     },
-    tiers2026: [
-      { tier: 1, singleMax: 109000, marriedMax: 218000, monthlyPerPerson: 0, annualPerPerson: 0 },
-      { tier: 2, singleMax: 137000, marriedMax: 274000, monthlyPerPerson: 95.70, annualPerPerson: 1148.40 },
-      { tier: 3, singleMax: 171000, marriedMax: 342000, monthlyPerPerson: 240.40, annualPerPerson: 2884.80 },
-      { tier: 4, singleMax: 205000, marriedMax: 410000, monthlyPerPerson: 385.00, annualPerPerson: 4620.00 },
-      { tier: 5, singleMax: 500000, marriedMax: 750000, monthlyPerPerson: 529.60, annualPerPerson: 6355.20, exclusiveMax: true },
-      { tier: 6, singleMax: 999999999, marriedMax: 999999999, monthlyPerPerson: 578.00, annualPerPerson: 6936.00 },
+    tiers2027: [
+      { tier: 1, singleMax: 112000, marriedMax: 224000, monthlyPerPerson: 0, annualPerPerson: 0 },
+      { tier: 2, singleMax: 141000, marriedMax: 282000, monthlyPerPerson: 99.10, annualPerPerson: 1189.20 },
+      { tier: 3, singleMax: 177000, marriedMax: 354000, monthlyPerPerson: 249.10, annualPerPerson: 2989.20 },
+      { tier: 4, singleMax: 212000, marriedMax: 424000, monthlyPerPerson: 399.00, annualPerPerson: 4788.00 },
+      { tier: 5, singleMax: 500000, marriedMax: 750000, monthlyPerPerson: 548.90, annualPerPerson: 6586.80, exclusiveMax: true },
+      { tier: 6, singleMax: 999999999, marriedMax: 999999999, monthlyPerPerson: 598.80, annualPerPerson: 7185.60 },
     ],
   },
 
@@ -170,6 +171,38 @@ export const RETIREMENT_CONSTANTS = {
     },
   },
 
+  /**
+   * Federal Income Tax & Senior Deductions (2027 Tax Year)
+   * Source: IRS Rev. Proc. 2026-35 (2027 inflation adjustments) and OBBBA (P.L. 119-21, 2025–2028 senior deduction).
+   */
+  TAX_2027: {
+    taxYearLabel: '2027 tax year',
+    standardDeduction: {
+      single: 16600,
+      married: 33200,
+    },
+    bracket12Top: {
+      single: 52025,
+      married: 104050,
+    },
+    extraAge65Deduction: {
+      single: 2100,
+      marriedPerSpouse: 1700,
+    },
+    obbbaSeniorDeduction: {
+      perPerson: 6000,
+      phaseoutStart: {
+        single: 75000,
+        married: 150000,
+      },
+      phaseoutRate: 0.06,
+    },
+    ghostTax1984: {
+      single: { line50: 25000, line85: 34000 },
+      married: { line50: 32000, line85: 44000 },
+    },
+  },
+
   /** Official 2027 Social Security Retirement Earnings Test Limits */
   SSA_EARNINGS_TEST_2027: {
     underFraAnnualLimit: 25560,
@@ -187,6 +220,14 @@ export const RETIREMENT_CONSTANTS = {
     standardCatchup50Plus: 8000,
     superCatchup60To63: 11250,
     mandatoryRothPriorWageThreshold: 150000,
+  },
+
+  /** Official 2027 IRS 401(k)/403(b) & SECURE 2.0 Super Catch-Up Limits (IRS Notice 2026-66) */
+  SECURE_2_0_CATCHUP_2027: {
+    base401kLimit: 25500,
+    standardCatchup50Plus: 8500,
+    superCatchup60To63: 11750,
+    mandatoryRothPriorWageThreshold: 155000,
   },
 
   /**
