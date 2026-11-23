@@ -1063,3 +1063,94 @@ export function calculateRetirementMetrics(inputs: RetirementInputs): Retirement
   };
 }
 
+export type PartDPlanYear = 2026 | 2027;
+
+export interface PartDStandardBenefitInput {
+  planYear?: PartDPlanYear;
+  annualCoveredRetailCost?: number;
+  planDeductible?: number;
+  annualUncoveredDrugCost?: number;
+}
+
+export interface PartDStandardBenefitResult {
+  planYear: PartDPlanYear;
+  maxDeductible: number;
+  oopCap: number;
+  coinsuranceRate: number;
+  baseBeneficiaryPremium: number;
+  annualCoveredRetailCost: number;
+  annualUncoveredDrugCost: number;
+  clampedDeductible: number;
+  deductiblePaid: number;
+  postDeductibleRetail: number;
+  uncappedInitialOop: number;
+  uncappedCoveredOop: number;
+  cappedCoveredOop: number;
+  hitCap: boolean;
+  catastrophicSavings: number;
+  smoothedMonthlyM3P: number;
+  totalTrueDrugOop: number;
+  capJumpVs2026: number;
+}
+
+export function calculatePartDStandardBenefit(
+  input: PartDStandardBenefitInput = {}
+): PartDStandardBenefitResult {
+  const planYear: PartDPlanYear = input.planYear === 2026 ? 2026 : 2027;
+  const yearCfg = RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD[planYear];
+  const { maxDeductible, oopCap, coinsuranceRate, baseBeneficiaryPremium } = yearCfg;
+
+  const rawCovered =
+    input.annualCoveredRetailCost !== undefined ? Number(input.annualCoveredRetailCost) : 8000;
+  const coveredRetail = Number.isFinite(rawCovered) ? Math.max(0, rawCovered) : 0;
+
+  const rawDeductible =
+    input.planDeductible !== undefined ? Number(input.planDeductible) : maxDeductible;
+  const safeDeductible = Number.isFinite(rawDeductible) ? rawDeductible : maxDeductible;
+  const clampedDeductible = Math.min(Math.max(0, safeDeductible), maxDeductible);
+
+  const rawUncovered =
+    input.annualUncoveredDrugCost !== undefined ? Number(input.annualUncoveredDrugCost) : 0;
+  const uncoveredCost = Number.isFinite(rawUncovered) ? Math.max(0, rawUncovered) : 0;
+
+  // Stage 1: Deductible
+  const deductiblePaid = Math.min(coveredRetail, clampedDeductible);
+
+  // Stage 2: Initial Coverage (25% standard coinsurance)
+  const postDeductibleRetail = Math.max(0, coveredRetail - clampedDeductible);
+  const uncappedInitialOop = postDeductibleRetail * coinsuranceRate;
+  const uncappedCoveredOop = deductiblePaid + uncappedInitialOop;
+
+  // Stage 3: Catastrophic Cap
+  const cappedCoveredOop = Math.min(oopCap, uncappedCoveredOop);
+  const hitCap = uncappedCoveredOop >= oopCap;
+  const catastrophicSavings = Math.max(0, uncappedCoveredOop - oopCap);
+  const smoothedMonthlyM3P = cappedCoveredOop / 12;
+
+  // True Total Drug Out-of-Pocket (excluding monthly plan premiums & IRMAA)
+  const totalTrueDrugOop = cappedCoveredOop + uncoveredCost;
+  const capJumpVs2026 = RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD.capJumpVs2026;
+
+  return {
+    planYear,
+    maxDeductible,
+    oopCap,
+    coinsuranceRate,
+    baseBeneficiaryPremium,
+    annualCoveredRetailCost: coveredRetail,
+    annualUncoveredDrugCost: uncoveredCost,
+    clampedDeductible,
+    deductiblePaid,
+    postDeductibleRetail,
+    uncappedInitialOop,
+    uncappedCoveredOop,
+    cappedCoveredOop,
+    hitCap,
+    catastrophicSavings,
+    smoothedMonthlyM3P,
+    totalTrueDrugOop,
+    capJumpVs2026,
+  };
+}
+
+

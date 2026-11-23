@@ -315,5 +315,32 @@ export const RETIREMENT_CONSTANTS = {
       breakeven70VsFraLabel: 'Age 82 and 6 months',
     },
   },
+
+  /**
+   * Medicare Part D Defined Standard Benefit Parameters (2026 vs. 2027)
+   * Source: https://www.medicare.gov/health-drug-plans/part-d/basics/costs
+   * Open Enrollment Deadline: December 7, 2026 (2027 coverage starts January 1, 2027).
+   */
+  MEDICARE_PART_D_STANDARD: {
+    sourceUrl: 'https://www.medicare.gov/health-drug-plans/part-d/basics/costs',
+    openEnrollmentDeadline: 'December 7, 2026',
+    coverageStart2027: 'January 1, 2027',
+    capJumpVs2026: 300,
+    2026: {
+      maxDeductible: 615,
+      oopCap: 2100,
+      coinsuranceRate: 0.25,
+      baseBeneficiaryPremium: 38.99,
+    },
+    2027: {
+      maxDeductible: 700,
+      oopCap: 2400,
+      coinsuranceRate: 0.25,
+      baseBeneficiaryPremium: 41.33,
+    },
+  },
 } as const;
+
+export const MEDICARE_PART_D_STANDARD = RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD;
+
 

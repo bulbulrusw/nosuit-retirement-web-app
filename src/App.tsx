@@ -6,7 +6,9 @@ import {
   PresetKey,
   QUICK_SCENARIO_PRESETS,
   QuickScenarioKey,
+  PartDPlanYear,
   RetirementInputs,
+  calculatePartDStandardBenefit,
   calculateRetirementMetrics,
   formatUSD,
 } from './utils/retirementMath';
@@ -135,6 +137,31 @@ export default function App() {
   const [locContacts, setLocContacts] = useState('');
 
   const metrics = useMemo(() => calculateRetirementMetrics(inputs), [inputs]);
+
+  // Self-contained state for Tab 1 Medicare Part D $2,400 Drug Cap Estimator
+  const [partDPlanYear, setPartDPlanYear] = useState<PartDPlanYear>(2027);
+  const [partDDeductible, setPartDDeductible] = useState<number>(
+    RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD[2027].maxDeductible
+  );
+  const [partDCoveredRetail, setPartDCoveredRetail] = useState<number>(8000);
+  const [partDUncoveredCost, setPartDUncoveredCost] = useState<number>(0);
+
+  const partDMetrics = useMemo(
+    () =>
+      calculatePartDStandardBenefit({
+        planYear: partDPlanYear,
+        planDeductible: partDDeductible,
+        annualCoveredRetailCost: partDCoveredRetail,
+        annualUncoveredDrugCost: partDUncoveredCost,
+      }),
+    [partDPlanYear, partDDeductible, partDCoveredRetail, partDUncoveredCost]
+  );
+
+  const handleSelectPartDPlanYear = (year: PartDPlanYear) => {
+    setPartDPlanYear(year);
+    const maxDedForYear = RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD[year].maxDeductible;
+    setPartDDeductible((prev) => Math.min(Math.max(0, prev), maxDedForYear));
+  };
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -905,6 +932,265 @@ export default function App() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Tool 1C: 2027 Medicare Part D $2,400 Drug Cap Estimator */}
+              <div
+                id="partDDrugCapEstimatorCard"
+                className="surface-card rounded-2xl p-5 space-y-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3.5">
+                  <div>
+                    <div className="text-sm font-bold text-emerald-800">
+                      Tool 1C · Medicare Part D Prescription Drug Cap
+                    </div>
+                    <h2 className="text-lg font-extrabold text-slate-900 mt-0.5">
+                      2027 Medicare Part D Drug Cap Estimator ($2,400 Official Limit)
+                    </h2>
+                  </div>
+                  <span
+                    id="partDDeadlineBadge"
+                    className="px-3 py-1 rounded-md bg-amber-100 text-amber-950 border border-amber-400 font-extrabold text-sm whitespace-nowrap shrink-0"
+                  >
+                    Dec 7 Deadline
+                  </span>
+                </div>
+
+                {/* Controls Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                  <div>
+                    <span
+                      id="partDPlanYearLabel"
+                      className="block text-base font-bold text-slate-800 mb-1.5"
+                    >
+                      Plan Year Cap
+                    </span>
+                    <div
+                      role="group"
+                      aria-labelledby="partDPlanYearLabel"
+                      className="grid grid-cols-2 gap-1.5 bg-[#ebe4d4] p-1 rounded-xl border border-[#c5b9a5]"
+                    >
+                      <button
+                        id="partDYear2027Btn"
+                        type="button"
+                        aria-pressed={partDPlanYear === 2027}
+                        onClick={() => handleSelectPartDPlanYear(2027)}
+                        className={`min-h-[44px] px-3 py-2 rounded-lg text-sm sm:text-base font-extrabold transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none ${
+                          partDPlanYear === 2027
+                            ? 'bg-[#1b4332] text-amber-300 shadow-xs'
+                            : 'bg-white text-slate-800 hover:bg-amber-50'
+                        }`}
+                      >
+                        2027 ($2,400 Cap)
+                      </button>
+                      <button
+                        id="partDYear2026Btn"
+                        type="button"
+                        aria-pressed={partDPlanYear === 2026}
+                        onClick={() => handleSelectPartDPlanYear(2026)}
+                        className={`min-h-[44px] px-3 py-2 rounded-lg text-sm sm:text-base font-extrabold transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none ${
+                          partDPlanYear === 2026
+                            ? 'bg-[#1b4332] text-amber-300 shadow-xs'
+                            : 'bg-white text-slate-800 hover:bg-amber-50'
+                        }`}
+                      >
+                        2026 ($2,100 Cap)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="partDDeductibleInput"
+                      className="block text-base font-bold text-slate-800"
+                    >
+                      Plan Deductible ($0–${partDMetrics.maxDeductible})
+                    </label>
+                    <input
+                      id="partDDeductibleInput"
+                      type="number"
+                      min={0}
+                      max={partDMetrics.maxDeductible}
+                      step={5}
+                      value={partDDeductible}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const safeVal = Number.isFinite(val) ? val : 0;
+                        setPartDDeductible(
+                          Math.min(Math.max(0, safeVal), partDMetrics.maxDeductible)
+                        );
+                      }}
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="partDCoveredRetailInput"
+                      className="block text-base font-bold text-slate-800"
+                    >
+                      Annual Covered Retail Drugs ($/yr)
+                    </label>
+                    <input
+                      id="partDCoveredRetailInput"
+                      type="number"
+                      min={0}
+                      step={250}
+                      value={partDCoveredRetail}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setPartDCoveredRetail(Number.isFinite(val) ? Math.max(0, val) : 0);
+                      }}
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="partDUncoveredInput"
+                      className="block text-base font-bold text-slate-800"
+                    >
+                      Non-Formulary / Uncovered ($/yr)
+                    </label>
+                    <input
+                      id="partDUncoveredInput"
+                      type="number"
+                      min={0}
+                      step={100}
+                      value={partDUncoveredCost}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setPartDUncoveredCost(Number.isFinite(val) ? Math.max(0, val) : 0);
+                      }}
+                      className="min-h-[44px] mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-amber-400 focus:outline-none px-3 py-2 font-bold font-num text-slate-900 text-base"
+                    />
+                  </div>
+                </div>
+
+                {/* Outputs Grid */}
+                <div
+                  aria-live="polite"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
+                >
+                  <div className="bg-emerald-50/90 border border-emerald-300 rounded-xl p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-emerald-950">
+                      Covered Drug Out-of-Pocket
+                    </div>
+                    <div
+                      id="partDCoveredOopVal"
+                      className="text-2xl font-extrabold text-emerald-900 font-num"
+                    >
+                      {formatUSD(partDMetrics.cappedCoveredOop)}
+                    </div>
+                    {partDMetrics.hitCap ? (
+                      <div className="pt-0.5">
+                        <span
+                          id="partDCatastrophicBadge"
+                          className="inline-block px-2.5 py-0.5 rounded-md bg-[#1b4332] text-amber-300 font-bold text-sm"
+                        >
+                          Catastrophic $0 Stage Reached
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-base text-slate-700 leading-snug">
+                        Below {partDMetrics.planYear} {formatUSD(partDMetrics.oopCap)} cap
+                      </p>
+                    )}
+                    <p className="text-sm text-slate-700 leading-snug">
+                      {partDMetrics.planYear === 2027
+                        ? `Capped at $2,400 (+$${partDMetrics.capJumpVs2026} vs. 2026)`
+                        : 'Capped at $2,100 for 2026'}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-slate-800">
+                      Catastrophic Cap Savings
+                    </div>
+                    <div
+                      id="partDCatastrophicSavingsVal"
+                      className="text-2xl font-extrabold text-emerald-800 font-num"
+                    >
+                      {formatUSD(partDMetrics.catastrophicSavings)}
+                    </div>
+                    <p className="text-base text-slate-700 leading-snug">
+                      Saved once covered spend hits {formatUSD(partDMetrics.oopCap)}
+                    </p>
+                  </div>
+
+                  <div className="bg-amber-50/90 border border-amber-300 rounded-xl p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-amber-950">
+                      Prescription Payment Plan
+                    </div>
+                    <div
+                      id="partDSmoothedM3PVal"
+                      className="text-2xl font-extrabold text-slate-900 font-num"
+                    >
+                      ~{formatUSD(partDMetrics.smoothedMonthlyM3P)}/mo
+                    </div>
+                    <p className="text-base text-slate-700 leading-snug">
+                      12-month smoothed average (Jan–Dec; spreads bills, does not cut total)
+                    </p>
+                  </div>
+
+                  <div className="bg-[#1b4332] text-white border border-amber-400/70 rounded-xl p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-amber-300">
+                      Total True Drug Spend
+                    </div>
+                    <div
+                      id="partDTotalTrueSpendVal"
+                      className="text-2xl font-extrabold text-white font-num"
+                    >
+                      {formatUSD(partDMetrics.totalTrueDrugOop)}
+                    </div>
+                    <p className="text-base text-emerald-100 leading-snug">
+                      {partDMetrics.annualUncoveredDrugCost > 0
+                        ? `Includes ${formatUSD(partDMetrics.annualUncoveredDrugCost)} uncovered`
+                        : 'Covered prescriptions only (excl. premiums)'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Red Warning Banner for Non-Formulary / Uncovered Drugs */}
+                {partDMetrics.annualUncoveredDrugCost > 0 && (
+                  <div
+                    id="partDUncoveredWarningBanner"
+                    role="alert"
+                    className="bg-red-50 border border-red-400 rounded-xl p-4 text-base text-red-950 leading-relaxed"
+                  >
+                    <strong className="font-extrabold text-red-900">
+                      Non-Formulary Trap Warning:{' '}
+                    </strong>
+                    Your{' '}
+                    <span className="font-num font-bold">
+                      {formatUSD(partDMetrics.annualUncoveredDrugCost)}/yr
+                    </span>{' '}
+                    in non-formulary or excluded drugs does <strong>NOT</strong> count toward the{' '}
+                    <span className="font-num font-bold">{formatUSD(partDMetrics.oopCap)}</span>{' '}
+                    Medicare Part D cap—you pay 100% out of pocket. Check your{' '}
+                    <strong>Annual Notice of Change (ANOC)</strong> letter and compare 2027 plan
+                    formularies before the <strong>December 7, 2026</strong> Open Enrollment
+                    deadline.
+                  </div>
+                )}
+
+                {/* Medicare.gov 2-line Footnote */}
+                <p className="text-base text-slate-700 leading-relaxed border-t border-slate-200 pt-3">
+                  Based on the{' '}
+                  <a
+                    href={RETIREMENT_CONSTANTS.MEDICARE_PART_D_STANDARD.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-semibold text-emerald-900 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none rounded"
+                  >
+                    Medicare.gov Part D defined standard 3-stage benefit
+                  </a>{' '}
+                  (deductible + 25% coinsurance up to the {formatUSD(partDMetrics.oopCap)}{' '}
+                  {partDMetrics.planYear} cap; base beneficiary premium $
+                  {partDMetrics.baseBeneficiaryPremium.toFixed(2)}/mo; 2027 coverage starts January
+                  1, 2027). Individual plans may use fixed tiered copays, and monthly Part D
+                  premiums and IRMAA surcharges are separate from the $2,400 drug cap.
+                </p>
               </div>
 
               {/* 3-Bucket Nest Egg Shield */}

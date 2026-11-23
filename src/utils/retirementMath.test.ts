@@ -4,6 +4,7 @@ import {
   DEFAULT_INPUTS,
   PRESET_PROFILES,
   QUICK_SCENARIO_PRESETS,
+  calculatePartDStandardBenefit,
   calculateRetirementMetrics,
   formatUSD,
 } from './retirementMath.ts';
@@ -848,4 +849,46 @@ test('Plan year 2027 vs 2026: IRS Rev. Proc. 2026-35 standard deductions, Roth s
   });
   assert.equal(k401_2026_std.total401kLimit, 32500);
 });
+
+test('Medicare Part D Standard Benefit: 2027 break-even, catastrophic cap + uncovered trap, and 2026 comparison with deductible clamp', () => {
+  // 1. 2027 standard break-even: deductible=700, coveredRetail=7500, uncovered=0 => cappedCoveredOop=2400, hitCap=true, catastrophicSavings=0
+  const breakEven2027 = calculatePartDStandardBenefit({
+    planYear: 2027,
+    planDeductible: 700,
+    annualCoveredRetailCost: 7500,
+    annualUncoveredDrugCost: 0,
+  });
+  assert.equal(breakEven2027.cappedCoveredOop, 2400);
+  assert.equal(breakEven2027.hitCap, true);
+  assert.equal(breakEven2027.catastrophicSavings, 0);
+  assert.equal(breakEven2027.smoothedMonthlyM3P, 200);
+  assert.equal(breakEven2027.totalTrueDrugOop, 2400);
+  assert.equal(breakEven2027.capJumpVs2026, 300);
+
+  // 2. 2027 catastrophic cap + uncovered trap: deductible=700, coveredRetail=10000, uncovered=500 => cappedCoveredOop=2400, catastrophicSavings=625, totalTrueDrugOop=2900
+  const catastrophicWithUncovered = calculatePartDStandardBenefit({
+    planYear: 2027,
+    planDeductible: 700,
+    annualCoveredRetailCost: 10000,
+    annualUncoveredDrugCost: 500,
+  });
+  assert.equal(catastrophicWithUncovered.cappedCoveredOop, 2400);
+  assert.equal(catastrophicWithUncovered.hitCap, true);
+  assert.equal(catastrophicWithUncovered.catastrophicSavings, 625);
+  assert.equal(catastrophicWithUncovered.totalTrueDrugOop, 2900);
+
+  // 3. 2026 vs 2027 comparison + deductible clamp: planYear=2026, deductible=700 (clamps to 615), coveredRetail=6555, uncovered=0 => cappedCoveredOop=2100, hitCap=true
+  const compare2026Clamped = calculatePartDStandardBenefit({
+    planYear: 2026,
+    planDeductible: 700,
+    annualCoveredRetailCost: 6555,
+    annualUncoveredDrugCost: 0,
+  });
+  assert.equal(compare2026Clamped.clampedDeductible, 615);
+  assert.equal(compare2026Clamped.cappedCoveredOop, 2100);
+  assert.equal(compare2026Clamped.hitCap, true);
+  assert.equal(compare2026Clamped.catastrophicSavings, 0);
+  assert.equal(compare2026Clamped.smoothedMonthlyM3P, 175);
+});
+
 
